@@ -328,10 +328,34 @@ def check_process_substitution(command: str) -> None:
 # --------------------------------------------------------------------------
 
 
+HEREDOC_RE = re.compile(r"<<-?[ \t]*(['\"]?)([A-Za-z_][A-Za-z0-9_]*)\1[^\n]*\n(.*?)(?:^[ \t]*\2[ \t]*$|\Z)", re.DOTALL | re.MULTILINE)
+
+
+def strip_heredocs(command: str) -> tuple[str, list[str]]:
+    """Remove heredoc bodies. Bodies are data, not commands.
+
+    A quoted delimiter (<<'EOF') disables expansion, so its body is dropped.
+    An unquoted delimiter still runs $(...) and `...`, so those substitutions
+    are returned for separate evaluation.
+    """
+    nested: list[str] = []
+
+    def repl(m: re.Match) -> str:
+        quoted, body = bool(m.group(1)), m.group(3)
+        if not quoted:
+            nested.extend(a or b for a, b in re.findall(r"\$\(([^()]*)\)|`([^`]*)`", body))
+        return m.group(0)[: m.start(3) - m.start(0)]
+
+    return HEREDOC_RE.sub(repl, command), nested
+
+
 def evaluate(command: str, ctx: Context, depth: int = 0) -> None:
     """Raise Blocked if the command violates a rule."""
     if depth > 3 or not command.strip():
         return
+    command, heredoc_subs = strip_heredocs(command)
+    for inner in heredoc_subs:
+        evaluate(inner, ctx, depth + 1)
     for rx in ctx.extra_regex:
         if re.search(rx, command):
             raise Blocked(f"command matches blocked pattern '{rx}'.")

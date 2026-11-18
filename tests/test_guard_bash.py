@@ -235,6 +235,20 @@ class GuardBashTest(unittest.TestCase):
         self.assertBlocked("echo $(gh pr merge 3)")
         self.assertBlocked("git status && git push --force origin x")
 
+    # --- heredocs ------------------------------------------------------
+
+    def test_quoted_heredoc_body_is_data(self):
+        cmd = "cat > docs/x.md <<'EOF'\nNever run `gh pr merge`. Don't git push origin main.\nEOF\necho done"
+        self.assertAllowed(cmd)
+
+    def test_command_after_heredoc_still_checked(self):
+        cmd = "cat > x.md <<'EOF'\nharmless\nEOF\ngit push origin main"
+        self.assertBlocked(cmd)
+
+    def test_unquoted_heredoc_substitution_checked(self):
+        cmd = "cat > x.md <<EOF\nresult: $(gh pr merge 3)\nEOF"
+        self.assertBlocked(cmd)
+
     # --- normal commands ------------------------------------------------
 
     def test_normal_commands_allowed(self):
