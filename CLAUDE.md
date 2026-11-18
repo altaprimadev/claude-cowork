@@ -29,7 +29,10 @@ A subagent does the work inside its own skill. When you were dispatched as a sub
 | Reporting | Daily schedule | `reporter` | `daily-report` |
 
 You coordinate review with the `review-two-stage` skill. Run stage 2 only after stage 1 passes.
-A human in an interactive session may ask for a brief. Use the `draft-brief` skill directly; it is not a pipeline stage and never runs in scheduled tasks.
+Human-invoked skills run only in interactive sessions, never in scheduled tasks, and are not pipeline stages. Use them directly when a human asks:
+- `draft-brief`: draft a brief; post it on `post now`.
+- `inbox`: list what waits on the human.
+- `answer`: answer an `ai:needs-human` or `ai:blocked` item; post on `post now`.
 Stack packs are the skills listed in the target repo's `.agent/profile.yml` -> `packs`.
 Gate 3 (production) has no agent and no skill. Only humans promote to production.
 

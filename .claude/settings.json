@@ -11,6 +11,8 @@
       "Skill(review-two-stage)",
       "Skill(daily-report)",
       "Skill(draft-brief)",
+      "Skill(inbox)",
+      "Skill(answer)",
       "Skill(stack-typescript-bun)",
       "Skill(stack-nextjs-ui)",
       "Skill(stack-hono-api)",

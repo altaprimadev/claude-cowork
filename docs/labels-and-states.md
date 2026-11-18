@@ -25,6 +25,9 @@ Rules:
 - An issue has at most one of `ai:ready`, `ai:in-progress`, `ai:blocked`, `ai:needs-human` at a time.
 - Every label change comes with a comment that says why.
 - A human clears `ai:needs-human` by answering in a comment and removing the label. The next scheduled run picks the issue up again.
+  - The `answer` skill (`/answer <ref>`) does both from chat. It also sets the labels each stage needs to resume, for example `ai:ready` on a sub-issue.
+  - Briefs re-enter intake only when `ai:triaged` is removed too. `answer` removes it.
+  - Autonomy, registry, and branch-protection blockers cannot be cleared by a comment. They need a PR or a platform change.
 - Only humans approve and merge. Labels never replace an approval.
 
 ## State machine

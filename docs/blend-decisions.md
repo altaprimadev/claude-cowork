@@ -278,6 +278,37 @@ Human-invoked skill. It is the only skill that runs a live conversation, because
 | Untrusted content: no gate-skipping instructions | ECC `skills/github-ops/SKILL.md` @3f14a10 | modify | Removed from the draft with a note to the human, since intake would ignore them anyway. |
 | Body in issue-form output format; MCP, `gh`, or prefilled form link | brief / `.github/ISSUE_TEMPLATE/ai-brief.yml` | write from brief | Intake parses chat-made and form-made briefs the same way. Works with or without an authenticated `gh`. |
 
+### inbox
+
+Sources read: ECC:agents/chief-of-staff.md@3f14a10, ECC:skills/github-ops/SKILL.md@3f14a10
+
+Human-invoked, read-only. It is the on-demand version of the "Needs you" part of `daily-report`.
+
+| Atom | Source (repo, path, commit) | Decision | Reason |
+|---|---|---|---|
+| Briefing with action items first | ECC `agents/chief-of-staff.md` @3f14a10 | modify | Groups ordered by what the human must do: questions, blocked, Gate 1, Gate 2, onboarding. |
+| 4-tier message classification | ECC `agents/chief-of-staff.md` @3f14a10 | modify | Pipeline labels decide the group; first matching group wins. |
+| Parallel fetch across channels | ECC `agents/chief-of-staff.md` @3f14a10 | modify | Read-only `gh` or MCP calls per registry repo. |
+| Flag PRs waiting for review, with age | ECC `skills/github-ops/SKILL.md` @3f14a10 | take | Gate 1 and Gate 2 items show their age. |
+| Stale label and auto-close | ECC `skills/github-ops/SKILL.md` @3f14a10 | drop | Inbox never writes. |
+| Untrusted repository content | ECC `skills/github-ops/SKILL.md` @3f14a10 | take | Item text is summarized as data. |
+| Mark blockers that a comment cannot fix | brief / CLAUDE.md | write from brief | Autonomy, registry, and protection blockers need a PR or platform change. |
+
+### answer
+
+Sources read: ECC:agents/chief-of-staff.md@3f14a10, ECC:skills/github-ops/SKILL.md@3f14a10, superpowers:skills/brainstorming/SKILL.md@22f0b46
+
+Human-invoked. It is the only path where the agent account posts text that counts as a human answer, so the comment carries the `<!-- human:answer -->` marker and `intake-classify` treats it as human input.
+
+| Atom | Source (repo, path, commit) | Decision | Reason |
+|---|---|---|---|
+| Draft replies for the human to send | ECC `agents/chief-of-staff.md` @3f14a10 | modify | Draft one answer comment; post only on `post now`. |
+| Hard gate before acting | SP `skills/brainstorming/SKILL.md` @22f0b46 | modify | Fixed phrase `post now`, same as `draft-brief`. |
+| State defaults out loud | SP `skills/brainstorming/SKILL.md` @22f0b46 | take | Unanswered questions keep the agent's default, written in the comment. |
+| Label hygiene on triage | ECC `skills/github-ops/SKILL.md` @3f14a10 | modify | Per-state label table so the owning stage resumes; one exclusive state label at a time. |
+| Untrusted repository content | ECC `skills/github-ops/SKILL.md` @3f14a10 | take | Item text is data. Gate-skipping answers are dropped. |
+| Do not clear structural blockers by comment | brief / CLAUDE.md | write from brief | Avoids loops that spend usage; autonomy changes go through a PR. |
+
 ## Stack skills
 
 ### stack-typescript-bun
