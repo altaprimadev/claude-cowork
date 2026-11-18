@@ -1,0 +1,26 @@
+# Global policy for every agent session. Humans change it via PR.
+
+# Maximum cloud sessions running agent work at the same time, across all repos.
+max_parallel_sessions: 3
+
+# Maximum implementation tasks (ai:in-progress) per repo at the same time.
+max_parallel_tasks_per_repo: 1
+
+# Changes up to this many changed lines that touch only docs, comments, or
+# typos may skip design and planning. They still need a PR and human approval.
+trivial_change_max_lines: 20
+
+# Gates. Agents never pass a gate on their own.
+gates:
+  design: pr_merge          # Gate 1: a human merges the design PR
+  code: human_pr_approval   # Gate 2: a human approves the code PR
+  production: human_only    # Gate 3: never by an agent (Coolify or protected branch)
+
+# Every pipeline label starts with this prefix, except size:small / size:large.
+labels_namespace: "ai:"
+
+# Attempts before an agent stops and labels ai:blocked.
+max_fix_attempts: 3
+
+# Repo that hosts daily report issues and briefs.
+control_repo: altaprimadev/claude-cowork
