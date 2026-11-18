@@ -10,6 +10,7 @@
       "Skill(evidence-report)",
       "Skill(review-two-stage)",
       "Skill(daily-report)",
+      "Skill(write-brief)",
       "Skill(stack-typescript-bun)",
       "Skill(stack-nextjs-ui)",
       "Skill(stack-hono-api)",

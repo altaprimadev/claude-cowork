@@ -4,7 +4,7 @@ Control plane for AI-driven development at `altaprimadev`. Agents work around th
 
 Humans do four things:
 
-1. File a brief (issue form **AI brief**).
+1. File a brief: run `/write-brief <idea>` in a Claude Code session on this repo, or use the issue form **AI brief**.
 2. Watch progress live in GitHub and read the daily report.
 3. Approve at the gates: merge design PRs (Gate 1), approve code PRs (Gate 2), promote to production (Gate 3).
 4. Operators manage this repo's configuration through PRs.
@@ -15,7 +15,7 @@ Humans do four things:
 |---|---|
 | `CLAUDE.md` | Orchestrator rules and the stage → agent → skill map. Loads in every session. |
 | `.claude/agents/` | Eight fixed agents, one per pipeline role |
-| `.claude/skills/` | Eight stage skills and six stack skills |
+| `.claude/skills/` | Eight stage skills, six stack skills, and `write-brief` (human-invoked brief writer) |
 | `.claude/settings.json` | Guard hook and permissions, including `Skill(<name>)` allow rules |
 | `.claude/hooks/guard_bash.py` | PreToolUse guard that blocks destructive Bash commands |
 | `registry/` | Managed repos (`repos.yml`) and global policy (`policy.yml`) |

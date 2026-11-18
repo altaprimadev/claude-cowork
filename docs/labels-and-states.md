@@ -7,7 +7,7 @@ GitHub is the state store. Labels show where each issue or PR is in the pipeline
 
 | Label | Meaning | Set by |
 |---|---|---|
-| `ai:brief` | New brief from a human | Brief form (`.github/ISSUE_TEMPLATE/ai-brief.yml`) |
+| `ai:brief` | New brief from a human | Brief form (`.github/ISSUE_TEMPLATE/ai-brief.yml`) or the `write-brief` skill |
 | `ai:triaged` | Brief classified | `intake-triager` |
 | `size:small` | Small task: no design | `intake-triager` |
 | `size:large` | Large task: design first (Gate 1) | `intake-triager` |

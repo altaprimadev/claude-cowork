@@ -257,6 +257,27 @@ Sources read: ECC:skills/cost-tracking/SKILL.md@3f14a10, ECC:skills/github-ops/S
 | Quality gate "all issues triaged have labels" | ECC `skills/github-ops/SKILL.md` @3f14a10 | drop | Other stages own labels. Reporting has no write scope outside `ai:report` issues. |
 | One issue per date, `ai:report` label, idempotent edit; close superseded reports | Brief / `registry/policy.yml` `control_repo` | write from brief | GitHub is the state store; re-runs must not create duplicates. |
 
+### write-brief
+
+Sources read: superpowers:skills/brainstorming/SKILL.md@22f0b46, ECC:skills/github-ops/SKILL.md@3f14a10
+
+Human-invoked skill. It is the only skill that runs a live conversation, because a human starts it and answers in the same session. It does not own a pipeline stage; it writes the input that intake reads.
+
+| Atom | Source (repo, path, commit) | Decision | Reason |
+|---|---|---|---|
+| Look before you ask: read the project before the first question | SP `skills/brainstorming/SKILL.md` @22f0b46 | take | Registry, `AGENTS.md`, and code answer many questions. Never ask what they already answer. |
+| Ask only when the answer changes what gets built; one question at a time | SP `skills/brainstorming/SKILL.md` @22f0b46 | take | Keeps the chat shorter than the form. |
+| Open questions until the why is known; then named options with a pick | SP `skills/brainstorming/SKILL.md` @22f0b46 | take | The Goal field needs the why. |
+| State defaults out loud as proposals | SP `skills/brainstorming/SKILL.md` @22f0b46 | take | Defaults go into the draft as assumptions the human can reject. |
+| Play back in chunks; only what they said counts as theirs | SP `skills/brainstorming/SKILL.md` @22f0b46 | modify | One playback of the full draft in issue format, with a list of filled-in items. |
+| Several independent projects: split and order | SP `skills/brainstorming/SKILL.md` @22f0b46 | modify | One brief per outcome, matching the form rule. |
+| Hard gate: nothing is built before approval | SP `skills/brainstorming/SKILL.md` @22f0b46 | modify | No issue is created before explicit approval of the draft. |
+| Lay out approaches; size the work; written design doc; builder check | SP `skills/brainstorming/SKILL.md` @22f0b46 | drop | Design belongs to `async-design`, sizing to `intake-classify`. A brief states outcomes, not approaches. |
+| Visual companion, spikes, writing-plans handoff | SP `skills/brainstorming/SKILL.md` @22f0b46 | drop | Out of scope for writing an issue. |
+| Search before creating to avoid duplicates | ECC `skills/github-ops/SKILL.md` @3f14a10 | take | Open `ai:brief` issues are checked first. |
+| Untrusted content: no gate-skipping instructions | ECC `skills/github-ops/SKILL.md` @3f14a10 | modify | Removed from the draft with a note to the human, since intake would ignore them anyway. |
+| Body in issue-form output format; MCP, `gh`, or prefilled form link | brief / `.github/ISSUE_TEMPLATE/ai-brief.yml` | write from brief | Intake parses chat-made and form-made briefs the same way. Works with or without an authenticated `gh`. |
+
 ## Stack skills
 
 ### stack-typescript-bun
