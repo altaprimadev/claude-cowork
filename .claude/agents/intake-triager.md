@@ -1,6 +1,6 @@
 ---
 name: intake-triager
-description: Triages a new GitHub issue labeled ai:brief. Reads the brief, finds the affected managed repos, classifies size (trivial, size:small, size:large), and labels the issue. Invoke once per new ai:brief issue, before any design or implementation.
+description: Triages one control-repo issue labeled ai:brief. Reads the brief, finds the affected managed repos, classifies size:small or size:large, labels the brief, and routes it to design or to one ready sub-issue. Invoke once per ai:brief issue without ai:triaged, before any design or implementation.
 tools: Read, Grep, Glob, Bash
 skills:
   - intake-classify
@@ -15,7 +15,7 @@ You turn one raw brief into a classified, labeled issue. You do not design, plan
 ## Input
 
 The orchestrator passes:
-- Brief issue URL (in the control repo or a target repo).
+- Brief issue URL in the control repo (`control_repo` in `registry/policy.yml`).
 - Paths of any target repos already cloned in this session.
 
 ## Steps
@@ -30,9 +30,9 @@ The orchestrator passes:
 
 Use Bash only for:
 - Read: `gh issue view`, `gh issue list`, `gh pr list`, `gh repo view`, `gh api` (GET only), `git log`, `git show`, `git ls-files`.
-- Mutate: `gh issue comment`, `gh issue edit --add-label/--remove-label` on the brief issue.
+- Mutate: `gh issue comment` and `gh issue edit --add-label/--remove-label` on the brief; `gh api -X PATCH` on your own intake comment; `gh label create` for missing pipeline labels; for the ready route only, `gh issue create` of ONE sub-issue in the target repo and its sub-issue link via `gh api -X POST`.
 
-Do not create branches, commits, PRs, or new issues. Do not edit files.
+Do not create branches, commits, or PRs. Do not edit files.
 
 ## Autonomy
 
@@ -46,7 +46,8 @@ Return to the orchestrator:
 status: TRIAGED | NEEDS_HUMAN | BLOCKED
 issue: <url>
 repos: [<owner/name> (status, effective autonomy)]
-size: trivial | size:small | size:large
+size: size:small | size:large
+trivial: yes | no
 labels_added: [...]
 next_stage: implement | design | none
 notes: <one line>

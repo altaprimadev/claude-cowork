@@ -47,7 +47,7 @@ open_questions: <count, or none>
 
 - A value cannot be detected (for example, no test command): use `""` or `null`, list it in the PR body as a question with your default, add `ai:needs-human` to the PR.
 - Repo status is `frozen`: do nothing, return `BLOCKED`.
-- Clone, push, or PR creation fails twice: return `BLOCKED` with the command output.
+- Clone, push, or PR creation fails twice: add `ai:blocked` to the onboarding PR if it exists, return `BLOCKED` with the command output.
 
 ## Integrity
 
