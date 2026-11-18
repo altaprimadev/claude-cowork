@@ -143,6 +143,19 @@ Sources:
 | Hosted containers have no command sandbox. `sandbox.filesystem` and `sandbox.network` rules are not enforced | verified | https://code.claude.com/docs/en/changelog, https://code.claude.com/docs/en/settings |
 | Self-hosted runners should use `--trust-workspace false` | verified: the flag exists and drops repo permission grants | https://code.claude.com/docs/en/self-hosted-environments-reference |
 
+## Account and plan constraint (2026-11-18)
+
+**Status: verified.**
+
+- `altaprimadev` is a personal GitHub user account, not an organization. The brief assumed an organization on the Team plan.
+- Without Pro or Team, private repos cannot use branch protection. Layer 1 (platform integrity) is therefore missing.
+
+Design impact (safest assumption):
+- `CLAUDE.md` caps effective autonomy at `0` for any repo whose default branch is unprotected.
+- CODEOWNERS uses usernames (`@adhemukhlis`) instead of teams.
+- The machine user joins each repo as a collaborator. On a personal account, collaborators always get write access.
+- Revisit when the account moves to Pro, or to an organization on the Team plan. See `docs/setup.md`, "Current state".
+
 ## Observed in this build session
 
 The build session ran with `claude-cowork` as its only repo. Its `.claude/settings.json` hook was active. The hook blocked a heredoc that only mentioned `gh pr merge` as text. That false positive was fixed: heredoc bodies are now treated as data. This observation supports the single-repo row of Q4.

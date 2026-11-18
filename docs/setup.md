@@ -1,21 +1,46 @@
 # Setup: from zero to pilot
 
 Do these steps in order. Each step lists who does it.
-The agent never runs the scripts in this repo against the org. Humans run them.
+The agent never runs the scripts in this repo against GitHub. Humans run them.
 
-## 1. Agent identity (org admin)
+## Current state (2026-11-18)
 
-- [ ] Create a company Claude account for the agent. Use a Team or Enterprise seat so org managed settings apply.
-- [ ] Create a GitHub machine user, for example `altaprima-agent`. Turn on 2FA. Store its recovery codes in the company vault.
-- [ ] Add the machine user to the org with **write** access to managed repos only.
-  - Never give it admin rights.
-  - Never add it to CODEOWNERS.
-  - Never add it to a team that can approve.
+| Item | State |
+|---|---|
+| `altaprimadev` account type | **Personal user account**, not an organization. There are no GitHub teams. |
+| GitHub plan | Free. No Pro or Team plan yet. |
+| Branch protection | **Not active.** Private repos on a free personal account cannot use it. |
+| CODEOWNERS | `@adhemukhlis` (a human collaborator) |
+| Autonomy cap | **0 for every repo** until branch protection is active. `CLAUDE.md` enforces this. |
+
+Without branch protection, the gates rest on instructions, the guard hook, and a human who merges by hand. That breaks the brief's rule that the platform enforces integrity. At autonomy 0 agents open no code PRs, so the gap is acceptable for the pilot.
+
+When `altaprimadev` gets Pro, or moves to an organization on the Team plan:
+
+1. Apply branch protection (step 2).
+2. Remove the autonomy cap rows above.
+3. Raise autonomy per repo (step 8).
+
+Moving to an organization is recommended before onboarding a second repo. It adds teams, per-repo access for the machine user, and Team-plan protection rules.
+
+## 1. Agent identity (account owner)
+
+- [ ] Create a company Claude account for the agent. Use a Team or Enterprise seat, so Claude managed settings apply.
+- [ ] Create a GitHub machine user for the agent, for example `altaprima-agent`.
+  - Turn on 2FA.
+  - Store its recovery codes in the company vault.
+  - Never reuse `altaprimadev` or a person's account.
+- [ ] Turn on 2FA for `altaprimadev` and for every human reviewer.
+- [ ] As `altaprimadev`, invite the machine user as a **collaborator** on each managed repo.
+  - A personal account always grants collaborators write access. An organization can grant less.
+  - Never make the machine user a code owner.
 - [ ] Connect the agent Claude account to GitHub as the machine user. Install the Claude GitHub App on `claude-cowork` and on every managed repo. Event triggers need the app (Q2).
 
-## 2. GitHub integrity (repo admin, per repo)
+## 2. GitHub integrity (repo owner, per repo)
 
-- [ ] Fill in `.github/CODEOWNERS` with a human team. Replace `<owner-team>`.
+Branch protection needs Pro (personal account) or Team (organization) for private repos. Run the protection script as `altaprimadev`: collaborators on a personal account are not admins.
+
+- [ ] Set `.github/CODEOWNERS` to human reviewers: GitHub usernames, or `@org/team` after a move to an organization. Invite each reviewer as a collaborator.
 - [ ] Create the labels:
 
   ```bash
@@ -41,7 +66,7 @@ The agent never runs the scripts in this repo against the org. Humans run them.
 - [ ] Protect `production` the same way when a repo uses a production branch.
 - [ ] For `claude-cowork` itself, use the check from this repo's CI (step 9).
 
-## 3. Cloud environment (org admin, claude.ai/code)
+## 3. Cloud environment (Claude org admin, claude.ai/code)
 
 - [ ] Create a hosted environment named `altaprima-default`.
 - [ ] Network: use an allowlist, not full access. Allow only:
@@ -53,11 +78,11 @@ The agent never runs the scripts in this repo against the org. Humans run them.
 - [ ] Setup script: install Bun if the image lacks it (`curl -fsSL https://bun.sh/install -o /tmp/bun-install.sh && bash /tmp/bun-install.sh`). Pin the version.
 - [ ] Self-hosted environment: create one only for repos that need a private network or heavy builds. Start the runner with `--trust-workspace false`.
 
-## 4. Guard hook in managed settings (org admin)
+## 4. Guard hook in managed settings (Claude org admin)
 
 Repo hooks do **not** load in multi-repo hosted sessions (`docs/open-questions.md`, Q4). Every agent session is multi-repo, so install the hook at org level as well.
 
-- [ ] In the org's server-managed Claude Code settings, add:
+- [ ] In the Claude organization's server-managed Claude Code settings, add:
 
   ```json
   {
@@ -82,11 +107,11 @@ Repo hooks do **not** load in multi-repo hosted sessions (`docs/open-questions.m
 - [ ] Self-hosted runners: add the same block to the host's `~/.claude/settings.json`.
 - [ ] Verify in a pilot session: `git push origin main` must be blocked with a `BLOCKED by .claude/hooks/guard_bash.py` message.
 
-## 5. Permissions for unattended runs (org admin)
+## 5. Permissions for unattended runs (Claude org admin)
 
 Scheduled-task runs start in auto mode (Q5). They still stop on `ask` rules. Repo permission rules do not load in multi-repo sessions (Q4).
 
-- [ ] Copy `permissions.allow` and `permissions.deny` from `.claude/settings.json` into the org managed settings. Include every `Skill(<name>)` rule.
+- [ ] Copy `permissions.allow` and `permissions.deny` from `.claude/settings.json` into the Claude organization managed settings. Include every `Skill(<name>)` rule.
 - [ ] Add no `ask` rule for commands that scheduled tasks need.
 - [ ] Keep `deny` rules for `gh pr merge`, `gh repo delete`, and force pushes.
 
