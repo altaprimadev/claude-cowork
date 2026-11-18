@@ -156,6 +156,24 @@ Design impact (safest assumption):
 - The machine user joins each repo as a collaborator. On a personal account, collaborators always get write access.
 - Revisit when the account moves to Pro, or to an organization on the Team plan. See `docs/setup.md`, "Current state".
 
+## Claude plan and account constraint (2026-11-18)
+
+**Status: decision recorded. The Max behavior is not verified.**
+
+- The Claude plan is Team Standard now. It moves to individual Max next month.
+- Server-managed settings are an organization feature (Team or Enterprise). An individual Max account has none.
+- Without managed settings, no verified way exists to load the guard hook or the allow rules in multi-repo sessions (Q4).
+- Decision: one Claude account runs agent sessions. Its GitHub connection is the machine user `altaprimabot`. This deviates from the brief's "dedicated Claude account". The GitHub identity split still holds: the agent works as `altaprimabot`, and humans approve as themselves.
+
+Consequences:
+- Agent sessions and human sessions share one usage quota and one session list.
+- Interactive sessions on that account also act on GitHub as `altaprimabot`.
+
+Safe path:
+- Autonomy stays `0` until `altaprimadev` has Pro and branch protection is active. `CLAUDE.md` already enforces this.
+- Before raising autonomy on Max, test in a pilot whether an environment setup script can install the guard hook in multi-repo sessions. Record the result here.
+- If agent usage hits plan limits, move the agent to its own Claude account.
+
 ## Observed in this build session
 
-The build session ran with `claude-cowork` as its only repo. Its `.claude/settings.json` hook was active. The hook blocked a heredoc that only mentioned `gh pr merge` as text. That false positive was fixed: heredoc bodies are now treated as data. This observation supports the single-repo row of Q4.
+The build session ran with `claude-cowork` as its only repo. Its `.claude/settings.json` hook was active. It also blocked a `git push -f` by the build agent itself. The hook blocked a heredoc that only mentioned `gh pr merge` as text. That false positive was fixed: heredoc bodies are now treated as data. This observation supports the single-repo row of Q4.
