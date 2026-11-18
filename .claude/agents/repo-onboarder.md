@@ -28,7 +28,7 @@ The orchestrator passes:
 
 ## Write scope
 
-Write only `.agent/profile.yml`, `AGENTS.md`, and files the skill explicitly lists. Never touch source, tests, CI, or deploy config. Never edit `registry/repos.yml` or `registry/policy.yml`; propose registry changes in the PR body.
+Write only `.agent/profile.yml`, `AGENTS.md`, and files the skill explicitly lists. Never touch source, tests, CI, or deploy config. In claude-cowork, change only the repo's entry in `registry/repos.yml` (status `onboarding`, autonomy 0), on a feature branch, through a PR as the skill describes. Never push to `main`. Never edit `registry/policy.yml`.
 
 ## Output
 

@@ -76,7 +76,7 @@ Review runs at any autonomy level; it writes no code. At effective autonomy 0 th
    gh pr edit <pr> --repo <owner/repo> --add-label ai:changes-needed --remove-label ai:review-passed
    ```
 
-9. **Hand off.** `ai:changes-needed` at autonomy ≥ 1: dispatch the implementer with the PR URL, the open critical and major findings verbatim, and the fix attempt number. When it pushes, start again at step 1. At autonomy 0: add `ai:needs-human` instead.
+9. **Hand off.** `ai:changes-needed` at autonomy ≥ 1: dispatch the implementer with the PR URL, the open critical and major findings verbatim, and the fix attempt number. When it pushes, start again at step 1. Add `ai:needs-human` instead of dispatching when autonomy is 0, or when fix rounds (round − 1) already equal `max_fix_attempts`.
 
 Never fix findings yourself. Never drop a finding silently; if you think one is wrong, say so in the comment and let the human decide.
 
