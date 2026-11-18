@@ -12,9 +12,9 @@ The agent never runs the scripts in this repo against GitHub. Humans run them.
 | Branch protection | **Not active.** Private repos on a free personal account cannot use it. |
 | CODEOWNERS | `@adhemukhlis` (a human collaborator) |
 | Autonomy cap | **0 for every repo** until branch protection is active. `CLAUDE.md` enforces this. |
-| Agent GitHub identity | Machine user `altaprimabot`, invited as a collaborator on `claude-cowork` |
-| Agent Claude account | **One shared Claude account** runs both agent sessions and human chat sessions. Its GitHub connection is `altaprimabot`. Humans approve only in GitHub web, with their own accounts. |
-| Claude plan | Team Standard now. Moving to individual Max next month: managed settings will be lost (see `docs/open-questions.md`, "Claude plan constraint"). |
+| Agent GitHub identity | **`altaprimadev`, the repo owner (admin).** No separate machine user. Accepted risk: the agent holds admin rights, so the guard hook and `CLAUDE.md` are the only barriers. |
+| Agent Claude account | **One shared Claude account** runs both agent sessions and human chat sessions. Its GitHub connection is `altaprimadev`. The human reviewer `adhemukhlis` approves only in GitHub web. |
+| Claude plan | Team Standard now. **Team Premium** (Max-level usage) for the account that runs agents, coming soon. The team stays on a Team plan so managed settings keep the guard hook active in multi-repo sessions. |
 
 Without branch protection, the gates rest on instructions, the guard hook, and a human who merges by hand. That breaks the brief's rule that the platform enforces integrity. At autonomy 0 agents open no code PRs, so the gap is acceptable for the pilot.
 
@@ -69,16 +69,30 @@ Branch protection needs Pro (personal account) or Team (organization) for privat
 - [ ] Protect `production` the same way when a repo uses a production branch.
 - [ ] For `claude-cowork` itself, use the check from this repo's CI (step 9).
 
-## 3. Cloud environment (Claude org admin, claude.ai/code)
+## 3. Cloud environment (account owner, claude.ai/code)
 
-- [ ] Create a hosted environment named `altaprima-default`.
-- [ ] Network: use an allowlist, not full access. Allow only:
-  - `github.com`, `api.github.com`, `codeload.github.com`, `objects.githubusercontent.com`
-  - `registry.npmjs.org`, `bun.sh`
-  - `cdn.playwright.dev`, `playwright.download.prss.microsoft.com` (only for repos with E2E)
-  - `binaries.prisma.sh` (only for Prisma repos)
-- [ ] Secrets: add none by default. If a repo needs a test secret, use a staging-only value.
-- [ ] Setup script: install Bun if the image lacks it (`curl -fsSL https://bun.sh/install -o /tmp/bun-install.sh && bash /tmp/bun-install.sh`). Pin the version.
+Open it from a session: the cloud environment menu in the session's title bar → **Edit**, or create a new environment from the same menu. Reference: https://code.claude.com/docs/en/cloud-environments#network-access
+
+- [ ] Create a hosted environment named `altaprima-default`. Use it for every scheduled task.
+- [ ] **Network access:** choose **Limited**. Leave **Allow package managers** ticked; it covers the standard package registries. Under **Allowed domains**, add only:
+  - `bun.sh` (Bun installer, only if the image lacks Bun)
+  - `binaries.prisma.sh` (only once a Prisma repo is onboarded)
+  - `cdn.playwright.dev`, `playwright.download.prss.microsoft.com` (only once a repo with E2E is onboarded)
+
+  GitHub access goes through the session's Git proxy and the Claude GitHub App. A denied host shows its name in the session; add it only if a skill needs it.
+- [ ] **Environment variables and secrets:** add none. The pipeline needs no secret in v0.1.0. Setup scripts cannot read saved variables.
+- [ ] **Setup script:** the hosted image already has Bun (1.4.4 observed on 2026-11-18) and Python 3. Keep the script as a guard only:
+
+  ```bash
+  #!/usr/bin/env bash
+  set -euo pipefail
+  command -v python3 >/dev/null || { echo "python3 missing: guard hook cannot run" >&2; exit 1; }
+  if ! command -v bun >/dev/null; then
+    curl -fsSL https://bun.sh/install -o /tmp/bun-install.sh
+    bash /tmp/bun-install.sh
+  fi
+  ```
+
 - [ ] Self-hosted environment: create one only for repos that need a private network or heavy builds. Start the runner with `--trust-workspace false`.
 
 ## 4. Guard hook in managed settings (Claude org admin)

@@ -48,11 +48,41 @@ CREDENTIAL_PATTERNS = [
 ]
 
 # gh api paths that change repository integrity settings.
+# gh api paths whose non-GET calls change repository or account administration.
+# The agent may run as the repo owner (admin), so these are blocked explicitly.
 GH_API_PROTECTED_PATHS = [
+    r"^/?repos/[^/]+/[^/]+/?$",            # repo settings (PATCH) and repo deletion (DELETE)
     r"/branches/[^/]+/protection",
     r"/rulesets",
-    r"/collaborators/",
+    r"/collaborators",
+    r"/invitations",
+    r"/hooks",
+    r"/keys",
+    r"/actions/(secrets|variables|permissions)",
+    r"/environments",
+    r"/transfer",
+    r"/pages",
+    r"^/?user(/|$)",                       # the agent's own account settings
+    r"^/?orgs/",
 ]
+
+# gh subcommands that change repository administration or secrets.
+GH_ADMIN_SUBCOMMANDS = {
+    ("repo", "delete"),
+    ("repo", "edit"),
+    ("repo", "archive"),
+    ("repo", "unarchive"),
+    ("repo", "rename"),
+    ("repo", "deploy-key"),
+    ("secret", "set"),
+    ("secret", "delete"),
+    ("variable", "set"),
+    ("variable", "delete"),
+    ("ruleset", "create"),
+    ("ruleset", "delete"),
+    ("auth", "token"),
+    ("auth", "refresh"),
+}
 
 # Commands that wrap another command. The guard inspects the wrapped command.
 WRAPPERS = {"sudo", "command", "exec", "nohup", "time", "nice", "env", "xargs", "timeout"}
@@ -273,11 +303,21 @@ def check_gh(argv: list[str], ctx: Context) -> None:
     if len(args) >= 2 and args[0] == "pr" and args[1] == "review":
         if any(a in ("--approve", "-a") or (re.fullmatch(r"-[A-Za-z]+", a) and "a" in a[1:]) for a in args[2:]):
             raise Blocked("gh pr review --approve is not allowed. Agents never approve.")
-    if len(args) >= 2 and args[0] == "repo" and args[1] == "delete":
-        raise Blocked("gh repo delete is not allowed.")
+    if len(args) >= 2 and (args[0], args[1]) in GH_ADMIN_SUBCOMMANDS:
+        raise Blocked(f"gh {args[0]} {args[1]} changes repository administration or secrets. Humans do this.")
     if args and args[0] == "api":
         rest = args[1:]
-        path = next((a for a in rest if not a.startswith("-") and ("/" in a)), "")
+        value_opts = {"-X", "--method", "-f", "-F", "--field", "--raw-field", "--input", "-H", "--header",
+                      "-q", "--jq", "-t", "--template", "--hostname", "--cache", "-p", "--preview"}
+        path, skip = "", False
+        for a in rest:
+            if skip:
+                skip = False
+            elif a in value_opts:
+                skip = True
+            elif not a.startswith("-"):
+                path = a
+                break
         method = "GET"
         has_fields = False
         for j, a in enumerate(rest):

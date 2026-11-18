@@ -160,14 +160,18 @@ Design impact (safest assumption):
 
 **Status: decision recorded. The Max behavior is not verified.**
 
-- The Claude plan is Team Standard now. It moves to individual Max next month.
+- The Claude plan is Team Standard now. Decision (2026-11-18): move the agent account to **Team Premium** instead of individual Max. This keeps managed settings and gives Max-level usage.
 - Server-managed settings are an organization feature (Team or Enterprise). An individual Max account has none.
 - Without managed settings, no verified way exists to load the guard hook or the allow rules in multi-repo sessions (Q4).
-- Decision: one Claude account runs agent sessions. Its GitHub connection is the machine user `altaprimabot`. This deviates from the brief's "dedicated Claude account". The GitHub identity split still holds: the agent works as `altaprimabot`, and humans approve as themselves.
+- Decision (account owner, 2026-11-18): one Claude account runs agent sessions. Its GitHub connection is `altaprimadev`, the repo owner. No machine user is used. This deviates from the brief: no dedicated Claude account, and no GitHub machine user.
+- The approval split still holds: the agent authors PRs as `altaprimadev`, and the human `adhemukhlis` approves. GitHub blocks self-approval, so `altaprimadev` cannot approve its own PRs.
+- Accepted risk: the agent holds owner (admin) rights. The platform cannot limit it. The guard hook and `CLAUDE.md` are the barriers. Agent actions and human admin actions share one name in the audit log.
+- Mitigation: the guard hook also blocks admin actions: `gh repo edit/archive/rename`, `gh secret`/`gh variable` changes, `gh auth token`, and non-GET `gh api` calls to repo settings, collaborators, hooks, keys, secrets, environments, transfer, and account settings.
+- The hook only works where it loads. In multi-repo sessions that requires Claude managed settings (Team plan). After a move to individual Max, multi-repo agent sessions have no hook. Keep autonomy 0 until that gap is closed.
 
 Consequences:
 - Agent sessions and human sessions share one usage quota and one session list.
-- Interactive sessions on that account also act on GitHub as `altaprimabot`.
+- Interactive sessions on that account also act on GitHub as `altaprimadev`.
 
 Safe path:
 - Autonomy stays `0` until `altaprimadev` has Pro and branch protection is active. `CLAUDE.md` already enforces this.
