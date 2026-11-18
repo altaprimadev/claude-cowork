@@ -160,7 +160,7 @@ Design impact (safest assumption):
 
 **Status: decision recorded. The Max behavior is not verified.**
 
-- The Claude plan is Team Standard now. It moves to individual Max next month.
+- The Claude plan is Team Standard now. Decision (2026-11-18): move the agent account to **Team Premium** instead of individual Max. This keeps managed settings and gives Max-level usage.
 - Server-managed settings are an organization feature (Team or Enterprise). An individual Max account has none.
 - Without managed settings, no verified way exists to load the guard hook or the allow rules in multi-repo sessions (Q4).
 - Decision (account owner, 2026-11-18): one Claude account runs agent sessions. Its GitHub connection is `altaprimadev`, the repo owner. No machine user is used. This deviates from the brief: no dedicated Claude account, and no GitHub machine user.
