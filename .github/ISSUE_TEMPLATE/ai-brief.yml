@@ -1,0 +1,63 @@
+name: AI brief
+description: Give the agent pipeline a task. One brief per outcome.
+title: "[brief] "
+labels: ["ai:brief"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The intake agent reads this brief, picks the affected repos, and sizes the work.
+        Write it so an agent can act without asking you. State assumptions you are fine with.
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: What outcome do you want, and why?
+      placeholder: Users can reset their password by email.
+    validations:
+      required: true
+  - type: input
+    id: repos
+    attributes:
+      label: Affected repos (optional)
+      description: Comma-separated owner/name. Leave empty to let the agent decide from registry/repos.yml.
+      placeholder: altaprimadev/web, altaprimadev/api
+    validations:
+      required: false
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: One testable criterion per line.
+      placeholder: |
+        - POST /auth/reset sends one email per request.
+        - Reset links expire after 30 minutes.
+    validations:
+      required: true
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints
+      description: Limits, non-goals, areas not to touch, dependencies.
+    validations:
+      required: false
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - P0 - urgent
+        - P1 - high
+        - P2 - normal
+        - P3 - low
+      default: 2
+    validations:
+      required: true
+  - type: input
+    id: due
+    attributes:
+      label: Due date
+      description: YYYY-MM-DD, or leave empty.
+      placeholder: "2026-12-31"
+    validations:
+      required: false

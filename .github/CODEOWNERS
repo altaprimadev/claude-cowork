@@ -1,0 +1,7 @@
+# CODEOWNERS for claude-cowork.
+#
+# HUMAN ACTION REQUIRED: replace <owner-team> with the real team slug before
+# enabling "Require review from Code Owners" in branch protection.
+# Only humans may be code owners. Never add the agent machine user here.
+
+* @altaprimadev/<owner-team>
