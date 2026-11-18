@@ -49,7 +49,8 @@ errors: list[str] = []
 
 
 def err(msg: str) -> None:
-    errors.append(msg)
+    if msg not in errors:
+        errors.append(msg)
 
 
 def rel(p: Path) -> str:
@@ -201,7 +202,7 @@ def check_agents(skills: set[str]) -> set[str]:
         for s in as_list(fm.get("skills")):
             if s not in skills:
                 err(f"{rel(md)}: frontmatter skill '{s}' does not exist")
-        for s in referenced_skill_names(body, skills | {"x"}):
+        for s in referenced_skill_names(body, skills):
             if s not in skills:
                 err(f"{rel(md)}: references unknown skill '{s}'")
         if not ATTRIBUTION_RE.search(body.strip().splitlines()[-1] if body.strip() else ""):
