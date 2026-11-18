@@ -1,9 +1,9 @@
 ---
-name: write-brief
-description: Help a human turn a rough idea into one AI brief issue in the control repo, in chat instead of the GitHub form. Look at the registry and repos first, ask only questions whose answer changes the work, play the draft back, and create the issue labeled `ai:brief` only after the human approves it. Use when a human in an interactive session asks to write, draft, or file a brief. Never use in scheduled or unattended runs.
+name: draft-brief
+description: Help a human turn a rough idea into one AI brief draft in chat instead of the GitHub form. Look at the registry and repos first, ask only questions whose answer changes the work, and revise the draft until the human types `post now`. Only then create the issue labeled `ai:brief` in the control repo. Use when a human in an interactive session asks to draft, write, or file a brief. Never use in scheduled or unattended runs.
 argument-hint: "[rough idea, any language]"
 ---
-# Write Brief
+# Draft Brief
 
 ## Purpose
 
@@ -67,9 +67,11 @@ Do not use when:
    - what you filled in yourself, with the reason,
    - what intake will likely do (size estimate and route, given the current autonomy).
 
-   Ask for corrections or approval. Repeat until the human approves. **No issue is created without explicit approval** ("ok", "buat", "gas", or similar).
+   End with one line: reply with corrections, or type `post now` to create the issue. Repeat until the human types `post now`.
 
-6. **Create the issue.** Body format matches the issue form output, so intake parses both the same way. Use `_No response_` for empty optional fields.
+   **Post trigger.** Only the phrase `post now` (any case) in the human's latest message creates the issue. "ok", "bagus", "gas", "lanjut", or approval of one part is not a trigger: treat it as feedback and remind the human of `post now`. If the human changes the draft in the same message as `post now`, apply the change, show the final draft, and ask for `post now` again.
+
+6. **Create the issue** (only after `post now`). Body format matches the issue form output, so intake parses both the same way. Use `_No response_` for empty optional fields.
    ```markdown
    ### Goal
 
@@ -123,14 +125,15 @@ Do not use when:
 ## Stop conditions
 
 - Issue created and URL shared. Do not triage, label further, or start work in the same session.
-- The human declines or goes quiet: leave the draft in chat. Create nothing.
+- The human never types `post now`: leave the draft in chat. Create nothing.
 - An issue write fails twice: give the prefilled link (step 6.3) and stop.
 
 ## Anti-rationalization
 
 | Thought | Reality |
 |---|---|
-| "The idea is clear enough. I'll file it now." | Show the draft and get approval first. A brief they never saw is one they could not correct. |
+| "The idea is clear enough. I'll file it now." | Drafting is the default. Only `post now` creates the issue. |
+| "They said 'ok, looks good'. That is approval." | Approval of content is not the trigger. Wait for `post now`. |
 | "I'll ask all my questions at once to save time." | One question at a time, and only questions that change the work. State defaults for the rest. |
 | "Acceptance criteria can stay vague; intake will sort it out." | Vague criteria make intake stop at `ai:needs-human`. Fix them now while the human is here. |
 | "I'll add `ai:triaged` and a size label to save intake a step." | Intake owns sizing and routing. Only `ai:brief` is set here. |

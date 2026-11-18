@@ -257,7 +257,7 @@ Sources read: ECC:skills/cost-tracking/SKILL.md@3f14a10, ECC:skills/github-ops/S
 | Quality gate "all issues triaged have labels" | ECC `skills/github-ops/SKILL.md` @3f14a10 | drop | Other stages own labels. Reporting has no write scope outside `ai:report` issues. |
 | One issue per date, `ai:report` label, idempotent edit; close superseded reports | Brief / `registry/policy.yml` `control_repo` | write from brief | GitHub is the state store; re-runs must not create duplicates. |
 
-### write-brief
+### draft-brief
 
 Sources read: superpowers:skills/brainstorming/SKILL.md@22f0b46, ECC:skills/github-ops/SKILL.md@3f14a10
 
@@ -271,7 +271,7 @@ Human-invoked skill. It is the only skill that runs a live conversation, because
 | State defaults out loud as proposals | SP `skills/brainstorming/SKILL.md` @22f0b46 | take | Defaults go into the draft as assumptions the human can reject. |
 | Play back in chunks; only what they said counts as theirs | SP `skills/brainstorming/SKILL.md` @22f0b46 | modify | One playback of the full draft in issue format, with a list of filled-in items. |
 | Several independent projects: split and order | SP `skills/brainstorming/SKILL.md` @22f0b46 | modify | One brief per outcome, matching the form rule. |
-| Hard gate: nothing is built before approval | SP `skills/brainstorming/SKILL.md` @22f0b46 | modify | No issue is created before explicit approval of the draft. |
+| Hard gate: nothing is built before approval | SP `skills/brainstorming/SKILL.md` @22f0b46 | modify | No issue is created until the human types the fixed phrase `post now`. General approval words do not count. |
 | Lay out approaches; size the work; written design doc; builder check | SP `skills/brainstorming/SKILL.md` @22f0b46 | drop | Design belongs to `async-design`, sizing to `intake-classify`. A brief states outcomes, not approaches. |
 | Visual companion, spikes, writing-plans handoff | SP `skills/brainstorming/SKILL.md` @22f0b46 | drop | Out of scope for writing an issue. |
 | Search before creating to avoid duplicates | ECC `skills/github-ops/SKILL.md` @3f14a10 | take | Open `ai:brief` issues are checked first. |
