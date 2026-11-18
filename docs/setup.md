@@ -12,8 +12,8 @@ The agent never runs the scripts in this repo against GitHub. Humans run them.
 | Branch protection | **Not active.** Private repos on a free personal account cannot use it. |
 | CODEOWNERS | `@adhemukhlis` (a human collaborator) |
 | Autonomy cap | **0 for every repo** until branch protection is active. `CLAUDE.md` enforces this. |
-| Agent GitHub identity | Machine user `altaprimabot`, invited as a collaborator on `claude-cowork` |
-| Agent Claude account | **One shared Claude account** runs both agent sessions and human chat sessions. Its GitHub connection is `altaprimabot`. Humans approve only in GitHub web, with their own accounts. |
+| Agent GitHub identity | **`altaprimadev`, the repo owner (admin).** No separate machine user. Accepted risk: the agent holds admin rights, so the guard hook and `CLAUDE.md` are the only barriers. |
+| Agent Claude account | **One shared Claude account** runs both agent sessions and human chat sessions. Its GitHub connection is `altaprimadev`. The human reviewer `adhemukhlis` approves only in GitHub web. |
 | Claude plan | Team Standard now. Moving to individual Max next month: managed settings will be lost (see `docs/open-questions.md`, "Claude plan constraint"). |
 
 Without branch protection, the gates rest on instructions, the guard hook, and a human who merges by hand. That breaks the brief's rule that the platform enforces integrity. At autonomy 0 agents open no code PRs, so the gap is acceptable for the pilot.

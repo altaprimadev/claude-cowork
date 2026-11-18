@@ -180,6 +180,28 @@ class GuardBashTest(unittest.TestCase):
             with self.subTest(cmd=cmd):
                 self.assertBlocked(cmd)
 
+    def test_gh_admin_actions_blocked(self):
+        for cmd in [
+            "gh repo edit --visibility public",
+            "gh repo archive altaprimadev/x --yes",
+            "gh repo rename newname",
+            "gh repo deploy-key add key.pub",
+            "gh secret set TOKEN --body x",
+            "gh variable delete X",
+            "gh auth token",
+            "gh api -X PATCH repos/o/r -f visibility=public",
+            "gh api -X DELETE repos/o/r",
+            "gh api -X PUT repos/o/r/collaborators/someone",
+            "gh api repos/o/r/hooks -f url=https://x",
+            "gh api -X POST repos/o/r/keys --input k.json",
+            "gh api -X PUT repos/o/r/actions/secrets/X --input s.json",
+            "gh api -X PUT repos/o/r/environments/production",
+            "gh api -X POST repos/o/r/transfer -f new_owner=x",
+            "gh api -X PATCH user -f name=x",
+        ]:
+            with self.subTest(cmd=cmd):
+                self.assertBlocked(cmd)
+
     def test_gh_normal_actions_allowed(self):
         for cmd in [
             "gh pr view 12",
@@ -188,6 +210,13 @@ class GuardBashTest(unittest.TestCase):
             "gh issue edit 5 --add-label ai:triaged",
             "gh api repos/o/r/branches/main/protection",
             "gh api repos/o/r/pulls",
+            "gh api repos/o/r",
+            "gh api repos/o/r/collaborators",
+            "gh api -X POST repos/o/r/issues/5/comments -f body=ok",
+            "gh api -X POST repos/o/r/issues/5/labels -f labels[]=ai:triaged",
+            "gh repo view altaprimadev/claude-cowork",
+            "gh repo list altaprimadev",
+            "gh secret list",
         ]:
             with self.subTest(cmd=cmd):
                 self.assertAllowed(cmd)
