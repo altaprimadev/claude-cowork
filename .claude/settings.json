@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Skill(intake-classify)",
+      "Skill(repo-onboarding)",
+      "Skill(async-design)",
+      "Skill(plan-to-issues)",
+      "Skill(tdd)",
+      "Skill(evidence-report)",
+      "Skill(review-two-stage)",
+      "Skill(daily-report)",
+      "Skill(stack-typescript-bun)",
+      "Skill(stack-nextjs-ui)",
+      "Skill(stack-hono-api)",
+      "Skill(stack-prisma-postgres)",
+      "Skill(stack-playwright-e2e)",
+      "Skill(stack-deploy)",
+      "Read",
+      "Grep",
+      "Glob",
+      "Edit",
+      "Write",
+      "Bash(git *)",
+      "Bash(gh *)",
+      "Bash(bun *)",
+      "Bash(bunx *)",
+      "Bash(python3 *)",
+      "Bash(ls *)",
+      "Bash(cat *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(wc *)",
+      "Bash(find *)",
+      "Bash(grep *)",
+      "Bash(rg *)",
+      "Bash(jq *)",
+      "Bash(mkdir *)",
+      "Bash(date *)",
+      "Bash(docker build *)"
+    ],
+    "deny": [
+      "Bash(gh pr merge *)",
+      "Bash(gh repo delete *)",
+      "Bash(git push --force *)",
+      "Read(**/.env.production)",
+      "Read(**/.env.prod)",
+      "Read(~/.aws/**)",
+      "Read(~/.ssh/**)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard_bash.py\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,7 @@
+# CODEOWNERS for claude-cowork.
+#
+# Code owners must be humans who approve with their own GitHub accounts.
+# Never add the agent machine user or the shared altaprimadev account here.
+# Add more owners on the same line, for example: * @adhemukhlis @other-user
+
+* @adhemukhlis

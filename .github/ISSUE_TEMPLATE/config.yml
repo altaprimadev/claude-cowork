@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Pipeline architecture
+    url: https://github.com/altaprimadev/claude-cowork/blob/main/docs/architecture.md
+    about: How briefs flow through the agent pipeline.

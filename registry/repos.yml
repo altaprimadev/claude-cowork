@@ -1,0 +1,22 @@
+# Managed repositories. Source of truth for which repos agents may touch.
+# Agents read this file before any work in a repo. Humans edit it via PR.
+#
+# status:      detected | onboarding | active | frozen
+#              detected   = found by the onboarding scan, no onboarding PR yet
+#              onboarding = onboarding PR open, awaiting human merge
+#              active     = onboarded; agents may work up to `autonomy`
+#              frozen     = agents must not open PRs or branches; reporting only
+# autonomy:    0 = review only (agents comment and review, never open code PRs)
+#              1 = small tasks (size:small issues only)
+#              2 = full pipeline (design, plan, implement, review)
+#              The effective level is the LOWER of this value and
+#              `.agent/profile.yml` -> autonomy in the target repo.
+# environment: hosted | self-hosted
+#              hosted      = Anthropic-hosted cloud environment (default)
+#              self-hosted = only for private networks or heavy builds
+
+repos:
+  - name: altaprimadev/claude-cowork
+    status: active
+    autonomy: 0
+    environment: hosted

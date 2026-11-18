@@ -1,0 +1,52 @@
+# .agent/profile.yml — agent profile for one repository.
+# Created by the repo-onboarding skill. Humans review and merge it.
+# Agents read this file before any work in the repo.
+
+# Short stack description. Free text, for humans and agents.
+stack: "TypeScript, Bun, Hono, Prisma, PostgreSQL"
+
+# Stack skills to load from claude-cowork/.claude/skills/.
+# Allowed: stack-typescript-bun, stack-nextjs-ui, stack-hono-api,
+#          stack-prisma-postgres, stack-playwright-e2e, stack-deploy
+packs:
+  - stack-typescript-bun
+  - stack-hono-api
+  - stack-prisma-postgres
+
+# Verification commands. evidence-report runs them in this order.
+# Use an empty string ("") for a step the repo does not have.
+# Versions follow this repo's package.json and lockfile.
+commands:
+  install: "bun install --frozen-lockfile"
+  lint: "bunx biome ci ."
+  typecheck: "bunx tsc --noEmit"
+  test: "bun test"
+  build: "bun run build"
+
+# Test kinds agents may add. Do not add E2E unless listed here.
+# Allowed values: unit, integration, e2e
+test_types:
+  - unit
+  - integration
+
+# Line coverage target in percent, applied ONLY to coverage_paths.
+# Leave null for no numeric target.
+coverage_target: null
+coverage_paths: []        # e.g. ["src/domain/**", "src/services/**"]
+
+# Deployment. Agents never deploy to production (Gate 3).
+deploy:
+  staging: ""             # e.g. "coolify: auto-deploy from branch develop"
+  production: ""          # e.g. "coolify: manual promotion by a human"
+
+# Autonomy for this repo: 0 = review only, 1 = small tasks, 2 = full pipeline.
+# Effective level = min(this value, registry/repos.yml autonomy).
+# Onboarding always sets 0. Humans raise it.
+autonomy: 0
+
+# hosted | self-hosted. Must match registry/repos.yml.
+environment: hosted
+
+# Other managed repos this repo depends on (owner/name). Used by plan-to-issues
+# to order cross-repo work.
+depends_on: []
