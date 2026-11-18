@@ -1,0 +1,5 @@
+{
+  "protected_branches": ["main", "master", "production"],
+  "allowed_rm_roots": [],
+  "extra_blocked_regex": []
+}
