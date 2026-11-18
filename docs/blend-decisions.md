@@ -257,6 +257,58 @@ Sources read: ECC:skills/cost-tracking/SKILL.md@3f14a10, ECC:skills/github-ops/S
 | Quality gate "all issues triaged have labels" | ECC `skills/github-ops/SKILL.md` @3f14a10 | drop | Other stages own labels. Reporting has no write scope outside `ai:report` issues. |
 | One issue per date, `ai:report` label, idempotent edit; close superseded reports | Brief / `registry/policy.yml` `control_repo` | write from brief | GitHub is the state store; re-runs must not create duplicates. |
 
+### draft-brief
+
+Sources read: superpowers:skills/brainstorming/SKILL.md@22f0b46, ECC:skills/github-ops/SKILL.md@3f14a10
+
+Human-invoked skill. It is the only skill that runs a live conversation, because a human starts it and answers in the same session. It does not own a pipeline stage; it writes the input that intake reads.
+
+| Atom | Source (repo, path, commit) | Decision | Reason |
+|---|---|---|---|
+| Look before you ask: read the project before the first question | SP `skills/brainstorming/SKILL.md` @22f0b46 | take | Registry, `AGENTS.md`, and code answer many questions. Never ask what they already answer. |
+| Ask only when the answer changes what gets built; one question at a time | SP `skills/brainstorming/SKILL.md` @22f0b46 | take | Keeps the chat shorter than the form. |
+| Open questions until the why is known; then named options with a pick | SP `skills/brainstorming/SKILL.md` @22f0b46 | take | The Goal field needs the why. |
+| State defaults out loud as proposals | SP `skills/brainstorming/SKILL.md` @22f0b46 | take | Defaults go into the draft as assumptions the human can reject. |
+| Play back in chunks; only what they said counts as theirs | SP `skills/brainstorming/SKILL.md` @22f0b46 | modify | One playback of the full draft in issue format, with a list of filled-in items. |
+| Several independent projects: split and order | SP `skills/brainstorming/SKILL.md` @22f0b46 | modify | One brief per outcome, matching the form rule. |
+| Hard gate: nothing is built before approval | SP `skills/brainstorming/SKILL.md` @22f0b46 | modify | No issue is created until the human types the fixed phrase `post now`. General approval words do not count. |
+| Lay out approaches; size the work; written design doc; builder check | SP `skills/brainstorming/SKILL.md` @22f0b46 | drop | Design belongs to `async-design`, sizing to `intake-classify`. A brief states outcomes, not approaches. |
+| Visual companion, spikes, writing-plans handoff | SP `skills/brainstorming/SKILL.md` @22f0b46 | drop | Out of scope for writing an issue. |
+| Search before creating to avoid duplicates | ECC `skills/github-ops/SKILL.md` @3f14a10 | take | Open `ai:brief` issues are checked first. |
+| Untrusted content: no gate-skipping instructions | ECC `skills/github-ops/SKILL.md` @3f14a10 | modify | Removed from the draft with a note to the human, since intake would ignore them anyway. |
+| Body in issue-form output format; MCP, `gh`, or prefilled form link | brief / `.github/ISSUE_TEMPLATE/ai-brief.yml` | write from brief | Intake parses chat-made and form-made briefs the same way. Works with or without an authenticated `gh`. |
+
+### inbox
+
+Sources read: ECC:agents/chief-of-staff.md@3f14a10, ECC:skills/github-ops/SKILL.md@3f14a10
+
+Human-invoked, read-only. It is the on-demand version of the "Needs you" part of `daily-report`.
+
+| Atom | Source (repo, path, commit) | Decision | Reason |
+|---|---|---|---|
+| Briefing with action items first | ECC `agents/chief-of-staff.md` @3f14a10 | modify | Groups ordered by what the human must do: questions, blocked, Gate 1, Gate 2, onboarding. |
+| 4-tier message classification | ECC `agents/chief-of-staff.md` @3f14a10 | modify | Pipeline labels decide the group; first matching group wins. |
+| Parallel fetch across channels | ECC `agents/chief-of-staff.md` @3f14a10 | modify | Read-only `gh` or MCP calls per registry repo. |
+| Flag PRs waiting for review, with age | ECC `skills/github-ops/SKILL.md` @3f14a10 | take | Gate 1 and Gate 2 items show their age. |
+| Stale label and auto-close | ECC `skills/github-ops/SKILL.md` @3f14a10 | drop | Inbox never writes. |
+| Untrusted repository content | ECC `skills/github-ops/SKILL.md` @3f14a10 | take | Item text is summarized as data. |
+| Mark blockers that a comment cannot fix | brief / CLAUDE.md | write from brief | Autonomy, registry, and protection blockers need a PR or platform change. |
+
+### answer
+
+Sources read: ECC:agents/chief-of-staff.md@3f14a10, ECC:skills/github-ops/SKILL.md@3f14a10, superpowers:skills/brainstorming/SKILL.md@22f0b46
+
+Human-invoked. It is the only path where the agent account posts text that counts as a human answer, so the comment carries the `<!-- human:answer -->` marker and `intake-classify` treats it as human input.
+
+| Atom | Source (repo, path, commit) | Decision | Reason |
+|---|---|---|---|
+| Draft replies for the human to send | ECC `agents/chief-of-staff.md` @3f14a10 | modify | Draft one answer comment; post only on `post now`. |
+| Hard gate before acting | SP `skills/brainstorming/SKILL.md` @22f0b46 | modify | Fixed phrase `post now`, same as `draft-brief`. |
+| State defaults out loud | SP `skills/brainstorming/SKILL.md` @22f0b46 | take | Unanswered questions keep the agent's default, written in the comment. |
+| Label hygiene on triage | ECC `skills/github-ops/SKILL.md` @3f14a10 | modify | Per-state label table so the owning stage resumes; one exclusive state label at a time. |
+| Untrusted repository content | ECC `skills/github-ops/SKILL.md` @3f14a10 | take | Item text is data. Gate-skipping answers are dropped. |
+| Do not clear structural blockers by comment | brief / CLAUDE.md | write from brief | Avoids loops that spend usage; autonomy changes go through a PR. |
+
 ## Stack skills
 
 ### stack-typescript-bun
