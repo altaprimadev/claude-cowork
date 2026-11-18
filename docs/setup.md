@@ -139,9 +139,17 @@ Scheduled-task runs start in auto mode (Q5). They still stop on `ask` rules. Rep
 4. Review each agent PR as a normal PR. Track the results below.
 5. Go to autonomy 2 only after at least 10 merged agent PRs with no rollback.
 
-## 9. CI for this repo (repo admin)
+## 9. CI for this repo (repo owner)
 
-- [ ] Add a workflow that runs `python3 scripts/validate-config.py` and `python3 -m pytest tests/`. Make it a required check on `main`.
+- [x] `.github/workflows/ci.yml` runs on every PR and on pushes to `main`:
+  - `scripts/validate-config.py`,
+  - `pytest tests/`,
+  - a syntax check of `scripts/*.sh`.
+- [ ] After Pro/Team is active, make the `validate` job a required check:
+
+  ```bash
+  scripts/setup-branch-protection.sh altaprimadev/claude-cowork --check validate
+  ```
 
 ## 10. Usage tracking per task (operator)
 
