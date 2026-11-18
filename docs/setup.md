@@ -11,6 +11,7 @@ The agent never runs the scripts in this repo against GitHub. Humans run them.
 | GitHub plan | Free. No Pro or Team plan yet. |
 | Branch protection | **Not active.** Private repos on a free personal account cannot use it. |
 | CODEOWNERS | `@adhemukhlis` (a human collaborator) |
+| Network access | **Full** (unrestricted) by owner decision. Outbound data is not restricted. |
 | Autonomy cap | **0 for every repo** until branch protection is active. `CLAUDE.md` enforces this. |
 | Agent GitHub identity | **`altaprimadev`, the repo owner (admin).** No separate machine user. Accepted risk: the agent holds admin rights, so the guard hook and `CLAUDE.md` are the only barriers. |
 | Agent Claude account | **One shared Claude account** runs both agent sessions and human chat sessions. Its GitHub connection is `altaprimadev`. The human reviewer `adhemukhlis` approves only in GitHub web. |
@@ -74,12 +75,11 @@ Branch protection needs Pro (personal account) or Team (organization) for privat
 Open it from a session: the cloud environment menu in the session's title bar → **Edit**, or create a new environment from the same menu. Reference: https://code.claude.com/docs/en/cloud-environments#network-access
 
 - [ ] Create a hosted environment named `altaprima-default`. Use it for every scheduled task.
-- [ ] **Network access:** choose **Limited**. Leave **Allow package managers** ticked; it covers the standard package registries. Under **Allowed domains**, add only:
-  - `bun.sh` (Bun installer, only if the image lacks Bun)
-  - `binaries.prisma.sh` (only once a Prisma repo is onboarded)
-  - `cdn.playwright.dev`, `playwright.download.prss.microsoft.com` (only once a repo with E2E is onboarded)
+- [ ] **Network access:** choose **Full** (unrestricted). Decision by the account owner, 2026-11-18: agents need outside access (docs, APIs, registries), and data exfiltration is an accepted risk.
+  - The guard hook still blocks network-to-shell pipes (`curl | sh`).
+  - It does not block outbound data, such as `curl -d @file https://...`.
+  - To tighten later, switch to **Limited** with **Allow package managers** ticked, and add hosts under **Allowed domains** as skills need them.
 
-  GitHub access goes through the session's Git proxy and the Claude GitHub App. A denied host shows its name in the session; add it only if a skill needs it.
 - [ ] **Environment variables and secrets:** add none. The pipeline needs no secret in v0.1.0. Setup scripts cannot read saved variables.
 - [ ] **Setup script:** the hosted image already has Bun (1.4.4 observed on 2026-11-18) and Python 3. Keep the script as a guard only:
 
