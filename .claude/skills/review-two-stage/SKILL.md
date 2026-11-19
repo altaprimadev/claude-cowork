@@ -71,14 +71,14 @@ Review runs at any autonomy level; it writes no code. At effective autonomy 0 th
 
 8. **Set the label** on the PR. Remove the opposite label if present.
    - Stage 1 FAIL or any critical: `ai:changes-needed`.
-   - Otherwise: `ai:review-passed`. Majors and minors stay listed for the human.
+   - Otherwise: `ai:review-passed`. Majors and minors stay listed for the human. Each major carries `Recommend: fix in this PR | follow-up issue | accept as is`, with a one-line reason, so Gate 2 is a yes or no, not an open question.
    ```bash
    gh pr edit <pr> --repo <owner/repo> --add-label ai:changes-needed --remove-label ai:review-passed
    ```
 
 9. **Hand off.** `ai:changes-needed` at autonomy ≥ 1: dispatch the implementer with the PR URL, the open critical and major findings verbatim, and the fix attempt number. When it pushes, start again at step 1. Add `ai:needs-human` instead of dispatching when autonomy is 0, or when fix rounds (round − 1) already equal `max_fix_attempts`.
 
-Never fix findings yourself. Never drop a finding silently; if you think one is wrong, say so in the comment and let the human decide.
+Never fix findings yourself. Never drop a finding silently; if you think one is wrong, say so in the comment with your reasoning, and let the human decide at Gate 2.
 
 ## Stage 1: spec review
 

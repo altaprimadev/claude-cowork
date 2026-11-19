@@ -119,7 +119,8 @@ GREEN `<sha7>` — `bun test`
 ## Stop conditions
 
 - All acceptance criteria have a GREEN test and the full suite passes: hand over to `evidence-report`.
-- You cannot write a failing test for a criterion, or the criterion is ambiguous: post ONE issue comment with every question and its default, add `ai:needs-human`, stop.
+- The criterion is ambiguous: apply `CLAUDE.md` → "Decide by default". Pick the reading that matches existing code and decisions, test that, and record it under Assumptions for the PR body.
+- You cannot write a failing test for a criterion even after that, or a tier 3 item remains: post nothing. Return `NEEDS_HUMAN` with `escalations:` to the orchestrator.
 - A test stays red after `max_fix_attempts` (`registry/policy.yml`) fix attempts: add `ai:blocked`, comment with the failing output, stop.
 
 ## Anti-rationalization
@@ -132,6 +133,7 @@ GREEN `<sha7>` — `bun test`
 | "Deleting hours of work is wasteful." | Sunk cost. Untrusted code is the waste. |
 | "I tested it manually." | Manual checks leave no record and cannot re-run. |
 | "Mocking the database is faster." | Inside the process stays real. Mock only network, time, external services. |
+| "The criterion could mean two things. I'll ask." | Pick the reading that fits the code and decisions. Record it. Gate 2 catches a wrong pick. |
 | "The test passed on the first run, good." | A test that never failed proves nothing. Make it fail first. |
 | "One commit for test and code is cleaner." | Reviewers need the RED commit to see the test failed without the code. |
 

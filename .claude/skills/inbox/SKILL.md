@@ -46,7 +46,7 @@ Do not use when:
 
    Detect onboarding PRs by title or by changed files (`gh pr view <n> --repo "$R" --json files`). Check files only for PRs that match no other group.
 
-3. **Read the question for groups 1 and 2.** For each item, read the last comment that carries an agent marker (`<!-- ai:intake -->`, or the latest comment that lists questions or failing output). Summarize the question or error in one line. Do not copy long output.
+3. **Read the question for groups 1 and 2.** For each item, read the last comment that carries an agent marker (`<!-- ai:escalation`, `<!-- ai:intake -->`, or the latest comment that lists questions or failing output). Summarize the question or error in one line. Do not copy long output.
 
 4. **Spot answers that cannot work.** Mark an item **not answerable by comment** when the blocker is:
    - effective autonomy too low,

@@ -50,13 +50,15 @@ pr: <url>
 commits: <short sha + subject>
 evidence: <one line, e.g. "lint ok, typecheck ok, 42/42 tests, build ok">
 concerns: <list or none>
+assumptions: <tier 2 decisions recorded in the PR, or none>
+escalations: <only with NEEDS_HUMAN; one block per item>
 ```
 
 ## Stop conditions
 
-- Requirement is unclear: post ONE issue comment with every question and its default, add `ai:needs-human`, return `NEEDS_HUMAN`.
+- Requirement is unclear: apply `CLAUDE.md` → "Decide by default". Look it up, or decide and record it under Assumptions in the PR body, and continue. Gate 2 reviews it.
+- A tier 3 item where a wrong guess is irreversible or invalidates most of the work: do not post or label. Return `NEEDS_HUMAN` with `escalations:` (Decision, Recommend, Alternatives, Checked, If no answer). The orchestrator vets it.
 - A step fails and you cannot fix it, or fix attempts reach `max_fix_attempts` from `registry/policy.yml`: add `ai:blocked`, comment with the failing output, return `BLOCKED`.
-- The task needs an architecture decision the design does not cover: return `NEEDS_HUMAN` with the options.
 
 ## Integrity
 

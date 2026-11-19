@@ -130,7 +130,7 @@ Install output goes under Verification output only when it failed or warned.
 
 - All configured commands exit 0, every criterion has proof, PR body posted: done. Return the one-line evidence summary (e.g. `lint ok, typecheck ok, 42/42 tests, build ok, build not configured`).
 - `max_fix_attempts` reached: `ai:blocked`, stop.
-- A failure needs a decision outside the issue scope (dependency upgrade, CI change): post ONE comment with the options and your default, add `ai:needs-human`, stop.
+- A failure needs a decision outside the issue scope (dependency upgrade, CI change): post nothing. Return `NEEDS_HUMAN` with `escalations:` (Decision, Recommend, Alternatives, Checked, If no answer). The orchestrator vets it (`CLAUDE.md` → "Decide by default").
 
 ## Anti-rationalization
 

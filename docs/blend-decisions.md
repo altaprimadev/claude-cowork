@@ -657,3 +657,18 @@ Sources read: ECC:agents/chief-of-staff.md@3f14a103, ECC:skills/github-ops/SKILL
 | Continuous execution without check-ins | SP `skills/subagent-driven-development/SKILL.md` @22f0b46 | modify | Runs once per day from a cloud scheduled task; no `/loop`. |
 | Idempotent daily output | brief | write from brief | Update today's `ai:report` issue if it exists; never a second one. |
 
+
+## Decision policy: decide by default (2026-11-19)
+
+The original rule was "Async-first: post ONE comment with every question and its default." It limited the number of comments, not their quality. In practice agents asked questions whose answer was their own default, repeated them each round, and stopped on mechanical triggers the brief already authorized. Example: `alta-prima-admin-back-end#43` asked whether a missing S3 object should return 404, after the reviewer had already settled it from ADR-73, and repeated the question in rounds 2 and 3.
+
+| Change | Where | Reason |
+|---|---|---|
+| Three tiers: look it up, decide and record, escalate | `CLAUDE.md` → "Decide by default" | A brief delegates the unknowns. Only irreversible, unsourced business, conflicting, or unauthorized-scope items reach a human. |
+| Escalation needs a recommendation, alternatives, and sources checked | `CLAUDE.md` | A question with no real alternative to the default is noise. |
+| Continue when a human gate follows | `CLAUDE.md`, `async-design`, `repo-onboarding`, designer, repo-onboarder | Gate 1, Gate 2, and onboarding PRs are reviewed anyway. Decisions go in the artifact, not a stop. |
+| Agents return escalations; the orchestrator vets, investigates, re-dispatches, and posts only tier 3 | `CLAUDE.md`, implementer, intake-triager, planner, `tdd`, `evidence-report`, `intake-classify`, `plan-to-issues` | The orchestrator manages its agents instead of forwarding their doubts. |
+| Approval triggers count only when nothing authorizes them | `task-review` | A trigger the brief or a human decision asked for is not a question. |
+| Say it once | `CLAUDE.md`, `task-review` | Repeated questions and assumptions are noise. |
+| Gate 2 majors carry a recommendation | `review-two-stage` | Gate 2 becomes a yes or no. |
+| Escalation marker `<!-- ai:escalation stage=<stage> -->` | `CLAUDE.md`, `answer`, `inbox`, `intake-classify` | Human-facing tools find escalations by marker. |
