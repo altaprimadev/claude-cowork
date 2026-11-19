@@ -26,6 +26,7 @@ max_fix_attempts: 3
 control_repo: altaprimadev/claude-cowork
 
 # GitHub Project board. .github/workflows/project-sync.yml mirrors pipeline
+# owner: a GitHub user or organization login (altaprimadev is a user account).
 # labels into it. Agents never write to the Project. number 0 disables the sync.
 # The Status field must have one option per value in scripts/project_sync.py STATUS_ORDER.
 project:
