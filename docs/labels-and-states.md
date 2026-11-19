@@ -83,6 +83,7 @@ stateDiagram-v2
 | Done | Closed |
 | In review | `ai:needs-human`: a human must review or decide |
 | Blocked | `ai:blocked` |
+| Ready to merge | An open PR that closes the issue (`Closes #n`) carries `ai:review-passed`. Gate 2 waits for a human. |
 | In progress | `ai:in-progress` |
 | Ready | `ai:ready` |
 | Draft | `ai:draft` |
