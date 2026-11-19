@@ -13,7 +13,8 @@ Checks:
      skill-like name in the body) and by CLAUDE.md exists. Every agent in the
      CLAUDE.md stage map exists.
   7. Registry, policy, and profile template have valid values.
-  8. Every SKILL.md and agent file ends with an attribution line.
+  8. Every SKILL.md and agent file ends with an attribution line:
+     "Adapted from <source> (MIT)..." or "Original to claude-cowork. ...".
   9. No obvious secrets are committed.
 
 Usage: python3 scripts/validate-config.py [repo_root]
@@ -37,7 +38,8 @@ ROOT = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else Path(__file__).reso
 SKIP_DIRS = {".git", "node_modules", "__pycache__", ".pytest_cache"}
 READ_ONLY_AGENTS = {"spec-reviewer", "quality-reviewer", "task-reviewer"}
 WRITE_TOOLS = {"Write", "Edit", "NotebookEdit", "MultiEdit"}
-ATTRIBUTION_RE = re.compile(r"Adapted from .+\(MIT\)", re.IGNORECASE)
+# Adapted files credit their upstream. Original files say so explicitly.
+ATTRIBUTION_RE = re.compile(r"Adapted from .+\(MIT\)|Original to claude-cowork\.", re.IGNORECASE)
 SECRET_PATTERNS = {
     "GitHub token": r"\b(ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{30,}\b|\bgithub_pat_[A-Za-z0-9_]{40,}\b",
     "Anthropic key": r"\bsk-ant-[A-Za-z0-9_-]{20,}\b",
