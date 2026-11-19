@@ -81,7 +81,7 @@ stateDiagram-v2
 | Status option | Issue state (first match wins) |
 |---|---|
 | Done | Closed |
-| Needs human | `ai:needs-human` |
+| In review | `ai:needs-human`: a human must review or decide |
 | Blocked | `ai:blocked` |
 | In progress | `ai:in-progress` |
 | Ready | `ai:ready` |

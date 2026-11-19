@@ -35,7 +35,7 @@ CLOSED_LOOKBACK_DAYS = 7
 # Status option -> rule. The first matching entry wins.
 STATUS_ORDER = [
     "Done",
-    "Needs human",
+    "In review",
     "Blocked",
     "In progress",
     "Ready",
@@ -45,7 +45,7 @@ STATUS_ORDER = [
     "Backlog",
 ]
 LABEL_STATUS = {
-    "ai:needs-human": "Needs human",
+    "ai:needs-human": "In review",
     "ai:blocked": "Blocked",
     "ai:in-progress": "In progress",
     "ai:ready": "Ready",

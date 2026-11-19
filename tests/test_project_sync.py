@@ -24,8 +24,8 @@ def test_draft_task():
     assert status_for(issue("size:small", "ai:draft", body="Parent: altaprimadev/claude-cowork#3")) == "Draft"
 
 
-def test_needs_human_wins_over_other_labels():
-    assert status_for(issue("ai:brief", "ai:triaged", "ai:needs-human")) == "Needs human"
+def test_needs_human_label_wins_over_other_labels():
+    assert status_for(issue("ai:brief", "ai:triaged", "ai:needs-human")) == "In review"
 
 
 def test_reviewed_task_without_stage_label_is_backlog():
