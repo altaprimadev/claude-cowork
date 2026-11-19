@@ -78,6 +78,17 @@ def extract(data):
     return win, status
 
 
+def advice(pct, status):
+    """Map usage to a work decision. Thresholds are documented in SKILL.md."""
+    if status and status != "allowed":
+        return "pause"
+    if pct >= 90:
+        return "pause"
+    if pct >= 70:
+        return "caution"
+    return "proceed"
+
+
 def fmt_remaining(seconds):
     if seconds <= 0:
         return "0h0m (window already reset)"
@@ -130,7 +141,9 @@ def main():
         rows.append({"window": n, "remaining_seconds": max(left, 0),
                      "remaining": fmt_remaining(left), "usage_percent": pct,
                      "resets_at_utc": time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime(w["resets_at"])),
-                     "status": w.get("status") or status})
+                     "resets_at_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(w["resets_at"])),
+                     "status": w.get("status") or status,
+                     "advice": advice(pct, w.get("status") or status)})
 
     if a.json:
         print(json.dumps(rows if a.all else rows[0], indent=2))
