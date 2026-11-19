@@ -52,9 +52,9 @@ Branch protection needs Pro (personal account) or Team (organization) for privat
   ```
 
 - [ ] Set up the GitHub Project board (once, for all repos):
-  1. Create an organization Project in `altaprimadev`. Note its number from the URL (`/orgs/altaprimadev/projects/<number>`).
+  1. Signed in as `altaprimadev`, create a Project (Profile → Projects → New project). Note its number from the URL (`/users/altaprimadev/projects/<number>`).
   2. Give the single-select field `Status` these options: `Brief`, `Design`, `Draft`, `Waiting`, `Ready`, `In progress`, `Blocked`, `Needs human`, `Done`.
-  3. Create a fine-grained personal access token owned by `altaprimadev`. Repository access: `claude-cowork` and every managed repo, **Issues: read-only**. Organization permissions: **Projects: read and write**. Nothing else.
+  3. Create a **classic** personal access token as `altaprimadev` (Settings → Developer settings → Personal access tokens → Tokens (classic)). Scopes: `project` and `repo`. Set an expiry. Fine-grained tokens cannot reach Projects owned by a user account. After a move to an organization, switch to a fine-grained token with Projects read/write and Issues read.
   4. Save it as the Actions secret `PROJECT_SYNC_TOKEN` in `claude-cowork` (Settings → Secrets and variables → Actions). Agents never see it.
   5. Set `project.number` in `registry/policy.yml` through a PR. `0` keeps the sync off.
   6. Run the workflow once: Actions → Project sync → Run workflow. Check that items appear.

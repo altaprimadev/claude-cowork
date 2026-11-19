@@ -10,7 +10,8 @@ For every pipeline issue in the control repo and in each active managed repo:
   2. Set the single-select Status field from the issue's labels.
 
 Config: registry/policy.yml -> project (owner, number, status_field).
-Token:  env PROJECT_SYNC_TOKEN (Issues read on the repos, Projects read/write).
+Token:  env PROJECT_SYNC_TOKEN. The owner may be a user or an organization.
+        User-owned Projects need a classic token with `project` and `repo` scopes.
 
 Usage: python3 scripts/project_sync.py [--dry-run]
 """
@@ -120,11 +121,13 @@ class GitHub:
 
 PROJECT_QUERY = """
 query($owner: String!, $number: Int!) {
-  organization(login: $owner) {
-    projectV2(number: $number) {
-      id
-      fields(first: 50) {
-        nodes { ... on ProjectV2SingleSelectField { id name options { id name } } }
+  repositoryOwner(login: $owner) {
+    ... on ProjectV2Owner {
+      projectV2(number: $number) {
+        id
+        fields(first: 50) {
+          nodes { ... on ProjectV2SingleSelectField { id name options { id name } } }
+        }
       }
     }
   }
@@ -160,7 +163,11 @@ def main() -> int:
 
     gh = GitHub(token)
     project = gh.graphql(PROJECT_QUERY, {"owner": cfg["owner"], "number": int(cfg["number"])})
-    project = project["organization"]["projectV2"]
+    owner = project.get("repositoryOwner") or {}
+    project = owner.get("projectV2")
+    if not project:
+        print(f"ERROR: Project {cfg['owner']}#{cfg['number']} not found or not readable with this token.", file=sys.stderr)
+        return 1
     field = next((f for f in project["fields"]["nodes"] if f and f.get("name") == cfg.get("status_field", "Status")), None)
     if field is None:
         print(f"ERROR: single-select field '{cfg.get('status_field')}' not found in the Project.", file=sys.stderr)
