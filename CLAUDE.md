@@ -20,7 +20,7 @@ A subagent does the work inside its own skill. When you were dispatched as a sub
 | Stage | Trigger | Agent | Skill(s) |
 |---|---|---|---|
 | Intake | New issue labeled `ai:brief` | `intake-triager` | `intake-classify` |
-| Onboarding | Repo in org but not in `registry/repos.yml` | `repo-onboarder` | `repo-onboarding` |
+| Onboarding | Repo owned by `altaprimadev` but not in `registry/repos.yml` | `repo-onboarder` | `repo-onboarding` |
 | Design | `size:large` + `ai:needs-design` | `designer` | `async-design` + stack packs |
 | Planning | Design PR merged (Gate 1) | `planner` | `plan-to-issues` |
 | Task review | Sub-issue labeled `ai:draft` | `task-reviewer` | `task-review` |
