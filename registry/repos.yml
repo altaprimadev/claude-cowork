@@ -21,15 +21,15 @@ repos:
     autonomy: 0
     environment: hosted
 
-  # Admin API. Onboarding PR: altaprimadev/alta-prima-admin-back-end#37
+  # Admin API. Onboarded via altaprimadev/alta-prima-admin-back-end#37
   - name: altaprimadev/alta-prima-admin-back-end
-    status: onboarding
+    status: active
     autonomy: 0
     environment: hosted
 
-  # Prisma schema for the admin API. Onboarding PR: altaprimadev/alta-prima-admin-prisma#24
+  # Prisma schema for the admin API. Onboarded via altaprimadev/alta-prima-admin-prisma#24
   - name: altaprimadev/alta-prima-admin-prisma
-    status: onboarding
+    status: active
     autonomy: 0
     environment: hosted
 
