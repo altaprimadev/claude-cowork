@@ -67,6 +67,8 @@ Do not use when:
    |---|---|---|---|
    | Brief with `ai:brief`, no `ai:needs-design` | `ai:needs-human`, `ai:triaged`, `size:small`, `size:large` | none | Intake re-triages |
    | Brief with `ai:needs-design` | `ai:needs-human` | none | Designer (async-design) |
+   | Sub-issue stopped by task review (`<!-- ai:task-review` comment), human approves | `ai:needs-human` | `ai:ready` if every `Depends on` is closed, else none | Execution: implementer, or promote mode |
+   | Sub-issue stopped by task review, human changes the task | `ai:needs-human` | `ai:draft` | Task review re-checks the edited body |
    | Sub-issue (has `ai:plan` marker or `Parent:` line), no open agent PR | `ai:needs-human` or `ai:blocked`, `ai:in-progress` | `ai:ready` | Execution: implementer |
    | Sub-issue with an open agent PR | `ai:needs-human` or `ai:blocked` | `ai:changes-needed` on the PR | Execution: implementer fix round |
    | Design parent waiting on planning | `ai:needs-human` | none | Execution: planner |

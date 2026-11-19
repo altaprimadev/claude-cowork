@@ -35,7 +35,7 @@ except ImportError:  # pragma: no cover
 
 ROOT = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else Path(__file__).resolve().parent.parent
 SKIP_DIRS = {".git", "node_modules", "__pycache__", ".pytest_cache"}
-READ_ONLY_AGENTS = {"spec-reviewer", "quality-reviewer"}
+READ_ONLY_AGENTS = {"spec-reviewer", "quality-reviewer", "task-reviewer"}
 WRITE_TOOLS = {"Write", "Edit", "NotebookEdit", "MultiEdit"}
 ATTRIBUTION_RE = re.compile(r"Adapted from .+\(MIT\)", re.IGNORECASE)
 SECRET_PATTERNS = {

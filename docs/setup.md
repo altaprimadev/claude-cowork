@@ -51,6 +51,13 @@ Branch protection needs Pro (personal account) or Team (organization) for privat
   scripts/setup-labels.sh altaprimadev/claude-cowork altaprimadev/<repo>
   ```
 
+- [ ] Set up the GitHub Project board (once, for all repos):
+  1. Create an organization Project in `altaprimadev`. Note its number from the URL (`/orgs/altaprimadev/projects/<number>`).
+  2. Give the single-select field `Status` these options: `Brief`, `Design`, `Draft`, `Waiting`, `Ready`, `In progress`, `Blocked`, `Needs human`, `Done`.
+  3. Create a fine-grained personal access token owned by `altaprimadev`. Repository access: `claude-cowork` and every managed repo, **Issues: read-only**. Organization permissions: **Projects: read and write**. Nothing else.
+  4. Save it as the Actions secret `PROJECT_SYNC_TOKEN` in `claude-cowork` (Settings → Secrets and variables → Actions). Agents never see it.
+  5. Set `project.number` in `registry/policy.yml` through a PR. `0` keeps the sync off.
+  6. Run the workflow once: Actions → Project sync → Run workflow. Check that items appear.
 - [ ] Preview branch protection with a dry run, then apply it:
 
   ```bash

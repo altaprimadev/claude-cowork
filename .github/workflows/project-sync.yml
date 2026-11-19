@@ -1,0 +1,42 @@
+# Mirror pipeline issue state into the GitHub Project board.
+# Agents cannot reach the Projects API from cloud sessions. They change issues
+# and labels, then dispatch this workflow. The hourly run catches up on misses.
+# Setup: docs/setup.md -> "Set up the GitHub Project board".
+
+name: Project sync
+
+on:
+  schedule:
+    - cron: "37 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: project-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: sync
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: python -m pip install --disable-pip-version-check pyyaml
+
+      - name: Sync issues to the Project
+        env:
+          PROJECT_SYNC_TOKEN: ${{ secrets.PROJECT_SYNC_TOKEN }}
+        run: python scripts/project_sync.py

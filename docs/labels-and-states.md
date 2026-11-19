@@ -12,7 +12,8 @@ GitHub is the state store. Labels show where each issue or PR is in the pipeline
 | `size:small` | Small task: no design | `intake-triager` |
 | `size:large` | Large task: design first (Gate 1) | `intake-triager` |
 | `ai:needs-design` | Waiting for a design document | `intake-triager` |
-| `ai:ready` | Ready to implement; dependencies done | `intake-triager` (small), `planner` (large) |
+| `ai:draft` | Task drafted; waiting for task review | `intake-triager` (small), `planner` (large) |
+| `ai:ready` | Reviewed and ready to implement; dependencies done | Orchestrator after `task-review`, `planner` promote mode |
 | `ai:in-progress` | A session works on it | Orchestrator, when it starts `implementer` |
 | `ai:review-passed` | Agent review passed; waiting for human approval (Gate 2) | Orchestrator, after `review-two-stage` |
 | `ai:changes-needed` | Agent review found blocking findings | Orchestrator, after `review-two-stage` |
@@ -22,7 +23,7 @@ GitHub is the state store. Labels show where each issue or PR is in the pipeline
 
 Rules:
 
-- An issue has at most one of `ai:ready`, `ai:in-progress`, `ai:blocked`, `ai:needs-human` at a time.
+- An issue has at most one of `ai:draft`, `ai:ready`, `ai:in-progress`, `ai:blocked`, `ai:needs-human` at a time.
 - Every label change comes with a comment that says why.
 - A human clears `ai:needs-human` by answering in a comment and removing the label. The next scheduled run picks the issue up again.
   - The `answer` skill (`/answer <ref>`) does both from chat. It also sets the labels each stage needs to resume, for example `ai:ready` on a sub-issue.
@@ -44,11 +45,14 @@ stateDiagram-v2
     NeedsDesign --> DesignPR: designer opens design PR
     DesignPR --> Planned: GATE 1 - human merges design PR
     DesignPR --> NeedsDesign: human requests changes
-    Planned --> Waiting: planner creates sub-issues with open deps
-    Planned --> Ready: planner sets ai:ready when deps are done
-    Waiting --> Ready: deps closed
+    Planned --> Draft: planner creates sub-issues (ai:draft)
+    Small --> Draft: intake creates one sub-issue (ai:draft)
+    Draft --> Draft: task review REVISE, body corrected
+    Draft --> Ready: task review READY, deps done
+    Draft --> Waiting: task review READY, deps open
+    Draft --> NeedsHuman: task review NEEDS_HUMAN
+    Waiting --> Ready: deps closed (promote mode)
 
-    Small --> Ready
     Trivial --> InProgress
     Ready --> InProgress: implementer (ai:in-progress)
     InProgress --> PROpen: PR with evidence
@@ -69,6 +73,22 @@ stateDiagram-v2
     NeedsHuman --> Triaged: human answers
     Blocked --> Ready: human or dependency unblocks
 ```
+
+## GitHub Project board
+
+`.github/workflows/project-sync.yml` mirrors issue state into the GitHub Project set in `registry/policy.yml` → `project`. It runs hourly and on dispatch. Agents read and write issues and labels only. The Project is a view.
+
+| Status option | Issue state (first match wins) |
+|---|---|
+| Done | Closed |
+| Needs human | `ai:needs-human` |
+| Blocked | `ai:blocked` |
+| In progress | `ai:in-progress` |
+| Ready | `ai:ready` |
+| Draft | `ai:draft` |
+| Design | `ai:needs-design` |
+| Brief | `ai:brief` |
+| Waiting | `ai:plan` marker or `Parent:` line, no stage label |
 
 ## Gates
 
