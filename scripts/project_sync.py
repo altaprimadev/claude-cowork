@@ -194,10 +194,14 @@ def main() -> int:
     if field is None:
         print(f"ERROR: single-select field '{cfg.get('status_field')}' not found in the Project.", file=sys.stderr)
         return 1
-    options = {o["name"]: o["id"] for o in field["options"]}
-    missing = [s for s in STATUS_ORDER if s not in options]
+    # Match option names case- and whitespace-insensitively, so "draft " still maps to Draft.
+    by_key = {" ".join(o["name"].split()).casefold(): o["id"] for o in field["options"]}
+    options = {s: by_key.get(s.casefold()) for s in STATUS_ORDER}
+    missing = [s for s, oid in options.items() if oid is None]
     if missing:
+        found = ", ".join(repr(o["name"]) for o in field["options"])
         print(f"ERROR: Status field is missing options: {', '.join(missing)}", file=sys.stderr)
+        print(f"       Options found: {found}", file=sys.stderr)
         return 1
 
     since = (datetime.now(timezone.utc) - timedelta(days=CLOSED_LOOKBACK_DAYS)).strftime("%Y-%m-%dT%H:%M:%SZ")
