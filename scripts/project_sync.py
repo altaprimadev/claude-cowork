@@ -42,7 +42,7 @@ STATUS_ORDER = [
     "Draft",
     "Design",
     "Brief",
-    "Waiting",
+    "Backlog",
 ]
 LABEL_STATUS = {
     "ai:needs-human": "Needs human",
@@ -71,7 +71,7 @@ def status_for(issue: dict) -> str | None:
     for status in STATUS_ORDER:
         if any(LABEL_STATUS.get(lbl) == status for lbl in pipeline_labels):
             return status
-    return "Waiting"
+    return "Backlog"
 
 
 def managed_repos(registry: dict, control_repo: str) -> list[str]:

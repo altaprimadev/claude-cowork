@@ -49,9 +49,9 @@ stateDiagram-v2
     Small --> Draft: intake creates one sub-issue (ai:draft)
     Draft --> Draft: task review REVISE, body corrected
     Draft --> Ready: task review READY, deps done
-    Draft --> Waiting: task review READY, deps open
+    Draft --> Backlog: task review READY, deps open
     Draft --> NeedsHuman: task review NEEDS_HUMAN
-    Waiting --> Ready: deps closed (promote mode)
+    Backlog --> Ready: deps closed (promote mode)
 
     Trivial --> InProgress
     Ready --> InProgress: implementer (ai:in-progress)
@@ -88,7 +88,7 @@ stateDiagram-v2
 | Draft | `ai:draft` |
 | Design | `ai:needs-design` |
 | Brief | `ai:brief` |
-| Waiting | `ai:plan` marker or `Parent:` line, no stage label |
+| Backlog | `ai:plan` marker or `Parent:` line, no stage label |
 
 ## Gates
 
