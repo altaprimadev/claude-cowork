@@ -4,7 +4,8 @@
 Reads one JSON object on stdin:
   triggers       the `data` list from list_triggers (enabled: true)
   usage          usage-status --json output, or null when not available
-  runner_bucket  get_session status_bucket of the trigger's runner session, or null
+  runner_bucket  get_session status_bucket of the trigger's runner session, or null.
+                 Short ('working') and enum ('SESSION_STATUS_BUCKET_WORKING') forms work.
 
 Usage:
   gate.py --stage batch|onboarding [--force]
@@ -22,6 +23,15 @@ TRIGGER_NAMES = {
 # Same split as CLAUDE.md "Usage budget": the batch run can start heavy
 # stages (design, planning, implementation); the onboarding scan is light.
 HEAVY = {"batch"}
+BUCKET_PREFIX = "SESSION_STATUS_BUCKET_"
+
+
+def bucket(value):
+    """Normalize a get_session status_bucket: 'SESSION_STATUS_BUCKET_WORKING' -> 'working'."""
+    value = (value or "").strip()
+    if value.upper().startswith(BUCKET_PREFIX):
+        value = value[len(BUCKET_PREFIX):]
+    return value.lower()
 
 
 def decide(stage, triggers, usage, runner_bucket, force=False):
@@ -36,7 +46,7 @@ def decide(stage, triggers, usage, runner_bucket, force=False):
     if not trig.get("enabled", True):
         out["reason"] = f"'{name}' is disabled"
         return out
-    if runner_bucket == "working":
+    if bucket(runner_bucket) == "working":
         out["reason"] = "the runner session is busy with another run"
         return out
 

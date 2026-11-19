@@ -4,7 +4,7 @@ description: Fire a pipeline scheduled task now instead of waiting for its daily
 argument-hint: "[batch | onboarding] [force]"
 compatibility: Cloud sessions only. Needs the claude-code-remote MCP (list_triggers, get_session, fire_trigger, list_events).
 metadata:
-  version: "1.0.0"
+  version: "1.0.1"
   owner: claude-cowork
 ---
 # Run pipeline
@@ -30,7 +30,7 @@ Do not use when:
 ## Procedure
 
 1. **Find the task.** Call `list_triggers` with `enabled: true`. Keep the `data` list.
-2. **Check the runner.** Take `persistent_session_id` of the matching task. Call `get_session` with it and read `status_bucket`. Skip this step when the task has no `persistent_session_id`.
+2. **Check the runner.** Take `persistent_session_id` of the matching task. Call `get_session` with it and pass `status_bucket` to the gate as is, for example `SESSION_STATUS_BUCKET_WORKING`. Skip this step when the task has no `persistent_session_id`.
 3. **Check usage.** Run `usage-status` with `--json --policy <clone>/registry/policy.yml`. On an error, use `null`.
 4. **Decide.** Pipe one JSON object to the gate script:
    ```bash
