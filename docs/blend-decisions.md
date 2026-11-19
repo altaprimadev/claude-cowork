@@ -294,6 +294,20 @@ Human-invoked, read-only. It is the on-demand version of the "Needs you" part of
 | Untrusted repository content | ECC `skills/github-ops/SKILL.md` @3f14a10 | take | Item text is summarized as data. |
 | Mark blockers that a comment cannot fix | brief / CLAUDE.md | write from brief | Autonomy, registry, and protection blockers need a PR or platform change. |
 
+### usage-reminder
+
+Sources read: ECC:agents/chief-of-staff.md@3f14a10 (through `inbox`)
+
+Human-invoked. Original to claude-cowork. It reuses `usage-status` for the reset time and the `inbox` grouping idea for task status.
+
+| Atom | Source (repo, path, commit) | Decision | Reason |
+|---|---|---|---|
+| One-shot reminder chain, rescheduled at each five-hour reset | brief | write from brief | The window starts at the first request after a reset, so a fixed cron cannot follow it. |
+| Fall back to now + 5h when usage data is missing | brief | write from brief | One failed read must not end the chain. |
+| Task status grouped by state, needs-human first | ECC `agents/chief-of-staff.md` @3f14a10 | modify | Same first-match grouping as `inbox`, extended with in-flight and queued work. |
+| No quiet hours | brief | write from brief | The human asked for reminders around the clock. |
+| Read-only on GitHub | brief / CLAUDE.md | write from brief | A reminder reports; pipeline work stays with the scheduled tasks. |
+
 ### answer
 
 Sources read: ECC:agents/chief-of-staff.md@3f14a10, ECC:skills/github-ops/SKILL.md@3f14a10, superpowers:skills/brainstorming/SKILL.md@22f0b46
