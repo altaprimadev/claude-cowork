@@ -31,5 +31,5 @@ control_repo: altaprimadev/claude-cowork
 # The Status field must have one option per value in scripts/project_sync.py STATUS_ORDER.
 project:
   owner: altaprimadev
-  number: 0
+  number: 2
   status_field: Status
