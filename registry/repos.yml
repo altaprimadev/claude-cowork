@@ -28,14 +28,14 @@ repos:
   # Admin API. Onboarded via altaprimadev/alta-prima-admin-back-end#37
   - name: altaprimadev/alta-prima-admin-back-end
     status: active
-    autonomy: 0
+    autonomy: 2
     environment: hosted
     branch_protection: unavailable
 
   # Prisma schema for the admin API. Onboarded via altaprimadev/alta-prima-admin-prisma#24
   - name: altaprimadev/alta-prima-admin-prisma
     status: active
-    autonomy: 0
+    autonomy: 2
     environment: hosted
     branch_protection: unavailable
 
