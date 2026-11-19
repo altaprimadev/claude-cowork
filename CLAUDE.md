@@ -36,6 +36,7 @@ Human-invoked skills run only in interactive sessions, never in scheduled tasks,
 - `answer`: answer an `ai:needs-human` or `ai:blocked` item; post on `post now`.
 - `usage-reminder`: remind the human at every five-hour usage reset with task status or a nudge to write a brief (`start`, `run`, `status`, `stop`).
 - `skills-help`: list every skill with a one-line description, or show one skill in full.
+- `run-pipeline`: fire a pipeline scheduled task now instead of waiting for its schedule (`batch`, `onboarding`), after a usage and runner check.
 Stack packs are the skills listed in the target repo's `.agent/profile.yml` -> `packs`.
 Gate 3 (production) has no agent and no skill. Only humans promote to production.
 
