@@ -17,7 +17,7 @@ The agent never runs the scripts in this repo against GitHub. Humans run them.
 | Agent Claude account | **One shared Claude account** runs both agent sessions and human chat sessions. Its GitHub connection is `altaprimadev`. The human reviewer `adhemukhlis` approves only in GitHub web. |
 | Claude plan | Team Standard now. **Team Premium** (Max-level usage) for the account that runs agents, coming soon. The team stays on a Team plan so managed settings keep the guard hook active in multi-repo sessions. |
 
-Without branch protection, the gates rest on instructions, the guard hook, and a human who merges by hand. That breaks the brief's rule that the platform enforces integrity. At autonomy 0 agents open no code PRs, so the gap is acceptable for the pilot.
+Without branch protection, the gates rest on instructions, the guard hook, and a human who merges by hand. That breaks the brief's rule that the platform enforces integrity. The pilot first accepted this gap because every repo ran at autonomy 0. That reason no longer holds: `alta-prima-admin-back-end` and `alta-prima-admin-prisma` now run at autonomy 2 under the compensating rules, with an agent identity that holds admin rights. The account owner must re-confirm this risk or lower autonomy.
 
 When `altaprimadev` gets Pro, or moves to an organization on the Team plan:
 
@@ -25,7 +25,7 @@ When `altaprimadev` gets Pro, or moves to an organization on the Team plan:
 2. Remove the autonomy cap rows above.
 3. Raise autonomy per repo (step 8).
 
-Moving to an organization is recommended before onboarding a second repo. It adds teams, per-repo access for the machine user, and Team-plan protection rules.
+Moving to an organization is recommended. The registry already lists more than one repo. An organization adds teams, per-repo access for the machine user, and Team-plan protection rules.
 
 ## 1. Agent identity (account owner)
 
