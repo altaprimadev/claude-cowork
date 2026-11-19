@@ -20,3 +20,27 @@ repos:
     status: active
     autonomy: 0
     environment: hosted
+
+  # Admin API. Onboarding PR: altaprimadev/alta-prima-admin-back-end#37
+  - name: altaprimadev/alta-prima-admin-back-end
+    status: onboarding
+    autonomy: 0
+    environment: hosted
+
+  # Prisma schema for the admin API. Onboarding PR: altaprimadev/alta-prima-admin-prisma#24
+  - name: altaprimadev/alta-prima-admin-prisma
+    status: onboarding
+    autonomy: 0
+    environment: hosted
+
+  # Legacy NestJS API. Read-only source for the apsy-api port.
+  - name: altaprimadev/apsy-api
+    status: frozen
+    autonomy: 0
+    environment: hosted
+
+  # Legacy data export (CSV, SQL). Read-only source for the apsy-api port.
+  - name: altaprimadev/alta-prima-admin-data
+    status: frozen
+    autonomy: 0
+    environment: hosted
