@@ -11,6 +11,10 @@
 #              2 = full pipeline (design, plan, implement, review)
 #              The effective level is the LOWER of this value and
 #              `.agent/profile.yml` -> autonomy in the target repo.
+# branch_protection: unavailable (optional, set by a human)
+#              The GitHub plan has no branch protection for this private repo.
+#              Autonomy then applies under the compensating rules in CLAUDE.md.
+#              Without this field, an unprotected repo is capped at autonomy 0.
 # environment: hosted | self-hosted
 #              hosted      = Anthropic-hosted cloud environment (default)
 #              self-hosted = only for private networks or heavy builds
@@ -26,12 +30,14 @@ repos:
     status: active
     autonomy: 0
     environment: hosted
+    branch_protection: unavailable
 
   # Prisma schema for the admin API. Onboarded via altaprimadev/alta-prima-admin-prisma#24
   - name: altaprimadev/alta-prima-admin-prisma
     status: active
     autonomy: 0
     environment: hosted
+    branch_protection: unavailable
 
   # Legacy NestJS API. Read-only source for the apsy-api port.
   - name: altaprimadev/apsy-api

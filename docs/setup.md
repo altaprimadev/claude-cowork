@@ -12,7 +12,7 @@ The agent never runs the scripts in this repo against GitHub. Humans run them.
 | Branch protection | **Not active.** Private repos on a free personal account cannot use it. |
 | CODEOWNERS | `@adhemukhlis` (a human collaborator) |
 | Network access | **Full** (unrestricted) by owner decision. Outbound data is not restricted. |
-| Autonomy cap | **0 for every repo** until branch protection is active. `CLAUDE.md` enforces this. |
+| Autonomy cap | Repos with `branch_protection: unavailable` in `registry/repos.yml` may run above 0 under the compensating rules in `CLAUDE.md`. Every other unprotected repo stays at 0. |
 | Agent GitHub identity | **`altaprimadev`, the repo owner (admin).** No separate machine user. Accepted risk: the agent holds admin rights, so the guard hook and `CLAUDE.md` are the only barriers. |
 | Agent Claude account | **One shared Claude account** runs both agent sessions and human chat sessions. Its GitHub connection is `altaprimadev`. The human reviewer `adhemukhlis` approves only in GitHub web. |
 | Claude plan | Team Standard now. **Team Premium** (Max-level usage) for the account that runs agents, coming soon. The team stays on a Team plan so managed settings keep the guard hook active in multi-repo sessions. |
@@ -51,6 +51,13 @@ Branch protection needs Pro (personal account) or Team (organization) for privat
   scripts/setup-labels.sh altaprimadev/claude-cowork altaprimadev/<repo>
   ```
 
+- [ ] Set up the GitHub Project board (once, for all repos):
+  1. Create an organization Project in `altaprimadev`. Note its number from the URL (`/orgs/altaprimadev/projects/<number>`).
+  2. Give the single-select field `Status` these options: `Brief`, `Design`, `Draft`, `Waiting`, `Ready`, `In progress`, `Blocked`, `Needs human`, `Done`.
+  3. Create a fine-grained personal access token owned by `altaprimadev`. Repository access: `claude-cowork` and every managed repo, **Issues: read-only**. Organization permissions: **Projects: read and write**. Nothing else.
+  4. Save it as the Actions secret `PROJECT_SYNC_TOKEN` in `claude-cowork` (Settings → Secrets and variables → Actions). Agents never see it.
+  5. Set `project.number` in `registry/policy.yml` through a PR. `0` keeps the sync off.
+  6. Run the workflow once: Actions → Project sync → Run workflow. Check that items appear.
 - [ ] Preview branch protection with a dry run, then apply it:
 
   ```bash

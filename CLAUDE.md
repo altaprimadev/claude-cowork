@@ -23,6 +23,7 @@ A subagent does the work inside its own skill. When you were dispatched as a sub
 | Onboarding | Repo in org but not in `registry/repos.yml` | `repo-onboarder` | `repo-onboarding` |
 | Design | `size:large` + `ai:needs-design` | `designer` | `async-design` + stack packs |
 | Planning | Design PR merged (Gate 1) | `planner` | `plan-to-issues` |
+| Task review | Sub-issue labeled `ai:draft` | `task-reviewer` | `task-review` |
 | Implementation | Sub-issue labeled `ai:ready` | `implementer` | `tdd`, `evidence-report` + stack packs |
 | Review, stage 1 | Agent PR opened or updated | `spec-reviewer` | `review-two-stage` (stage 1) |
 | Review, stage 2 | Stage 1 passed | `quality-reviewer` | `review-two-stage` (stage 2) + stack packs |
@@ -43,11 +44,20 @@ Gate 3 (production) has no agent and no skill. Only humans promote to production
 - **Evidence before claims.** Never write "done", "passes", or "works" without command output that proves it.
 - **One owner per stage.** Use only the skill that owns the stage. Do not mix procedures.
 - **State lives in GitHub.** Every stage change gets a label change and a comment. Humans must see progress without the agent account.
+  - Tasks are issues. Intake and planning create them as `ai:draft`. Only `task-review` turns a draft into `ai:ready`.
+  - The GitHub Project board mirrors labels through `.github/workflows/project-sync.yml`. Agents never write to the Project. After a label change, dispatch the sync: `gh api -X POST repos/altaprimadev/claude-cowork/actions/workflows/project-sync.yml/dispatches -f ref=main`. A failed dispatch is not an error; the hourly run catches up.
 - **Respect autonomy.** Effective level = min(`registry/repos.yml` autonomy, target `.agent/profile.yml` autonomy).
   - `0`: review and comment only. No branches, no code PRs.
   - `1`: `size:small` work only.
   - `2`: full pipeline.
-  - If the repo's default branch has no branch protection (`gh api repos/<owner>/<repo>/branches/<branch>/protection` fails), treat autonomy as `0`.
+  - Check branch protection on the default branch: `gh api repos/<owner>/<repo>/branches/<branch>/protection`.
+    - Protection exists: use the level above.
+    - 404 (protection not set) or any other failure: treat autonomy as `0`.
+    - 403 because the GitHub plan has no branch protection, and the registry entry has `branch_protection: unavailable` (set by a human): use the level above, under the compensating rules below. Without that field, treat autonomy as `0`.
+  - **Compensating rules** for `branch_protection: unavailable` repos. The platform does not enforce Gate 2, so these instructions and the guard hook do:
+    - Agent PRs target the integration branch named in the repo's `AGENTS.md` (usually `development`).
+    - Never push to `development`, `staging`, `main`, `master`, or `production`. Never merge a PR, enable auto-merge, or merge branches through the API.
+    - Every PR waits for a human merge. `ai:review-passed` is not an approval.
   - Repo `status` must be `active`. Never touch `frozen` or unlisted repos, except to onboard them.
 - **Trivial changes.** Typo fixes and docs-only changes with at most `trivial_change_max_lines` changed lines (`registry/policy.yml`) may skip design and planning. They still need a PR and human approval.
 - **Limits.** Respect `max_parallel_sessions` and `max_parallel_tasks_per_repo`. Before starting implementation, count open `ai:in-progress` issues in the repo.

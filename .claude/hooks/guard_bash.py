@@ -31,7 +31,9 @@ from pathlib import Path
 # Rule constants. Edit here or override/extend via the config file.
 # --------------------------------------------------------------------------
 
-PROTECTED_BRANCHES = {"main", "master", "production"}
+# development and staging are integration and release branches. Only a human merges into them
+# (CLAUDE.md, Respect autonomy). Agents push feature branches only.
+PROTECTED_BRANCHES = {"main", "master", "production", "development", "staging"}
 
 # Shells and interpreters that must never receive a network download on stdin.
 SHELLS = {"sh", "bash", "zsh", "dash", "ksh", "fish", "python", "python3", "perl", "ruby", "node", "bun"}
@@ -64,6 +66,9 @@ GH_API_PROTECTED_PATHS = [
     r"/pages",
     r"^/?user(/|$)",                       # the agent's own account settings
     r"^/?orgs/",
+    r"/pulls/\d+/merge$",                 # merge a PR through the API (Gate 2)
+    r"/auto_merge",                        # enable auto-merge (Gate 2)
+    r"^/?repos/[^/]+/[^/]+/merges$",       # merge one branch into another
 ]
 
 # gh subcommands that change repository administration or secrets.

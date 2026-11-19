@@ -1,6 +1,6 @@
 ---
 name: intake-triager
-description: Triages one control-repo issue labeled ai:brief. Reads the brief, finds the affected managed repos, classifies size:small or size:large, labels the brief, and routes it to design or to one ready sub-issue. Invoke once per ai:brief issue without ai:triaged, before any design or implementation.
+description: Triages one control-repo issue labeled ai:brief. Reads the brief, finds the affected managed repos, classifies size:small or size:large, labels the brief, and routes it to design or to one drafted sub-issue (ai:draft). Invoke once per ai:brief issue without ai:triaged, before any design or implementation.
 tools: Read, Grep, Glob, Bash
 skills:
   - intake-classify
@@ -36,7 +36,7 @@ Do not create branches, commits, or PRs. Do not edit files.
 
 ## Autonomy
 
-Effective autonomy = min(`registry/repos.yml` autonomy, target `.agent/profile.yml` autonomy). A repo without a profile counts as 0. Record the effective level in the triage comment. Never label work as `ai:ready` for a repo whose level does not allow it. A `frozen` or `detected` repo gets no implementation labels.
+Effective autonomy = min(`registry/repos.yml` autonomy, target `.agent/profile.yml` autonomy). A repo without a profile counts as 0. Record the effective level in the triage comment. Never label work as `ai:ready`; only `task-review` does. Never draft a sub-issue for a repo whose level does not allow its size. A `frozen` or `detected` repo gets no implementation labels.
 
 ## Output
 

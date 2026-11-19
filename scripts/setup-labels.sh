@@ -20,6 +20,7 @@ LABELS=(
   "size:small|c2e0c6|Small task: no design needed"
   "size:large|f9d0c4|Large task: design (Gate 1) first"
   "ai:needs-design|fbca04|Waiting for a design document"
+  "ai:draft|c5def5|Task drafted; waiting for task review"
   "ai:ready|0e8a16|Ready to implement; dependencies done"
   "ai:in-progress|5319e7|A session is working on it"
   "ai:review-passed|0e8a16|Agent review passed; awaiting human approval (Gate 2)"
