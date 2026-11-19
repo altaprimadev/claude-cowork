@@ -312,11 +312,12 @@ Human-invoked. Original to claude-cowork. It reuses `usage-status` for the reset
 
 Sources read: none.
 
-Human-invoked. Fires an existing scheduled task; no GitHub writes. Original to claude-cowork.
+Human-invoked. Sends a scheduled task's stored prompt to the runner session; no GitHub writes. Original to claude-cowork.
 
 | Atom | Source (repo, path, commit) | Decision | Reason |
 |---|---|---|---|
-| Fire the existing scheduled task with fire_trigger | brief | write from brief | The scheduled task already holds the runner setup and prompt. A copy in the skill would drift. |
+| Send the stored prompt to the runner session with send_message | brief | write from brief | The prompt is read from the scheduled task at call time, so it cannot drift. Only the runner session has the repos. |
+| Do not use fire_trigger | first real run, 2026-11-19 | rejected | A manual fire started a new session without repos. The run stopped at setup. |
 | Stop when the runner session is working | brief | write from brief | Two runs on the same queue can pick the same item. |
 | Gate on usage advice; batch at caution needs `force` | CLAUDE.md "Usage budget" | write from brief | Same light/heavy split as the pipeline. The batch prompt does not check the budget yet. |
 
