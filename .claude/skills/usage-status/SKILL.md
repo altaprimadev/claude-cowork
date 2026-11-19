@@ -78,3 +78,5 @@ Check both windows. If `seven_day` is at `pause`, do not start new tasks. Report
 The script also accepts a single `rate_limit_info` object, or the status line JSON of local Claude Code (field `rate_limits.five_hour.used_percentage` and `resets_at`). Use those when the MCP tool is not available, for example in a local terminal session with a status line script.
 
 If no source is available, say so in one line, and point the user to Settings -> Usage on claude.ai. Do not guess numbers.
+
+Original to claude-cowork. No upstream source.
