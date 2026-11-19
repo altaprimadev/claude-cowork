@@ -5,7 +5,7 @@ Each run starts a fresh session in a fresh container. `/loop` is never used: it 
 
 ## Current state (2026-11-19)
 
-The five tasks exist as cron-only scheduled tasks on the human owner's account (not the agent account), created from a cloud session. Names: `Pipeline: onboarding scan`, `Pipeline: intake`, `Pipeline: execution`, `Pipeline: review`, `Pipeline: daily report`. Each run starts a fresh session in the same cloud environment and attaches the repos itself (step 0). GitHub event triggers (Trigger A/B on event) are not set up; the hourly cron is the only trigger. Set event triggers in the claude.ai routines UI if you want them. No connectors are attached; the pipeline uses `gh` only.
+The five tasks exist as cron-only scheduled tasks on the human owner's account (not the agent account), created from a cloud session. Names: `Pipeline: onboarding scan`, `Pipeline: intake`, `Pipeline: execution`, `Pipeline: review`, `Pipeline: daily report`. Each run starts a fresh session in the same cloud environment and attaches the repos itself (step 0). GitHub event triggers (Trigger A/B on event) are not set up; a daily cron at 14:30 WIB (`CRON_TZ=Asia/Jakarta 30 14 * * *`; the daily report weekdays only) is the only trigger, set by the human on 2026-11-19. All five fire together, so a brief triaged today reaches execution the next day, and one task per repo moves per day. Set event triggers in the claude.ai routines UI if you want them. No connectors are attached; the pipeline uses `gh` only.
 
 ## Common settings
 
@@ -28,7 +28,7 @@ Trigger notes (verified in Q2):
 
 - GitHub triggers support issue and pull-request events, including `opened` and `labeled`.
 - Only PR events have filters. Issue-event prompts must check labels themselves.
-- Hourly caps can drop events. Every event task has a cron sweep as a backup.
+- Hourly caps can drop events. Every event task has a cron sweep as a backup. (Event triggers are not set up yet; see Current state.)
 
 **Assumption:** one task covers all active repos as additional repos. If one session with many repos gets too slow, split each task per repo. Keep the same prompt and set `TARGET_REPOS` to one repo.
 
@@ -38,7 +38,7 @@ Trigger notes (verified in Q2):
 
 | Field | Value |
 |---|---|
-| Trigger | Cron, daily at 01:17 UTC |
+| Trigger | Cron, daily at 14:30 WIB (07:30 UTC) |
 | Main repo | `altaprimadev/claude-cowork` |
 | Additional repos | None at start. The agent clones the detected repo read-only to analyze it. |
 | Agent | `repo-onboarder` |
@@ -62,7 +62,7 @@ You are the orchestrator for the altaprimadev agent pipeline.
 | Field | Value |
 |---|---|
 | Trigger A | GitHub event on `altaprimadev/claude-cowork`: `issues.labeled` and `issues.opened` |
-| Trigger B | Cron, hourly (anchored at minute 13) |
+| Trigger B | Cron, daily at 14:30 WIB (07:30 UTC) |
 | Main repo | `altaprimadev/claude-cowork` |
 | Additional repos | All active managed repos (read-only use) |
 | Agent | `intake-triager` |
@@ -89,7 +89,7 @@ You are the orchestrator for the altaprimadev agent pipeline.
 |---|---|
 | Trigger A | GitHub event on each active repo: `issues.labeled` (the prompt checks for `ai:draft`, `ai:ready`, or `ai:needs-design`) |
 | Trigger B | GitHub event on each active repo: `pull_request.closed`, filter: is merged, head branch starts with `design/` |
-| Trigger C | Cron, hourly (anchored at minute 13) |
+| Trigger C | Cron, daily at 14:30 WIB (07:30 UTC) |
 | Main repo | `altaprimadev/claude-cowork` |
 | Additional repos | All active managed repos |
 | Agents | `designer`, `planner`, `task-reviewer`, `implementer` |
@@ -122,7 +122,7 @@ You are the orchestrator for the altaprimadev agent pipeline.
 | Field | Value |
 |---|---|
 | Trigger A | GitHub event on each active repo: `pull_request.opened` and `pull_request.synchronize`, filter: author is the agent machine user, not draft |
-| Trigger B | Cron, hourly (anchored at minute 13) |
+| Trigger B | Cron, daily at 14:30 WIB (07:30 UTC) |
 | Main repo | `altaprimadev/claude-cowork` |
 | Additional repos | All active managed repos |
 | Agents | `spec-reviewer`, then `quality-reviewer` |
@@ -149,7 +149,7 @@ You are the orchestrator for the altaprimadev agent pipeline.
 
 | Field | Value |
 |---|---|
-| Trigger | Cron, weekdays at 23:41 UTC |
+| Trigger | Cron, weekdays at 14:30 WIB (07:30 UTC) |
 | Main repo | `altaprimadev/claude-cowork` |
 | Additional repos | None needed. The agent reads state through `gh`. |
 | Agent | `reporter` |
