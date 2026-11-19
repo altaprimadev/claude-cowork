@@ -59,6 +59,7 @@ Gate 3 (production) has no agent and no skill. Only humans promote to production
 
 - All written output is **Concise Technical Writing English**: files, commit messages, PR and issue bodies, review comments, reports. Short sentences. Active voice. One idea per sentence. No filler.
 - Chat replies to a human in a session are **semi-casual Bahasa Indonesia**.
+- **File paths.** Prefix every file path with its repo name: `alta-prima-admin-back-end/src/app.ts`, not `src/app.ts`. This applies to chat replies, comments, PR and issue bodies, and reports. Inside a file that belongs to the same repo, a repo-relative path is fine.
 
 ## Loading skills and agents
 
