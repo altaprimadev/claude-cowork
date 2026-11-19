@@ -84,11 +84,11 @@ stateDiagram-v2
 | In review | `ai:needs-human`: a human must review or decide |
 | Blocked | `ai:blocked` |
 | Ready to merge | An open PR that closes the issue (`Closes #n`) carries `ai:review-passed`. Gate 2 waits for a human. |
-| In progress | `ai:in-progress` |
+| In progress | `ai:in-progress`, or a triaged brief (`ai:brief` + `ai:triaged`) whose work moved to a design PR or sub-issues |
 | Ready | `ai:ready` |
 | Draft | `ai:draft` |
 | Design | `ai:needs-design` |
-| Brief | `ai:brief` |
+| Brief | `ai:brief` without `ai:triaged` |
 | Backlog | `ai:plan` marker or `Parent:` line, no stage label |
 
 ## Gates
