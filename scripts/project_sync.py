@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 import urllib.error
 import urllib.request
@@ -35,17 +36,18 @@ CLOSED_LOOKBACK_DAYS = 7
 # Status option -> rule. The first matching entry wins.
 STATUS_ORDER = [
     "Done",
-    "Needs human",
+    "In review",
     "Blocked",
+    "Ready to merge",
     "In progress",
     "Ready",
     "Draft",
     "Design",
     "Brief",
-    "Waiting",
+    "Backlog",
 ]
 LABEL_STATUS = {
-    "ai:needs-human": "Needs human",
+    "ai:needs-human": "In review",
     "ai:blocked": "Blocked",
     "ai:in-progress": "In progress",
     "ai:ready": "Ready",
@@ -54,10 +56,27 @@ LABEL_STATUS = {
     "ai:brief": "Brief",
 }
 SKIP_LABELS = {"ai:report"}
+REVIEW_PASSED = "ai:review-passed"
+CLOSING_RE = re.compile(r"\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s+#(\d+)\b", re.IGNORECASE)
 
 
-def status_for(issue: dict) -> str | None:
-    """Return the Status option for an issue, or None when it is not a pipeline item."""
+def ready_to_merge_issues(items: list[dict]) -> set[int]:
+    """Issue numbers closed by an open PR in the same list that carries ai:review-passed."""
+    numbers: set[int] = set()
+    for item in items:
+        if "pull_request" not in item or item.get("state") != "open":
+            continue
+        if REVIEW_PASSED not in {lbl["name"] for lbl in item.get("labels", [])}:
+            continue
+        numbers.update(int(n) for n in CLOSING_RE.findall(item.get("body") or ""))
+    return numbers
+
+
+def status_for(issue: dict, ready_to_merge: set[int] | frozenset[int] = frozenset()) -> str | None:
+    """Return the Status option for an issue, or None when it is not a pipeline item.
+
+    ready_to_merge holds issue numbers whose open PR passed agent review (ai:review-passed).
+    """
     labels = {lbl["name"] for lbl in issue.get("labels", [])}
     if labels & SKIP_LABELS or "pull_request" in issue:
         return None
@@ -68,10 +87,13 @@ def status_for(issue: dict) -> str | None:
         return None
     if issue.get("state") == "closed":
         return "Done"
+    in_pr_review = issue.get("number") in ready_to_merge
     for status in STATUS_ORDER:
+        if status == "Ready to merge" and in_pr_review:
+            return status
         if any(LABEL_STATUS.get(lbl) == status for lbl in pipeline_labels):
             return status
-    return "Waiting"
+    return "Backlog"
 
 
 def managed_repos(registry: dict, control_repo: str) -> list[str]:
@@ -187,8 +209,9 @@ def main() -> int:
             print(f"WARN  {repo}: cannot list issues ({exc.code}); skipped")
             failed += 1
             continue
+        merge_ready = ready_to_merge_issues(issues)
         for issue in issues:
-            status = status_for(issue)
+            status = status_for(issue, merge_ready)
             if status is None:
                 continue
             ref = f"{repo}#{issue['number']}"
