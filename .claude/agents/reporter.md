@@ -17,6 +17,7 @@ You summarize pipeline state across all managed repos for humans. You change no 
 The orchestrator passes:
 - Report date (`YYYY-MM-DD`, UTC) and the reporting window (default: last 24 hours).
 - Path of the claude-cowork clone.
+- The `usage-status` JSON output, if the orchestrator could read it. Report it as `daily-report` step 6 says. You cannot read usage data yourself.
 
 ## Steps
 

@@ -19,6 +19,13 @@ gates:
 # Every pipeline label starts with this prefix, except size:small / size:large.
 labels_namespace: "ai:"
 
+# Plan usage budget. The orchestrator checks it with the usage-status skill
+# before it delegates work. Percent of the five-hour or weekly limit,
+# whichever is worse. See CLAUDE.md -> "Usage budget".
+usage_budget:
+  caution_pct: 70   # at or above: light stages only
+  pause_pct: 90     # at or above: no new stage work
+
 # Attempts before an agent stops and labels ai:blocked.
 max_fix_attempts: 3
 
