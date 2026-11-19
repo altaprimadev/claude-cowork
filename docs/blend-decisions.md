@@ -308,6 +308,17 @@ Human-invoked. Original to claude-cowork. It reuses `usage-status` for the reset
 | No quiet hours | brief | write from brief | The human asked for reminders around the clock. |
 | Read-only on GitHub | brief / CLAUDE.md | write from brief | A reminder reports; pipeline work stays with the scheduled tasks. |
 
+### skills-help
+
+Sources read: none.
+
+Human-invoked, read-only. Original to claude-cowork.
+
+| Atom | Source (repo, path, commit) | Decision | Reason |
+|---|---|---|---|
+| Build the list from SKILL.md frontmatter at call time | brief | write from brief | A hand-written list goes stale when skills change. |
+| Group by role from CLAUDE.md (human list, stage map) | brief / CLAUDE.md | write from brief | CLAUDE.md already owns which skills are pipeline stages and which are human-invoked. |
+
 ### answer
 
 Sources read: ECC:agents/chief-of-staff.md@3f14a10, ECC:skills/github-ops/SKILL.md@3f14a10, superpowers:skills/brainstorming/SKILL.md@22f0b46
