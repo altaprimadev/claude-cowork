@@ -17,7 +17,7 @@ GitHub is the state store. Labels show where each issue or PR is in the pipeline
 | `ai:in-progress` | A session works on it | Orchestrator, when it starts `implementer` |
 | `ai:review-passed` | Agent review passed; waiting for human approval (Gate 2) | Orchestrator, after `review-two-stage` |
 | `ai:changes-needed` | Agent review found blocking findings | Orchestrator, after `review-two-stage` |
-| `ai:needs-human` | A human must decide; the session stopped | Any agent |
+| `ai:needs-human` | A tier 3 decision or a hard limit (`CLAUDE.md` → "Decide by default"); the item stopped | Orchestrator, after vetting |
 | `ai:blocked` | Blocked by a dependency or a repeated error | Any agent |
 | `ai:report` | Daily report issue | `reporter` |
 

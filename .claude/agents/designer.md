@@ -40,14 +40,14 @@ status: DESIGN_PR_OPENED | NEEDS_HUMAN | BLOCKED
 issue: <url>
 pr: <url>
 doc: docs/design/<file>.md
-open_questions: <count, each with its default in the doc>
+decisions_for_reviewer: <count, each with a recommendation in the doc>
 risks: <one line>
 ```
 
 ## Stop conditions
 
 - Effective autonomy below 2: return `BLOCKED` with the levels found. Do not write anything.
-- Requirements conflict or a decision needs business input: write the doc with your default, post ONE issue comment listing every question and its default, add `ai:needs-human`, return `NEEDS_HUMAN`.
+- Requirements conflict or a decision needs business input: do not stop. Gate 1 follows, so put each item under "Decisions for the reviewer" with your recommendation, build the design on it, and open the PR. Return `DESIGN_PR_OPENED`.
 - Repo or tool access fails twice: add `ai:blocked`, return `BLOCKED` with the output.
 
 ## Integrity

@@ -51,12 +51,14 @@ trivial: yes | no
 labels_added: [...]
 next_stage: implement | design | none
 notes: <one line>
+escalations: <only with NEEDS_HUMAN for a tier 3 item; one block per item>
 ```
 
 ## Stop conditions
 
-- Brief is ambiguous or the affected repo is unclear: post ONE comment with every question and the default assumption for each, add `ai:needs-human`, return `NEEDS_HUMAN`.
-- Affected repo is not in the registry: same as above. Do not guess a repo.
+- Brief is ambiguous or the affected repo is unclear: apply `CLAUDE.md` → "Decide by default". Read the candidate repos' `AGENTS.md` and code until you can pick. Record the pick under Assumptions in the intake comment and continue.
+- A tier 3 item remains: do not post or label. Return `NEEDS_HUMAN` with `escalations:`, plus the repos and size you found. The orchestrator vets it.
+- Affected repo is not in the registry, or autonomy is too low: a hard limit. Post the intake comment that names the limit, add `ai:needs-human`, return `NEEDS_HUMAN`. Do not guess a repo.
 - `gh` fails or access is denied twice: add `ai:blocked` if you can, return `BLOCKED` with the error output.
 
 ## Integrity

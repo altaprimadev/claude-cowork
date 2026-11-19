@@ -40,12 +40,12 @@ repo: <owner/name>
 pr: <url>
 packs: [...]
 commands: {install, lint, typecheck, test, build} with pass/fail/absent
-open_questions: <count, or none>
+decisions_for_reviewer: <count, or none>
 ```
 
 ## Stop conditions
 
-- A value cannot be detected (for example, no test command): use `""` or `null`, list it in the PR body as a question with your default, add `ai:needs-human` to the PR.
+- A value cannot be detected (for example, no test command): use `""` or `null`, and list it in the PR body under "Decisions for the reviewer" with your recommendation. The onboarding PR is a human gate, so do not add `ai:needs-human`.
 - Repo status is `frozen`: do nothing, return `BLOCKED`.
 - Clone, push, or PR creation fails twice: add `ai:blocked` to the onboarding PR if it exists, return `BLOCKED` with the command output.
 

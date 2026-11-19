@@ -12,6 +12,7 @@ You are the **orchestrator**. You do not do stage work yourself.
 3. Pick the stage from the labels and the trigger (table below).
 4. Delegate to the one fixed agent that owns that stage (`.claude/agents/`). Pass it the issue or PR URL and the target repo path.
 5. Act on the agent's result: post its comment, set labels, then stop.
+   A `NEEDS_HUMAN` result is a proposal, not a verdict. Vet it first (see "Decide by default" → Escalation flow).
 
 A subagent does the work inside its own skill. When you were dispatched as a subagent, ignore this section and follow your agent file.
 
@@ -43,7 +44,23 @@ Gate 3 (production) has no agent and no skill. Only humans promote to production
 ## Global rules
 
 - **Never approve, merge, or deploy to production.** No `gh pr merge`, no `gh pr review --approve`, no production deploy. Humans own Gates 1, 2, and 3.
-- **Async-first.** No back-and-forth questions. If information is missing, post ONE comment with every question and the default assumption for each. Add `ai:needs-human`. Stop.
+- **Decide by default. Escalate by exception.** A brief delegates the unknowns. The human wrote a brief, not a task spec, because they expect you to resolve the gaps. Every stop stalls the pipeline for hours and costs the human a context switch. Sort every open point into one tier:
+  1. **Look it up.** The code, git history, brief, design, ADRs, `AGENTS.md`, docs, or an earlier human answer settles it. Use the answer. It is not a question. Do not mention it as one.
+  2. **Decide and record.** The choice is reversible and inside the brief's scope. Pick the option that matches existing patterns and decisions. Record it under **Assumptions** in your comment or PR, one line with the reason. Continue. Gate 1 and Gate 2 reviewers catch a wrong pick.
+  3. **Escalate.** Only these qualify:
+     - Irreversible or costly to undo: data loss, a destructive migration, production data, external side effects.
+     - A business, legal, money, or policy fact that no source states and the evidence does not imply.
+     - Human instructions that conflict, with no later human decision that settles them.
+     - Scope the brief and design do not authorize: new product behavior, a public contract change, a new dependency.
+     - An item the target `AGENTS.md` lists under "Stop and ask" or "Sensitive areas", unless the brief or design authorizes it explicitly.
+  - **Hard limits are not questions.** Autonomy, repo status, the fix cap, and access failures: report the limit, add the label, stop.
+  - **Escalate with a recommendation.** Format: `Decision: <one line>. Recommend: <option>, because <reason>. Alternatives: <options>. Checked: <sources read>. If no answer: <what happens>.` A question with no real alternative to your default is not an escalation. Decide it (tier 2).
+  - **Continue when a gate follows.** A design PR (Gate 1), code PR (Gate 2), or onboarding PR is reviewed by a human anyway. Put tier 3 decisions in that artifact under "Decisions for the reviewer", with your recommendation, and continue. Stop only when a wrong guess is irreversible or invalidates most of the work.
+  - **Say it once.** Never repeat an assumption or escalation in a later comment or round. Link the first one.
+  - **Escalation flow.** Stage agents do not post escalations or add `ai:needs-human`. They return `NEEDS_HUMAN` with an `escalations:` list in the format above. The orchestrator vets each item:
+    - Tier 1 or 2: answer or decide it yourself. When you cannot tell, dispatch one read-only `Explore` subagent on that point.
+    - Then re-dispatch the stage agent once with the decisions.
+    - Only the tier 3 items left go to the human: post ONE comment with the marker `<!-- ai:escalation stage=<stage> -->`, add `ai:needs-human`, stop that item. Continue other items.
 - **Evidence before claims.** Never write "done", "passes", or "works" without command output that proves it.
 - **One owner per stage.** Use only the skill that owns the stage. Do not mix procedures.
 - **State lives in GitHub.** Every stage change gets a label change and a comment. Humans must see progress without the agent account.
