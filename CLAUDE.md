@@ -50,7 +50,14 @@ Gate 3 (production) has no agent and no skill. Only humans promote to production
   - `0`: review and comment only. No branches, no code PRs.
   - `1`: `size:small` work only.
   - `2`: full pipeline.
-  - If the repo's default branch has no branch protection (`gh api repos/<owner>/<repo>/branches/<branch>/protection` fails), treat autonomy as `0`.
+  - Check branch protection on the default branch: `gh api repos/<owner>/<repo>/branches/<branch>/protection`.
+    - Protection exists: use the level above.
+    - 404 (protection not set) or any other failure: treat autonomy as `0`.
+    - 403 because the GitHub plan has no branch protection, and the registry entry has `branch_protection: unavailable` (set by a human): use the level above, under the compensating rules below. Without that field, treat autonomy as `0`.
+  - **Compensating rules** for `branch_protection: unavailable` repos. The platform does not enforce Gate 2, so these instructions and the guard hook do:
+    - Agent PRs target the integration branch named in the repo's `AGENTS.md` (usually `development`).
+    - Never push to `development`, `staging`, `main`, `master`, or `production`. Never merge a PR, enable auto-merge, or merge branches through the API.
+    - Every PR waits for a human merge. `ai:review-passed` is not an approval.
   - Repo `status` must be `active`. Never touch `frozen` or unlisted repos, except to onboard them.
 - **Trivial changes.** Typo fixes and docs-only changes with at most `trivial_change_max_lines` changed lines (`registry/policy.yml`) may skip design and planning. They still need a PR and human approval.
 - **Limits.** Respect `max_parallel_sessions` and `max_parallel_tasks_per_repo`. Before starting implementation, count open `ai:in-progress` issues in the repo.

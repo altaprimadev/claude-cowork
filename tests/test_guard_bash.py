@@ -176,9 +176,24 @@ class GuardBashTest(unittest.TestCase):
             "gh api -X PUT repos/o/r/branches/main/protection --input p.json",
             "gh api --method DELETE repos/o/r/branches/main/protection",
             "gh api repos/o/r/rulesets -f name=x",
+            "gh api -X PUT repos/o/r/pulls/12/merge -f merge_method=squash",
+            "gh api -X PUT repos/o/r/pulls/12/ccr/auto_merge",
+            "gh api -X POST repos/o/r/merges -f base=development -f head=ai/1-x",
         ]:
             with self.subTest(cmd=cmd):
                 self.assertBlocked(cmd)
+
+    def test_push_to_integration_branches_blocked(self):
+        for cmd in [
+            "git push origin development",
+            "git push origin HEAD:staging",
+            "git push -u origin staging",
+        ]:
+            with self.subTest(cmd=cmd):
+                self.assertBlocked(cmd)
+
+    def test_push_to_feature_branch_allowed(self):
+        self.assertAllowed("git push -u origin ai/12-add-route")
 
     def test_gh_admin_actions_blocked(self):
         for cmd in [
@@ -210,6 +225,8 @@ class GuardBashTest(unittest.TestCase):
             "gh issue edit 5 --add-label ai:triaged",
             "gh api repos/o/r/branches/main/protection",
             "gh api repos/o/r/pulls",
+            "gh api repos/o/r/pulls/12/merge",
+            "gh api -X POST repos/altaprimadev/claude-cowork/actions/workflows/project-sync.yml/dispatches -f ref=main",
             "gh api repos/o/r",
             "gh api repos/o/r/collaborators",
             "gh api -X POST repos/o/r/issues/5/comments -f body=ok",

@@ -262,6 +262,8 @@ def check_registry(skills: set[str]) -> None:
                 err(f"{where}: autonomy must be 0, 1, or 2")
             if r.get("environment") not in {"hosted", "self-hosted"}:
                 err(f"{where}: environment must be hosted or self-hosted")
+            if "branch_protection" in r and r["branch_protection"] != "unavailable":
+                err(f"{where}: branch_protection must be 'unavailable' or absent")
     elif repos is not None:
         err("registry/repos.yml: top level must be a mapping with 'repos'")
 

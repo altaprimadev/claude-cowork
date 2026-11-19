@@ -12,7 +12,7 @@ The agent never runs the scripts in this repo against GitHub. Humans run them.
 | Branch protection | **Not active.** Private repos on a free personal account cannot use it. |
 | CODEOWNERS | `@adhemukhlis` (a human collaborator) |
 | Network access | **Full** (unrestricted) by owner decision. Outbound data is not restricted. |
-| Autonomy cap | **0 for every repo** until branch protection is active. `CLAUDE.md` enforces this. |
+| Autonomy cap | Repos with `branch_protection: unavailable` in `registry/repos.yml` may run above 0 under the compensating rules in `CLAUDE.md`. Every other unprotected repo stays at 0. |
 | Agent GitHub identity | **`altaprimadev`, the repo owner (admin).** No separate machine user. Accepted risk: the agent holds admin rights, so the guard hook and `CLAUDE.md` are the only barriers. |
 | Agent Claude account | **One shared Claude account** runs both agent sessions and human chat sessions. Its GitHub connection is `altaprimadev`. The human reviewer `adhemukhlis` approves only in GitHub web. |
 | Claude plan | Team Standard now. **Team Premium** (Max-level usage) for the account that runs agents, coming soon. The team stays on a Team plan so managed settings keep the guard hook active in multi-repo sessions. |

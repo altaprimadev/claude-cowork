@@ -20,7 +20,7 @@ Humans write briefs, watch progress, and approve at gates. Agents do the work.
 | 4. Fixed agents | `.claude/agents/` | One role per pipeline stage, least-privilege tools | Instruction plus tool allowlist |
 | 5. Skills | `.claude/skills/` | Procedures per stage, plus stack knowledge loaded per repo | Instruction only |
 
-Current gap: `altaprimadev` is a personal account without Pro, so layer 1 branch protection is not active yet. `CLAUDE.md` caps autonomy at 0 for unprotected repos. See `docs/setup.md`, "Current state".
+Current gap: `altaprimadev` is a personal account without Pro, so layer 1 branch protection is not active yet. `CLAUDE.md` caps autonomy at 0 for unprotected repos, unless a human marks the repo `branch_protection: unavailable`; then compensating rules apply. See `docs/setup.md`, "Current state".
 
 Note: in multi-repo hosted sessions, repo hooks and permission rules do not load. Layer 2 must also be installed as an org server-managed hook. See `docs/open-questions.md` (Q4) and `docs/setup.md`.
 

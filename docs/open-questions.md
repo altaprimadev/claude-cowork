@@ -174,7 +174,7 @@ Consequences:
 - Interactive sessions on that account also act on GitHub as `altaprimadev`.
 
 Safe path:
-- Autonomy stays `0` until `altaprimadev` has Pro and branch protection is active. `CLAUDE.md` already enforces this.
+- Decision (owner, 2026-11-19): a repo may run above autonomy 0 without branch protection when its registry entry has `branch_protection: unavailable`. Compensating rules in `CLAUDE.md`: agent PRs target the integration branch, agents never push to `development`, `staging`, or release branches, and never merge. The guard hook blocks those pushes and API merges. Accepted risk: where the hook does not load, only instructions stop an agent with admin rights from merging.
 - Before raising autonomy on Max, test in a pilot whether an environment setup script can install the guard hook in multi-repo sessions. Record the result here.
 - If agent usage hits plan limits, move the agent to its own Claude account.
 
