@@ -6,9 +6,11 @@ Input (stdin or --file) can be any of:
   2. A single rate_limit_info object.
   3. A Claude Code status line JSON with a `rate_limits` field.
 
-Default output (five-hour window):
+Default output (reset time is for the five-hour window):
   remaining hour to reset: 1h30m
-  usage percentage: 29%
+  usage percentage:
+  - 5h: 29%
+  - weekly: 70%
 
 Use --session-id to print the MCP session id for this cloud session.
 """
@@ -104,8 +106,6 @@ def main():
     p = argparse.ArgumentParser(description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--file", help="read JSON from this file instead of stdin")
-    p.add_argument("--window", default="five_hour", choices=WINDOWS)
-    p.add_argument("--all", action="store_true", help="print every window found")
     p.add_argument("--json", action="store_true", help="machine-readable output")
     p.add_argument("--now", type=int, help="override current epoch (for tests)")
     p.add_argument("--session-id", action="store_true",
@@ -129,35 +129,33 @@ def main():
     win, status = found
     now = a.now if a.now is not None else int(time.time())
 
-    names = [n for n in WINDOWS if n in win] if a.all else [a.window]
-    if not a.all and a.window not in win:
-        sys.exit(f"error: window '{a.window}' not in data (found: {', '.join(win)})")
-
-    rows = []
-    for n in names:
+    rows = {}
+    for n in WINDOWS:
+        if n not in win:
+            continue
         w = win[n]
         left = w["resets_at"] - now
         pct = 0 if left <= 0 else round(w["utilization"] * 100)
-        rows.append({"window": n, "remaining_seconds": max(left, 0),
-                     "remaining": fmt_remaining(left), "usage_percent": pct,
-                     "resets_at_utc": time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime(w["resets_at"])),
-                     "resets_at_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(w["resets_at"])),
-                     "status": w.get("status") or status,
-                     "advice": advice(pct, w.get("status") or status)})
+        st = w.get("status") or status
+        rows[n] = {"remaining_seconds": max(left, 0),
+                   "remaining": fmt_remaining(left), "usage_percent": pct,
+                   "resets_at_utc": time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime(w["resets_at"])),
+                   "resets_at_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(w["resets_at"])),
+                   "status": st, "advice": advice(pct, st)}
+    if "five_hour" not in rows:
+        sys.exit(f"error: five_hour window not in data (found: {', '.join(win)})")
 
     if a.json:
-        print(json.dumps(rows if a.all else rows[0], indent=2))
+        print(json.dumps(rows, indent=2))
         return
-    for i, r in enumerate(rows):
-        if a.all:
-            if i:
-                print()
-            print(f"[{r['window']}]")
-        print(f"remaining hour to reset: {r['remaining']}")
-        print(f"usage percentage: {r['usage_percent']}%")
-        if r["status"] and r["status"] != "allowed":
-            print(f"status: {r['status']} (limit reached)")
-
+    labels = {"five_hour": "5h", "seven_day": "weekly"}
+    print(f"remaining hour to reset: {rows['five_hour']['remaining']}")
+    print("usage percentage:")
+    for n, r in rows.items():
+        print(f"- {labels[n]}: {r['usage_percent']}%")
+    blocked = [labels[n] for n, r in rows.items() if r["status"] and r["status"] != "allowed"]
+    if blocked:
+        print(f"status: limit reached ({', '.join(blocked)})")
 
 if __name__ == "__main__":
     main()

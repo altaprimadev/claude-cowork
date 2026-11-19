@@ -2,7 +2,7 @@
 name: usage-status
 description: Report the active plan's usage-limit status (time left until the limit window resets, percent used) from Claude Code rate-limit events, formatted by a bundled Python script. Use whenever someone asks how much plan usage, quota, or limit is left, or when the limit resets ("sisa usage", "kuota", "limit reset kapan"), even if they do not say "usage-status".
 when_to_use: Before starting a task, so the agent can predict whether the work will finish without hitting the limit. During long work, to decide when to pause at a clean point and when to resume after the reset.
-argument-hint: "[--all | --window seven_day | --json]"
+argument-hint: "[--json]"
 disable-model-invocation: false
 user-invocable: true
 allowed-tools:
@@ -21,10 +21,12 @@ Show the plan usage limit in a fixed format:
 
 ```
 remaining hour to reset: 1h30m
-usage percentage: 29%
+usage percentage:
+- 5h: 29%
+- weekly: 70%
 ```
 
-The numbers are for the **five-hour window** by default. That window is the limit that blocks work first. The weekly window (`seven_day`) is available with `--all`.
+The reset time is for the **five-hour window**. That window blocks work first. The percentages cover both windows. The weekly reset time is in the `--json` output.
 
 ## Where the data comes from
 
@@ -50,18 +52,16 @@ Every API call in a Claude Code session returns rate-limit info. In a cloud sess
    JSON
    ```
 
-   Flags:
-   - `--all`: print the five-hour and the weekly windows.
-   - `--window seven_day`: print only the weekly window.
-   - `--json`: machine-readable output, with the UTC reset time and status.
+   Flag:
+   - `--json`: machine-readable output for both windows, with reset times, status, and `advice`.
 
 4. Reply with the script output exactly, inside a code block. Add one short line only when it helps:
-   - The script printed `status: rejected`: the limit is reached; work resumes at the reset time.
+   - The script printed `status: limit reached`: work resumes at the reset time of that window.
    - The script printed `window already reset`: the data predates the reset, and usage is back to 0%.
 
 ## Plan work around the limit
 
-When you check usage for your own planning, not for a human question, run the script with `--json`. Read `advice` and `resets_at_iso`.
+When you check usage for your own planning, not for a human question, run the script with `--json`. Read `advice` and `resets_at_iso` of each window.
 
 | `advice` | Condition | What to do |
 |---|---|---|
@@ -71,7 +71,7 @@ When you check usage for your own planning, not for a human question, run the sc
 
 Why stop early: a session that hits the limit stops in the middle of a step. Half-written files and unpushed commits are hard to recover in an ephemeral container. A clean stop at 90% costs a little capacity and saves the work.
 
-For a long task, also check the weekly window (`--all`). If the weekly window is at `pause`, do not start new tasks. Report the weekly reset time instead.
+Check both windows. If `seven_day` is at `pause`, do not start new tasks. Report the weekly reset time instead.
 
 ## Other inputs
 
