@@ -56,6 +56,8 @@ LABEL_STATUS = {
     "ai:brief": "Brief",
 }
 SKIP_LABELS = {"ai:report"}
+# A triaged brief has moved on: its work lives in a design PR or sub-issues.
+TRIAGED = "ai:triaged"
 REVIEW_PASSED = "ai:review-passed"
 CLOSING_RE = re.compile(r"\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s+#(\d+)\b", re.IGNORECASE)
 
@@ -92,6 +94,8 @@ def status_for(issue: dict, ready_to_merge: set[int] | frozenset[int] = frozense
         if status == "Ready to merge" and in_pr_review:
             return status
         if any(LABEL_STATUS.get(lbl) == status for lbl in pipeline_labels):
+            if status == "Brief" and TRIAGED in labels:
+                return "In progress"
             return status
     return "Backlog"
 

@@ -26,6 +26,10 @@ def test_triaged_brief_waiting_for_design_is_design():
     assert status_for(issue("ai:brief", "ai:triaged", "size:large", "ai:needs-design")) == "Design"
 
 
+def test_triaged_brief_routed_to_tasks_is_in_progress():
+    assert status_for(issue("ai:brief", "ai:triaged", "size:small")) == "In progress"
+
+
 def test_draft_task():
     assert status_for(issue("size:small", "ai:draft", body="Parent: altaprimadev/claude-cowork#3")) == "Draft"
 
