@@ -9,6 +9,7 @@ Reads every .claude/skills/<name>/SKILL.md frontmatter and groups the skills:
 
 Usage:
   list_skills.py [--root <claude-cowork clone>] [--json] [name]
+Default output: one Markdown table per group.
 With a name, print that skill's full description and argument hint.
 """
 import argparse
@@ -79,16 +80,22 @@ def collect(root):
     return skills
 
 
+def cell(text):
+    """Escape a value for a Markdown table cell."""
+    return text.replace("|", "\\|")
+
+
 def render(skills):
+    """Return one Markdown table per non-empty group."""
     out = []
     for g in GROUPS:
         rows = [s for s in skills if s["group"] == g]
         if not rows:
             continue
-        out.append(f"{TITLES[g]}:")
+        out += [f"**{TITLES[g]}**", "", "| Skill | Arguments | Description |", "|---|---|---|"]
         for s in rows:
-            call = f"/{s['name']}" + (f" {s['argument_hint']}" if s["argument_hint"] else "")
-            out.append(f"- {call}: {first_sentence(s['description'])}")
+            hint = f"`{cell(s['argument_hint'])}`" if s["argument_hint"] else "-"
+            out.append(f"| `/{s['name']}` | {hint} | {cell(first_sentence(s['description']))} |")
         out.append("")
     return "\n".join(out).rstrip()
 

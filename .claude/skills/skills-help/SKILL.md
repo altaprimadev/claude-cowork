@@ -3,7 +3,7 @@ name: skills-help
 description: List the claude-cowork skills with a one-line description each, grouped into human-invoked, pipeline stages, utilities, and stack packs, or show one skill in full. Use when a human asks which skills exist, what a skill does, or how to call it ("skill apa saja", "help", "cara pakai /inbox"), even if they do not say "skills-help".
 argument-hint: "[skill name]"
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
   owner: claude-cowork
 ---
 # Skills help
@@ -33,7 +33,7 @@ Do not use when:
    - **pipeline**: the stage map. The scheduled tasks run these.
    - **utility**: any other skill, for example `usage-status`.
    - **pack**: `stack-*` skills, loaded per repo profile.
-2. Reply with the script output in a code block. Do not rewrite or reorder it.
+2. Reply with the script output as is, outside a code block, so the Markdown tables render. Do not rewrite or reorder it. The single-skill output is plain text; put that one in a code block.
 3. Add at most two lines in semi-casual Bahasa Indonesia:
    - All skills: point to the human-invoked group as the place to start. Mention `/skills-help <name>` for detail.
    - One skill: say whether the human calls it or the pipeline runs it.
