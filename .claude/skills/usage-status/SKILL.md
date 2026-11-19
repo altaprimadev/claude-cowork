@@ -2,7 +2,7 @@
 name: usage-status
 description: Report the active plan's usage-limit status (time left until the limit window resets, percent used) from Claude Code rate-limit events, formatted by a bundled Python script. Use whenever someone asks how much plan usage, quota, or limit is left, or when the limit resets ("sisa usage", "kuota", "limit reset kapan"), even if they do not say "usage-status".
 when_to_use: Before starting a task, so the agent can predict whether the work will finish without hitting the limit. During long work, to decide when to pause at a clean point and when to resume after the reset.
-argument-hint: "[--json]"
+argument-hint: "[--json] [--policy registry/policy.yml]"
 disable-model-invocation: false
 user-invocable: true
 allowed-tools:
@@ -10,7 +10,7 @@ allowed-tools:
   - Bash(python3 *usage_status.py*)
 compatibility: Python 3. Cloud sessions need the claude-code-remote MCP (list_events). Local sessions need status line JSON with a rate_limits field.
 metadata:
-  version: "1.1.0"
+  version: "1.2.0"
   owner: claude-cowork
 ---
 # Usage status
@@ -52,8 +52,9 @@ Every API call in a Claude Code session returns rate-limit info. In a cloud sess
    JSON
    ```
 
-   Flag:
-   - `--json`: machine-readable output for both windows, with reset times, status, and `advice`.
+   Flags:
+   - `--json`: machine-readable output. Top level: `advice` (worst window), `captured_at` (event time), `thresholds`, and `windows` with each window's percent, reset times, status, and advice.
+   - `--policy <claude-cowork clone>/registry/policy.yml`: read thresholds from `usage_budget`. Without it, the script uses 70% and 90%.
 
 4. Reply with the script output exactly, inside a code block. Add one short line only when it helps:
    - The script printed `status: limit reached`: work resumes at the reset time of that window.
@@ -61,17 +62,17 @@ Every API call in a Claude Code session returns rate-limit info. In a cloud sess
 
 ## Plan work around the limit
 
-When you check usage for your own planning, not for a human question, run the script with `--json`. Read `advice` and `resets_at_iso` of each window.
+**In the claude-cowork pipeline**, the orchestrator runs this skill before each delegation and applies `CLAUDE.md` -> "Usage budget". That rule decides which stages run. Use the table below only outside the pipeline, in interactive sessions.
 
-| `advice` | Condition | What to do |
+When you check usage for your own planning, run the script with `--json`. Read the top-level `advice`; it already takes the worse of the five-hour and weekly windows.
+
+| `advice` | Condition (default thresholds) | What to do |
 |---|---|---|
-| `proceed` | Five-hour usage below 70% | Start or continue the task. |
-| `caution` | 70% to 89% | Take only work that fits in a few steps. Commit and push after each step, so a stop loses nothing. Check again before the next step. |
-| `pause` | 90% or more, or status not `allowed` | Stop at the next clean point. Commit and push. Post one comment on the issue or PR with the progress and the resume time. Schedule a resume at `resets_at_iso` with `send_later` (or `ScheduleWakeup` in a `/loop`). |
+| `proceed` | Both windows below 70% | Start or continue the task. |
+| `caution` | A window at 70% to 89% | Take only work that fits in a few steps. Commit and push after each step, so a stop loses nothing. Check again before the next step. |
+| `pause` | A window at 90% or more, or status not `allowed` | Stop at the next clean point. Commit and push. Tell the human the resume time (`resets_at_utc` of the window that paused). |
 
 Why stop early: a session that hits the limit stops in the middle of a step. Half-written files and unpushed commits are hard to recover in an ephemeral container. A clean stop at 90% costs a little capacity and saves the work.
-
-Check both windows. If `seven_day` is at `pause`, do not start new tasks. Report the weekly reset time instead.
 
 ## Other inputs
 

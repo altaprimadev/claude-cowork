@@ -48,7 +48,7 @@ Review runs at any autonomy level; it writes no code. At effective autonomy 0 th
 
 5. **Stage 1 FAIL** (any critical, or a confirmed gap): skip stage 2. Go to step 7.
 
-6. **Dispatch stage 2.** Start a fresh `quality-reviewer` subagent with: PR URL, clone path, round, and for round > 1 its previous open findings plus `FIX_BASE`. Validate the return as in step 4.
+6. **Dispatch stage 2.** First re-check the usage budget (`CLAUDE.md` -> "Usage budget"). On `pause`, stop without a comment or label: the next run reviews this head again from stage 1. Otherwise start a fresh `quality-reviewer` subagent with: PR URL, clone path, round, and for round > 1 its previous open findings plus `FIX_BASE`. Validate the return as in step 4.
 
 7. **Post one comment** for the round.
    ```bash

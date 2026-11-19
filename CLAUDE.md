@@ -61,6 +61,21 @@ Gate 3 (production) has no agent and no skill. Only humans promote to production
   - Repo `status` must be `active`. Never touch `frozen` or unlisted repos, except to onboard them.
 - **Trivial changes.** Typo fixes and docs-only changes with at most `trivial_change_max_lines` changed lines (`registry/policy.yml`) may skip design and planning. They still need a PR and human approval.
 - **Limits.** Respect `max_parallel_sessions` and `max_parallel_tasks_per_repo`. Before starting implementation, count open `ai:in-progress` issues in the repo.
+- **Usage budget.** Scheduled runs share the plan usage limit with humans. A session that hits the limit stops mid-step. Check the budget before you delegate, so work stops at a clean point instead.
+  - Run the `usage-status` skill with `--json --policy <claude-cowork clone>/registry/policy.yml`. Read `advice`: the worst of the five-hour and weekly windows.
+  - Check before each delegation, and again before review stage 2. Only the orchestrator checks; subagents have no access to the event data.
+  - Light stages: intake, onboarding, task review, review (both stages), reporting. Heavy stages: design, planning, implementation (including fix rounds).
+
+    | `advice` | Light stages | Heavy stages |
+    |---|---|---|
+    | `proceed` | Run | Run |
+    | `caution` | Run | Skip |
+    | `pause` | Skip | Skip |
+
+  - Skipping changes no label and posts no comment. The item stays in its queue, and the next scheduled run picks it up.
+  - End every run summary with one line: `usage: 5h <pct>%, weekly <pct>%, advice <advice>`. When you skipped work, use `skipped: usage <window> <pct>%, resets <resets_at_utc>` instead.
+  - No usage data (the skill exits with an error): proceed, and note `usage: not available` in the run summary.
+  - Never schedule extra runs to resume after a reset. The daily schedule resumes the work.
 - **Stop cleanly.** After `max_fix_attempts` failed attempts, comment with the output, add `ai:blocked`, stop.
 - **Branches.** Work on a feature branch (`ai/<issue>-<slug>` or `design/<issue>-<slug>`). Never push to `main`, `master`, or `production`. Never force-push.
 - **No secrets.** Never commit, print, or read credentials. Secrets live in Coolify, AWS, and the cloud environment.
