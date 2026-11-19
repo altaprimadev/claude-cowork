@@ -308,6 +308,18 @@ Human-invoked. Original to claude-cowork. It reuses `usage-status` for the reset
 | No quiet hours | brief | write from brief | The human asked for reminders around the clock. |
 | Read-only on GitHub | brief / CLAUDE.md | write from brief | A reminder reports; pipeline work stays with the scheduled tasks. |
 
+### run-pipeline
+
+Sources read: none.
+
+Human-invoked. Fires an existing scheduled task; no GitHub writes. Original to claude-cowork.
+
+| Atom | Source (repo, path, commit) | Decision | Reason |
+|---|---|---|---|
+| Fire the existing scheduled task with fire_trigger | brief | write from brief | The scheduled task already holds the runner setup and prompt. A copy in the skill would drift. |
+| Stop when the runner session is working | brief | write from brief | Two runs on the same queue can pick the same item. |
+| Gate on usage advice; batch at caution needs `force` | CLAUDE.md "Usage budget" | write from brief | Same light/heavy split as the pipeline. The batch prompt does not check the budget yet. |
+
 ### skills-help
 
 Sources read: none.

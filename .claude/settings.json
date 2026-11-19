@@ -23,6 +23,7 @@
       "Skill(usage-status)",
       "Skill(usage-reminder)",
       "Skill(skills-help)",
+      "Skill(run-pipeline)",
       "Read",
       "Grep",
       "Glob",
