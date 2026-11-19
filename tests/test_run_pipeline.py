@@ -38,6 +38,13 @@ def test_stops_when_runner_busy():
     assert "busy" in out["reason"]
 
 
+def test_stops_when_runner_busy_enum_form():
+    out = decide("batch", TRIGGERS, usage("proceed"), "SESSION_STATUS_BUCKET_WORKING")
+    assert out["action"] == "stop"
+    assert decide("batch", TRIGGERS, usage("proceed"),
+                  "SESSION_STATUS_BUCKET_COMPLETED")["action"] == "fire"
+
+
 def test_pause_stops_even_with_force():
     out = decide("onboarding", TRIGGERS, usage("pause"), "idle", force=True)
     assert out["action"] == "stop"
