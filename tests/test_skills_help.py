@@ -42,7 +42,8 @@ def test_groups_come_from_claude_md_and_names(tmp_path):
 def test_render_orders_groups_and_shows_first_sentence(tmp_path):
     out = render(collect(make_repo(tmp_path)))
     assert out.index("Human-invoked") < out.index("Pipeline") < out.index("Utilities") < out.index("Stack packs")
-    assert "- /inbox [repo]: Show the inbox." in out
+    assert "| `/inbox` | `[repo]` | Show the inbox. |" in out
+    assert "| `/intake-classify` | - | Triage one brief. |" in out
     assert "More text" not in out
 
 
@@ -64,3 +65,10 @@ def test_every_repo_skill_is_listed():
     names = {s["name"] for s in collect(ROOT)}
     on_disk = {p.parent.name for p in (ROOT / ".claude" / "skills").glob("*/SKILL.md")}
     assert names == on_disk
+
+
+def test_pipe_in_argument_hint_is_escaped(tmp_path):
+    repo = make_repo(tmp_path)
+    f = repo / ".claude" / "skills" / "inbox" / "SKILL.md"
+    f.write_text(f.read_text().replace("[repo]", "a | b"))
+    assert "| `/inbox` | `a \\| b` |" in render(collect(repo))
