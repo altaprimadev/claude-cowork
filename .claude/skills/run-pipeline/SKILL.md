@@ -1,6 +1,10 @@
 ---
 name: run-pipeline
-description: Start a pipeline run now instead of waiting for its daily schedule, by sending the scheduled task's stored prompt to the runner session after a usage and runner check. Use when a human in an interactive session asks to run the pipeline now ("jalankan pipeline sekarang", "run batch", "jangan tunggu jadwal"), even if they do not say "run-pipeline". Never use from the pipeline scheduled tasks.
+description: Start a pipeline run now instead of waiting for its daily schedule, by sending the scheduled task's stored prompt to the runner session after a usage and runner check.
+when_to_use: Use when a human in an interactive session asks to run the pipeline now ("jalankan pipeline sekarang", "run batch", "jangan tunggu jadwal"), even if they do not say "run-pipeline". Never use from the pipeline scheduled tasks.
+disable-model-invocation: true
+model: sonnet
+effort: low
 argument-hint: "[batch | onboarding] [force]"
 compatibility: Cloud sessions only. Needs the claude-code-remote MCP (list_triggers, get_session, send_message, list_events).
 metadata:

@@ -66,6 +66,7 @@ Agents never write to the GitHub Project board. After a label change they dispat
 - Every agent session uses `claude-cowork` as the **main repo**. The target repo is an **additional repo**.
 - The main session is the **orchestrator**. It reads GitHub state and `registry/`, then delegates to one fixed agent.
 - Each fixed agent preloads its core skill through the `skills:` frontmatter field. Agents that touch code also load the stack packs listed in the target repo's `.agent/profile.yml` -> `packs`.
+- Every SKILL.md frontmatter states `name`, `description` (what the skill does), `when_to_use` (when to use it and when not), `disable-model-invocation`, `model`, and `effort`. Stack packs skip `model` and `effort`. A skill's `model` and `effort` apply to the rest of the invoking turn, so skills the orchestrator calls mid-run use `opus` and `high`. `watchtower` checks the fields and values (`.claude/skills/watchtower/references/rubric.md`, Skills item 10).
 - Reviewers run as separate subagents with fresh context. They are read-only and return findings to the orchestrator. The orchestrator posts the comment and sets the label.
 - Each scheduled task and its prompt is defined in `docs/scheduled-tasks.md`.
 

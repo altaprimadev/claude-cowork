@@ -1,6 +1,10 @@
 ---
 name: repo-onboarding
-description: Detect org repos missing from the registry, then analyze one repo and open an onboarding PR that adds `AGENTS.md` and `.agent/profile.yml` (autonomy 0) with an integrity gap list, plus a registry PR in claude-cowork. Use when `gh repo list altaprimadev` shows a repo not in `registry/repos.yml`, when a repo has status `detected`, or when a human asks to refresh a repo profile.
+description: Detect org repos missing from the registry, then analyze one repo and open an onboarding PR that adds `AGENTS.md` and `.agent/profile.yml` (autonomy 0) with an integrity gap list, plus a registry PR in claude-cowork.
+when_to_use: Use when `gh repo list altaprimadev` shows a repo not in `registry/repos.yml`, when a repo has status `detected`, or when a human asks to refresh a repo profile.
+disable-model-invocation: false
+model: opus
+effort: high
 metadata:
   version: "1.0.0"
   owner: claude-cowork

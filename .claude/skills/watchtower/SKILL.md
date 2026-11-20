@@ -1,6 +1,10 @@
 ---
 name: watchtower
-description: Audit and review the claude-cowork control repo itself - skills, agents, scheduled-task workflows, GitHub workflows, rules in CLAUDE.md and the registry, the guard hook and settings - for broken references, drift between files, rules nothing enforces, and contradictions, then suggest improvements. Read-only, reported in chat. Use when a human in an interactive session asks to audit, review, health-check, or lint the pipeline config ("audit skill", "cek konsistensi", "review rules", "watchtower"), even if they do not say "watchtower". Never use in scheduled or unattended runs, and never on target repos.
+description: Audit and review the claude-cowork control repo itself - skills, agents, scheduled-task workflows, GitHub workflows, rules in CLAUDE.md and the registry, the guard hook and settings - for broken references, drift between files, rules nothing enforces, and contradictions, then suggest improvements. Read-only, reported in chat.
+when_to_use: Use when a human in an interactive session asks to audit, review, health-check, or lint the pipeline config ("audit skill", "cek konsistensi", "review rules", "watchtower"), even if they do not say "watchtower". Never use in scheduled or unattended runs, and never on target repos.
+disable-model-invocation: false
+model: opus
+effort: high
 argument-hint: "[all|skills|workflows|rules|hooks|consistency|<skill name>]"
 compatibility: Needs python3 with PyYAML and a claude-cowork clone.
 metadata:

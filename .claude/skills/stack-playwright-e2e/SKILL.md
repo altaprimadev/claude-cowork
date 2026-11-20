@@ -1,6 +1,8 @@
 ---
 name: stack-playwright-e2e
-description: Rules, commands, flaky-test policy, and review checklist for Playwright end-to-end tests run with Bun. Load only when the repo profile `packs` lists stack-playwright-e2e AND `test_types` includes `e2e`, and the task adds, fixes, or reviews E2E tests.
+description: Rules, commands, flaky-test policy, and review checklist for Playwright end-to-end tests run with Bun.
+when_to_use: Load only when the repo profile `packs` lists stack-playwright-e2e AND `test_types` includes `e2e`, and the task adds, fixes, or reviews E2E tests.
+disable-model-invocation: false
 ---
 # Stack: Playwright E2E
 

@@ -1,6 +1,8 @@
 ---
 name: stack-nextjs-ui
-description: Rules, commands, and review checklist for Next.js App Router UIs built with TailwindCSS v4 and shadcn/ui on Bun. Load when the repo profile `packs` lists stack-nextjs-ui and the task designs, implements, or reviews pages, components, styles, or Server Actions.
+description: Rules, commands, and review checklist for Next.js App Router UIs built with TailwindCSS v4 and shadcn/ui on Bun.
+when_to_use: Load when the repo profile `packs` lists stack-nextjs-ui and the task designs, implements, or reviews pages, components, styles, or Server Actions.
+disable-model-invocation: false
 ---
 # Stack: Next.js UI (App Router, Tailwind v4, shadcn/ui)
 

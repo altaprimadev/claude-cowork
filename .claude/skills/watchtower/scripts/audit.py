@@ -58,6 +58,8 @@ FM_COMPAT_MAX = 500
 # A trigger sentence ("Use when ...", "Load only when ...", "Never use in ...") belongs in when_to_use.
 # description says what the skill does; when_to_use says when to use it and when not to.
 TRIGGER_SENTENCE_RE = re.compile(r"(?:^|[.;:]\s+)((?:Use|Load|Invoke|Never use|Do not use)\b[^.;]*)")
+# An unquoted YAML scalar ends at " #": the rest of the line becomes a comment and is lost.
+PLAIN_COMMENT_RE = re.compile(r"^([a-z_-]+): (?![\"']).*\s#", re.MULTILINE)
 TRIGGER_WORD_RE = re.compile(r"\b(Use|Load|Invoke|use|load|invoke)\b")
 SKILL_DIR_PATH_RE = re.compile(r"\$\{CLAUDE_SKILL_DIR\}/([\w./-]+\w)")
 WORKFLOW_SECTIONS = ("Purpose", "When to use / not use", "Outputs", "Stop conditions", "Anti-rationalization")
@@ -235,6 +237,10 @@ def check_skills(a: Audit, only=None):
         rel = f".claude/skills/{d.name}/SKILL.md"
         text = (d / "SKILL.md").read_text(encoding="utf-8")
         fm, body = split_frontmatter(text)
+        hm = re.match(r"^---\n(.*?)\n---", text, re.DOTALL)
+        head = hm.group(1) if hm else ""
+        for key in PLAIN_COMMENT_RE.findall(head):
+            a.add("error", "skills", rel, f"{key} is unquoted and holds ' #'; YAML drops the rest of the line as a comment")
         for sev, msg in check_frontmatter(fm, d.name, d, agents, preloads.get(d.name, ())):
             a.add(sev, "skills", rel, msg)
         desc = " ".join(str(fm.get("description") or "").split())
@@ -458,7 +464,7 @@ def check_consistency(a: Audit, skills: set[str]):
     listed = human_skills(claude_md)
     for d in a.skill_dirs():
         fm, _ = split_frontmatter((d / "SKILL.md").read_text(encoding="utf-8"))
-        desc = str(fm.get("description") or "")
+        desc = f"{fm.get('description') or ''} {fm.get('when_to_use') or ''}"
         if re.search(r"human in an interactive session", desc) and d.name not in listed:
             a.add("warn", "consistency", "CLAUDE.md", f"human-invoked skill {d.name} is not in the human-invoked list")
     for s in sorted(listed - skills):

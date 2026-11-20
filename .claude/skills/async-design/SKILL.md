@@ -1,6 +1,10 @@
 ---
 name: async-design
-description: Write one async design doc for a `size:large` brief and open a design PR in the target repo. Use when a brief carries `size:large` + `ai:needs-design`, effective autonomy is 2, and no open design PR exists for it (or a human commented on the open design PR).
+description: Write one async design doc for a `size:large` brief and open a design PR in the target repo.
+when_to_use: Use when a brief carries `size:large` + `ai:needs-design`, effective autonomy is 2, and no open design PR exists for it (or a human commented on the open design PR).
+disable-model-invocation: false
+model: opus
+effort: high
 metadata:
   version: "1.0.0"
   owner: claude-cowork

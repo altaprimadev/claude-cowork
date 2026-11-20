@@ -1,6 +1,8 @@
 ---
 name: stack-typescript-bun
-description: TypeScript rules for repos that run on Bun (runtime, package manager, test runner) and use Biome for lint and format. Load when `.agent/profile.yml` `packs` lists stack-typescript-bun and you design, implement, or review TypeScript code.
+description: TypeScript rules for repos that run on Bun (runtime, package manager, test runner) and use Biome for lint and format.
+when_to_use: Load when `.agent/profile.yml` `packs` lists stack-typescript-bun and you design, implement, or review TypeScript code.
+disable-model-invocation: false
 ---
 # Stack: TypeScript on Bun
 

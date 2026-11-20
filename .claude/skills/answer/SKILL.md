@@ -1,6 +1,10 @@
 ---
 name: answer
-description: Let a human answer an agent's `ai:needs-human` or `ai:blocked` item from chat. Show the agent's questions, turn the human's casual reply into one answer comment, and when the human types `post now`, post it and set the labels so the next scheduled run resumes the item. Use when a human in an interactive session wants to answer, unblock, or reply to a pipeline item (`/answer #12`). Never use in scheduled or unattended runs.
+description: Let a human answer an agent's `ai:needs-human` or `ai:blocked` item from chat. Show the agent's questions, turn the human's casual reply into one answer comment, and when the human types `post now`, post it and set the labels so the next scheduled run resumes the item.
+when_to_use: "Use when a human in an interactive session wants to answer, unblock, or reply to a pipeline item (`/answer #12`). Never use in scheduled or unattended runs."
+disable-model-invocation: false
+model: opus
+effort: medium
 argument-hint: "<#n | owner/repo#n | issue or PR URL>"
 metadata:
   version: "1.0.0"

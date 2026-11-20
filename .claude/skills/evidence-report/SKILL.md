@@ -1,6 +1,10 @@
 ---
 name: evidence-report
-description: Run the repo profile's install, lint, typecheck, test, and build commands, capture real output, and fill the PR body sections (Summary, Related issue, RED/GREEN evidence, Verification output, Risks, Rollback). Use after `tdd` finishes and before opening or updating an agent PR, and again after every fix round.
+description: Run the repo profile's install, lint, typecheck, test, and build commands, capture real output, and fill the PR body sections (Summary, Related issue, RED/GREEN evidence, Verification output, Risks, Rollback).
+when_to_use: Use after `tdd` finishes and before opening or updating an agent PR, and again after every fix round.
+disable-model-invocation: false
+model: opus
+effort: high
 metadata:
   version: "1.0.0"
   owner: claude-cowork

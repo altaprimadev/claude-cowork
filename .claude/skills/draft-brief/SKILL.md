@@ -1,6 +1,10 @@
 ---
 name: draft-brief
-description: Help a human turn a rough idea into one AI brief draft in chat instead of the GitHub form. Look at the registry and repos first, ask only questions whose answer changes the work, and revise the draft until the human types `post now`. Only then create the issue labeled `ai:brief` in the control repo. Use when a human in an interactive session asks to draft, write, or file a brief. Never use in scheduled or unattended runs.
+description: Help a human turn a rough idea into one AI brief draft in chat instead of the GitHub form. Look at the registry and repos first, ask only questions whose answer changes the work, and revise the draft until the human types `post now`. Only then create the issue labeled `ai:brief` in the control repo.
+when_to_use: Use when a human in an interactive session asks to draft, write, or file a brief. Never use in scheduled or unattended runs.
+disable-model-invocation: false
+model: opus
+effort: medium
 argument-hint: "[rough idea, any language]"
 metadata:
   version: "1.0.0"

@@ -1,6 +1,10 @@
 ---
 name: daily-report
-description: Build one daily status issue in the control repo for all managed repos — done, in progress, stuck, awaiting human approval, and recurring problems — labeled `ai:report` and titled `Daily report YYYY-MM-DD`. Use on the daily scheduled task or when a human asks for today's report; re-runs update the same issue.
+description: Build one daily status issue in the control repo for all managed repos — done, in progress, stuck, awaiting human approval, and recurring problems — labeled `ai:report` and titled `Daily report YYYY-MM-DD`.
+when_to_use: Use on the daily scheduled task or when a human asks for today's report; re-runs update the same issue.
+disable-model-invocation: false
+model: sonnet
+effort: medium
 metadata:
   version: "1.0.0"
   owner: claude-cowork

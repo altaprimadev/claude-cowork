@@ -175,20 +175,17 @@ def test_frontmatter_preload_and_allowed_tools_path(tmp_path):
 
 def test_trigger_in_description_is_an_error(tmp_path):
     root = clone(tmp_path)
-    skill = root / ".claude" / "skills" / "inbox" / "SKILL.md"
-    text = skill.read_text()
-    msgs = messages(audit.run(root, skill="inbox"), "skills")
-    assert any("move it to when_to_use" in m for m in msgs)
-    head, _, body = text.partition("\n---\n")
-    head = "\n".join(line for line in head.splitlines() if not line.startswith("description:"))
-    skill.write_text(head + "\ndescription: Show a human what waits on them, with links and age.\n"
-                     "when_to_use: Use when a human asks for their inbox. Never use in scheduled runs.\n---\n" + body)
     msgs = messages(audit.run(root, skill="inbox"), "skills")
     assert not any("move it to when_to_use" in m or "names no trigger" in m for m in msgs)
+    skill = root / ".claude" / "skills" / "inbox" / "SKILL.md"
+    text = skill.read_text()
+    skill.write_text(text.replace("Read-only.\n", "Read-only. Use when a human asks for their inbox.\n", 1))
+    assert any("move it to when_to_use" in m for m in messages(audit.run(root, skill="inbox"), "skills"))
 
 
-def test_frontmatter_model_inherit_is_an_error():
-    for model in ("inherit", "default"):
-        assert any("not allowed" in m for m in fm_messages({**FULL_FM, "model": model}))
-    for model in ("opus", "sonnet", "haiku", "claude-opus-4-1"):
-        assert fm_messages({**FULL_FM, "model": model}) == []
+def test_unquoted_hash_in_frontmatter_is_an_error(tmp_path):
+    root = clone(tmp_path)
+    skill = root / ".claude" / "skills" / "inbox" / "SKILL.md"
+    text = skill.read_text()
+    skill.write_text(text.replace("\nmodel:", "\nargument-hint: see /inbox #12\nmodel:", 1))
+    assert any("holds ' #'" in m for m in messages(audit.run(root, skill="inbox"), "skills"))
