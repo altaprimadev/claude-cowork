@@ -6,7 +6,7 @@ disable-model-invocation: false
 model: opus
 effort: high
 metadata:
-  version: "1.1.0"
+  version: "1.2.0"
   owner: claude-cowork
 ---
 # Review Two-Stage
@@ -25,6 +25,7 @@ Use when:
 
 Do not use when:
 - The PR is a design PR (`design/*` branch). A human reviews it for Gate 1.
+- The PR is an onboarding or registry PR (`ai/onboarding-*`, `ai/registry-*`). It has no issue, and a human reviews it.
 - The PR is labeled `ai:blocked` or `ai:needs-human`.
 - The PR is merged or closed.
 

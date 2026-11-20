@@ -18,15 +18,15 @@ GitHub is the state store. Labels show where each issue or PR is in the pipeline
 | `ai:review-passed` | Agent review passed; waiting for human approval (Gate 2) | Orchestrator, after `review-two-stage` |
 | `ai:changes-needed` | Agent review found blocking findings | Orchestrator, after `review-two-stage` |
 | `ai:needs-human` | A tier 3 decision or a hard limit (`CLAUDE.md` → "Decide by default"); the item stopped | Orchestrator only: after vetting, or on a `BLOCKED` result with `limit:` |
-| `ai:blocked` | Blocked by a dependency or a repeated error | Any agent, or the orchestrator on a `BLOCKED` result with an error |
+| `ai:blocked` | Blocked by a repeated error or the implementation fix cap. Open dependencies use no label (Backlog). | Any agent, or the orchestrator on a `BLOCKED` result with an error |
 | `ai:report` | Daily report issue | `reporter` |
 
 Rules:
 
 - An issue has at most one of `ai:draft`, `ai:ready`, `ai:in-progress`, `ai:blocked`, `ai:needs-human` at a time.
 - Every label change comes with a comment that says why.
-- A human clears `ai:needs-human` by answering in a comment and removing the label. The next scheduled run picks the issue up again.
-  - The `answer` skill (`/answer <ref>`) does both from chat. It also sets the labels each stage needs to resume, for example `ai:ready` on a sub-issue.
+- A human clears `ai:needs-human` or `ai:blocked` with the `answer` skill (`/answer <ref>`). It posts the answer with `<!-- human:answer -->` and sets the label each stage needs to resume, for example `ai:ready` or `ai:draft` on a sub-issue. Removing the label by hand sets no resume label, so the item can sit unseen.
+  - A human answer after a cap stop resets that loop (`CLAUDE.md` -> "Stop cleanly").
   - Briefs re-enter intake only when `ai:triaged` is removed too. `answer` removes it.
   - Autonomy, registry, and branch-protection blockers cannot be cleared by a comment. They need a PR or a platform change.
 - Only humans approve and merge. Labels never replace an approval.
@@ -37,7 +37,7 @@ Rules:
 stateDiagram-v2
     [*] --> Brief: human files the ai-brief form
     Brief --> Triaged: intake-triager (ai:triaged)
-    Triaged --> Trivial: trivial change
+    Triaged --> Trivial: trivial change (Trivial: yes)
     Triaged --> Small: size:small
     Triaged --> NeedsDesign: size:large + ai:needs-design
     Triaged --> NeedsHuman: unclear brief or autonomy too low
@@ -53,7 +53,7 @@ stateDiagram-v2
     Draft --> NeedsHuman: task review NEEDS_HUMAN
     Backlog --> Ready: deps closed (promote mode)
 
-    Trivial --> InProgress
+    Trivial --> Draft: intake creates one sub-issue (ai:draft); task review still runs
     Ready --> InProgress: implementer (ai:in-progress)
     InProgress --> PROpen: PR with evidence
     InProgress --> Blocked: implementation loop at max_fix_attempts (ai:blocked)
@@ -73,7 +73,7 @@ stateDiagram-v2
     Production --> [*]
 
     NeedsHuman --> Triaged: human answers
-    Blocked --> Ready: human or dependency unblocks
+    Blocked --> Ready: human answers (answer skill)
 ```
 
 ## GitHub Project board

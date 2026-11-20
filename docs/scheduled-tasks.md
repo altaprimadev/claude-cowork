@@ -10,7 +10,7 @@ Each run starts a fresh session in a fresh container. `/loop` is never used: it 
 - Every task fires into one persistent **runner session**, "Pipeline runner (scheduled tasks)". It holds the repos: `claude-cowork`, `alta-prima-admin-back-end` and `alta-prima-admin-prisma` (push), `apsy-api` and `alta-prima-admin-data` (read). Runs queue in that session, so they never overlap.
 - Why a runner session: tasks created from a cloud session store no repositories, and a fresh run cannot attach them. Auto mode also refuses to grant push access when the request comes from a scheduled task, not a human. A human attached the push repos once, by typing the request in the runner session.
 - Step 0 of every prompt refreshes the clones and treats the run as new.
-- One heavy item (implementation, planning, design, or fix round) runs per day. A brief can be triaged, task-reviewed, and promoted in the same run; it is implemented in the next run that has a free slot. A PR opened in a run is reviewed in that run.
+- One heavy item (implementation, planning, design, or fix round) runs per run: the daily batch or a merge-triggered run. A brief can be triaged, task-reviewed, and promoted in the same run; it is implemented in the next run that has a free slot. A PR opened in a run is reviewed in that run.
 - GitHub event triggers are not set up: every event would start a new session without the repos. No connectors are attached; the pipeline uses `gh` only.
 - PR watch (added 2026-11-20): the runner session subscribes to every open `ai/*` and `design/*` PR with the `pr-watch` skill, at the start and the end of each run. A human merge wakes the runner, which runs the batch phases A to C at once. The human no longer tells a session that a PR is merged. The daily batch stays as the backup for a missed event.
 - PR watch setup, once per runner session: a human types this in the runner session: `For every GitHub PR event in this session, run the pr-watch skill in mode handle (claude-cowork/.claude/skills/pr-watch/SKILL.md).` The instruction must come from a human, because the session acts on event text only where a human asked for it. Repeat it after the runner session is recreated.
@@ -19,6 +19,7 @@ Each run starts a fresh session in a fresh container. `/loop` is never used: it 
 - Workflow gaps (changed 2026-11-20): B1 finds merged PRs through the issue timeline; B4 requeues stalled `ai:in-progress` work once; B5c revises a design PR after human comments; merge-triggered runs also run the "Finally" steps. Copy the updated `Pipeline: batch` prompt into the task.
 - Agent results (changed 2026-11-20): B6 applies `CLAUDE.md` -> "Hard limits and errors". Copy the updated `Pipeline: batch` prompt into the task.
 - Fix cap and review hand-off (changed 2026-11-20): B5a and phase C name the cap rule in `CLAUDE.md` -> "Stop cleanly", and phase C runs a fix round only when B5 used no heavy item. Copy the updated `Pipeline: batch` prompt into the task.
+- Dead ends (changed 2026-11-20): B5a skips PRs that wait on a human and repos whose autonomy forbids the work; B5e skips briefs that wait on a human; C2 skips onboarding and registry PRs. Copy the updated `Pipeline: batch` prompt into the task.
 - If the runner session is archived or loses a repo, recreate it, have a human attach the push repos in it, and rebind the tasks (`persistent_session_id`).
 
 ## Common settings
@@ -106,16 +107,16 @@ B3. Promote. For each planned issue with no stage label whose "Depends on" items
 B4. Count running work: open issues labeled ai:in-progress across managed repos. Do not exceed max_parallel_sessions overall or max_parallel_tasks_per_repo per repo. An ai:in-progress issue that already has an open agent PR is not running work; leave it to review.
    Recover stalled work: an ai:in-progress issue with no open PR and no update for more than 24 hours (issue updated_at, and the last commit on its ai/<n>-* branch) is stalled. If it has no <!-- ai:requeue --> comment, post one ("<!-- ai:requeue --> No PR after 24 hours. Back to ai:ready."), remove ai:in-progress, add ai:ready. If it already has one, add ai:blocked instead, remove ai:in-progress, and comment once with the dates. Recovery needs no agent.
 B5. Pick exactly ONE heavy item, in this priority order, and delegate it. Heavy items run only when advice is proceed; otherwise skip B5 and record the skipped line:
-   a. An agent PR labeled ai:changes-needed with unresolved findings, fix rounds (last review round - 1) below max_fix_attempts (CLAUDE.md -> "Stop cleanly") -> implementer agent with the review findings.
+   a. An agent PR labeled ai:changes-needed with unresolved findings, no ai:needs-human or ai:blocked on the PR or its issue, effective autonomy that allows the issue's size, fix rounds below max_fix_attempts as counted by CLAUDE.md -> "Stop cleanly" (a human answer after a cap stop resets the count) -> implementer agent with the review findings.
    b. A merged design PR (head branch design/*) whose design has no sub-issues yet, in a repo with autonomy 2 -> planner agent (plan-to-issues). Then run B2 again for the new drafts.
    c. An open design PR (head branch design/*) in a repo with autonomy 2 whose newest human review or comment (author is not the agent login from gh api user) is newer than both its last commit and the designer's last comment on it -> designer agent (async-design, revision on the same branch). A human waits at Gate 1.
    d. An issue labeled ai:ready, not ai:in-progress, all dependencies closed, autonomy allows its size -> set ai:in-progress, remove ai:ready, then implementer agent (tdd, evidence-report, packs from .agent/profile.yml).
-   e. An issue labeled size:large + ai:needs-design, no open design PR, autonomy 2 -> designer agent (async-design).
+   e. An issue labeled size:large + ai:needs-design, without ai:needs-human or ai:blocked, no open design PR, autonomy 2 -> designer agent (async-design).
 B6. Apply each agent's result: comments and labels as returned. NEEDS_HUMAN with escalations: vet it (CLAUDE.md -> "Escalation flow"). BLOCKED: apply CLAUDE.md -> "Hard limits and errors" (limit -> ai:needs-human, error -> ai:blocked, remove ai:in-progress).
 
 Phase C, review:
 C1. Load the review-two-stage skill and follow it. Its step 9 runs a fix round only when B5 delegated no heavy item in this run and advice is proceed; otherwise it labels and stops, and B5a takes the PR next run.
-C2. Find open, non-draft PRs with head branch ai/* in active managed repos whose latest commit has no `<!-- ai:review round=N head=<sha> -->` comment. This includes a PR opened or updated in phase B.
+C2. Find open, non-draft PRs with head branch ai/* in active managed repos, except ai/registry-* and ai/onboarding-* (they have no issue; a human reviews them), whose latest commit has no `<!-- ai:review round=N head=<sha> -->` comment. This includes a PR opened or updated in phase B.
 C3. For each such PR, oldest first, at most 3 per run:
    a. Delegate stage 1 to the spec-reviewer agent with the inputs review-two-stage step 3 names.
    b. Only if stage 1 passes, re-check the usage budget. On pause, stop this PR without a comment or label. Otherwise delegate stage 2 to the quality-reviewer agent with the inputs review-two-stage step 6 names. It reads the packs from .agent/profile.yml itself.
