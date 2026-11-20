@@ -19,6 +19,7 @@ Each run starts a fresh session in a fresh container. `/loop` is never used: it 
 - Workflow gaps (changed 2026-11-20): B1 finds merged PRs through the issue timeline; B4 requeues stalled `ai:in-progress` work once; B5c revises a design PR after human comments; merge-triggered runs also run the "Finally" steps. Copy the updated `Pipeline: batch` prompt into the task.
 - Agent results (changed 2026-11-20): B6 applies `CLAUDE.md` -> "Hard limits and errors". Copy the updated `Pipeline: batch` prompt into the task.
 - Fix cap and review hand-off (changed 2026-11-20): B5a and phase C name the cap rule in `CLAUDE.md` -> "Stop cleanly", and phase C runs a fix round only when B5 used no heavy item. Copy the updated `Pipeline: batch` prompt into the task.
+- Prompt sync (changed 2026-11-20): batch "Finally" step 6 copies merged prompts into the tasks, so later prompt changes need no manual copy. B1 closes a brief when all its sub-issues are done. The onboarding scan opens the activation PR. Copy both updated prompts into the tasks once by hand.
 - Dead ends (changed 2026-11-20): B5a skips PRs that wait on a human and repos whose autonomy forbids the work; B5e skips briefs that wait on a human; C2 skips onboarding and registry PRs. Copy the updated `Pipeline: batch` prompt into the task.
 - If the runner session is archived or loses a repo, recreate it, have a human attach the push repos in it, and rebind the tasks (`persistent_session_id`).
 
@@ -69,6 +70,7 @@ You are the orchestrator for the altaprimadev agent pipeline.
 3. Compare the list with claude-cowork/registry/repos.yml. A repo missing from the registry is "detected".
 4. For at most ONE detected repo, delegate to the repo-onboarder agent. Pass it the repo name, the clone path if the session has one, and no registry entry (a detected repo has none). It follows the repo-onboarding skill: an onboarding PR in the target repo (AGENTS.md + .agent/profile.yml, autonomy 0) and a PR in claude-cowork that adds the repo to registry/repos.yml with status onboarding.
 5. Skip a repo when an onboarding PR for it is already open.
+5a. Activate onboarded repos: for each registry entry with status onboarding whose onboarding PR in the target repo is merged, and with no open claude-cowork PR from ai/registry-activate-<repo>, delegate to the repo-onboarder agent in activate mode (repo-onboarding skill, section C): one claude-cowork PR that sets status: active and keeps autonomy. A human merges it.
 6. Never merge, approve, or change repo settings. Stop after one repo.
 7. End with a one-paragraph summary: repos detected, PRs opened, problems.
 ```
@@ -101,7 +103,7 @@ A1. Find open issues in altaprimadev/claude-cowork with label ai:brief and witho
 A2. For each, oldest first, delegate to the intake-triager agent (intake-classify). Post its comment and set its labels exactly as returned. Never start design or implementation in this phase.
 
 Phase B, execution:
-B1. Close merged work. For each open issue labeled ai:in-progress in a managed repo, find the PRs that reference it in its timeline (gh api --paginate 'repos/<repo>/issues/<n>/timeline' --jq '.[] | select(.event=="cross-referenced") | .source.issue | select(.pull_request) | {number, merged_at: .pull_request.merged_at, base: .repository.full_name}'). This sees every PR, however old. If one in the same repo is merged, post "PR #<n> merged into <base> by a human (Gate 2). Closing.", remove ai:in-progress, and close the issue with state_reason completed. Closing keywords do not fire for a non-default base branch, so this step does it.
+B1. Close merged work. For each open issue labeled ai:in-progress in a managed repo, find the PRs that reference it in its timeline (gh api --paginate 'repos/<repo>/issues/<n>/timeline' --jq '.[] | select(.event=="cross-referenced") | .source.issue | select(.pull_request) | {number, merged_at: .pull_request.merged_at, base: .repository.full_name}'). This sees every PR, however old. If one in the same repo is merged, post "PR #<n> merged into <base> by a human (Gate 2). Closing.", remove ai:in-progress, and close the issue with state_reason completed. Closing keywords do not fire for a non-default base branch, so this step does it. Then read the closed issue's `Parent:` brief: when every sub-issue of that brief is closed as completed, post "All sub-issues done: <links>. Closing." on the brief and close it with state_reason completed.
 B2. Task review. For each issue labeled ai:draft (at most 5 per run), delegate to the task-reviewer agent (task-review). Apply its verdict as the skill's "Applying the verdict" table says. Task review runs at any autonomy.
 B3. Promote. For each planned issue with no stage label whose "Depends on" items are all closed or merged, promote it to ai:ready (plan-to-issues promote mode). Promotion needs no agent; skip it only when advice is pause.
 B4. Count running work: open issues labeled ai:in-progress across managed repos. Do not exceed max_parallel_sessions overall or max_parallel_tasks_per_repo per repo. An ai:in-progress issue that already has an open agent PR is not running work; leave it to review.
@@ -130,7 +132,8 @@ Finally:
 3. Dispatch the project sync once, as CLAUDE.md says.
 4. Never approve, merge, or deploy. Never push to development, staging, main, master, or production. Never force-push.
 5. Run the pr-watch skill in mode subscribe again.
-6. End with a summary per phase: briefs triaged; issues closed, drafts reviewed, issues promoted, heavy item and result; PRs reviewed with stage results, finding counts by severity and labels; report URL. Add links. End with the usage line, or the skipped line for each phase or item the budget skipped.
+6. Sync the stored prompts. Call list_triggers. For `Pipeline: batch` and `Pipeline: onboarding scan`, compare the stored prompt with its fenced text in claude-cowork/docs/scheduled-tasks.md on main. When they differ, replace the stored prompt with update_trigger (prompt only; never the schedule, model, or enabled state). The merge of the docs change is the human gate. A failed update goes in the summary.
+7. End with a summary per phase: briefs triaged; issues closed, drafts reviewed, issues promoted, heavy item and result; PRs reviewed with stage results, finding counts by severity and labels; report URL. Add links. End with the usage line, or the skipped line for each phase or item the budget skipped.
 ```
 
 ### Retired tasks
@@ -144,12 +147,12 @@ Finally:
 A merge-triggered run is not a scheduled task. It is a GitHub event in the runner session, handled by `pr-watch` (mode `handle`).
 
 - It runs only for a merged `ai/*` or `design/*` PR. Other PR events change nothing; the daily batch handles them.
-- It runs the batch steps 0 to 2, phases A to C, and the "Finally" steps 3 to 6, never phase D. The usage budget and the one-heavy-item-per-run limit apply as in a scheduled run.
+- It runs the batch steps 0 to 2, phases A to C, and the "Finally" steps 3 to 7, never phase D. The usage budget and the one-heavy-item-per-run limit apply as in a scheduled run.
 - Events queue in the runner session like scheduled runs, so runs never overlap.
 
 ---
 
 ## Changing a task
 
-- Change prompts here first, through a PR. Then copy the merged prompt into the task configuration.
+- Change prompts here first, through a PR. After the merge, the next batch run copies the merged prompts into the tasks ("Finally" step 6). Copy by hand only once: the first time, so the stored batch prompt gains step 6.
 - Record the task name, trigger, and last-updated date in the PR body.

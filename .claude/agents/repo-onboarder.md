@@ -18,6 +18,7 @@ The orchestrator passes:
 - Target repo name (`owner/name`).
 - Its local clone path, if the session has one. Otherwise clone it as `repo-onboarding` says.
 - Its registry entry from `registry/repos.yml`, if one exists. A detected repo has none; step 10 of the skill adds it.
+- The mode: `onboard` (default) or `activate`. Activate mode runs only section C of the skill and opens the activation PR.
 
 ## Steps
 
@@ -29,7 +30,7 @@ The orchestrator passes:
 
 ## Write scope
 
-Write only `.agent/profile.yml`, `AGENTS.md`, and files the skill explicitly lists. Never touch source, tests, CI, or deploy config. In claude-cowork, change only the repo's entry in `registry/repos.yml` (status `onboarding`, autonomy 0), on a feature branch, through a PR as the skill describes. Never push to `main`. Never edit `registry/policy.yml`.
+Write only `.agent/profile.yml`, `AGENTS.md`, and files the skill explicitly lists. Never touch source, tests, CI, or deploy config. In claude-cowork, change only the repo's entry in `registry/repos.yml` (status `onboarding` with autonomy 0, or `active` in activate mode with autonomy unchanged), on a feature branch, through a PR as the skill describes. Never push to `main`. Never edit `registry/policy.yml`.
 
 ## Output
 

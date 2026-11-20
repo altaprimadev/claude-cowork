@@ -41,7 +41,7 @@ Human-invoked skills run only in interactive sessions, never in scheduled tasks,
 - `watchtower`: audit and review this repo's skills, agents, workflows, rules, and hooks for drift and contradictions; suggest improvements. Read-only.
 - `run-pipeline`: start a pipeline run now in the runner session instead of waiting for its schedule (`batch`, `onboarding`), after a usage and runner check.
 The runner session watches open pipeline PRs with the `pr-watch` skill. A human merge runs the batch phases A to C at once (`docs/scheduled-tasks.md`). Only the runner subscribes to `ai/*` and `design/*` PRs.
-An interactive session subscribes to every PR it opens itself (`subscribe_pr_activity`). On a merge, it tells the human in chat and names any follow-up step, such as copying a changed prompt into a scheduled task. It never pushes more to a merged PR.
+An interactive session subscribes to every PR it opens itself (`subscribe_pr_activity`). On a merge, it tells the human in chat and names any follow-up step a human must do, such as installing a changed hook in the managed settings. The batch run syncs changed scheduled-task prompts itself. It never pushes more to a merged PR.
 Stack packs are the skills listed in the target repo's `.agent/profile.yml` -> `packs`.
 Gate 3 (production) has no agent and no skill. Only humans promote to production.
 
