@@ -19,6 +19,11 @@ Severity:
 7. **Progressive disclosure.** Long templates and reference detail live in `references/`. The body stays the procedure.
 8. **Scripts.** Deterministic work (parsing, grouping, formatting) lives in a tested script, not in prose.
 9. **Language.** Concise technical English. The chat reply language matches `CLAUDE.md`.
+10. **Frontmatter values.** The script checks presence and types (required: `name`, `description`, `disable-model-invocation`, `model`, `effort`; stack packs skip `model` and `effort`). Review whether the values fit the skill:
+    - `effort` follows the stage weight in `CLAUDE.md` -> "Usage budget": heavy stages and judgment reviews `high`, light stages `medium`, read-only chat lookups `low`.
+    - `model` is `inherit` unless the skill states why it needs another model. A pinned model switches the orchestrator's model for the rest of the turn.
+    - `disable-model-invocation: true` fits a human skill with side effects that must not start from casual phrasing. It removes the description from context and blocks agent preload.
+    - A read-only skill names its write tools in `disallowed-tools`. A skill that runs its own script scopes `allowed-tools` with `${CLAUDE_SKILL_DIR}`.
 
 ## Agents (`.claude/agents/*.md`)
 

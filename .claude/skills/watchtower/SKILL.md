@@ -4,14 +4,14 @@ description: Audit and review the claude-cowork control repo itself - skills, ag
 argument-hint: "[all|skills|workflows|rules|hooks|consistency|<skill name>]"
 compatibility: Needs python3 with PyYAML and a claude-cowork clone.
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
   owner: claude-cowork
 ---
 # Watchtower
 
 ## Purpose
 
-Keep the control repo coherent as it grows. CI (`scripts/validate-config.py`) proves the structure parses. Watchtower finds what CI misses: a label a skill uses but nobody creates, a "never" rule no hook enforces, a README that lists old skills, two rules that disagree.
+Keep the control repo coherent as it grows. CI (`scripts/validate-config.py`) proves the structure parses. Watchtower finds what CI misses: a skill frontmatter field that is missing, unknown, or of the wrong type, a label a skill uses but nobody creates, a "never" rule no hook enforces, a README that lists old skills, two rules that disagree.
 
 It works in two layers:
 1. `scripts/audit.py`: deterministic checks. It runs the CI validator, then the drift checks.

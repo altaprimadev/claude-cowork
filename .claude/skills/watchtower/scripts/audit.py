@@ -5,7 +5,8 @@ scripts/validate-config.py checks the structure CI needs. This script adds the
 checks that a passing CI does not catch:
 
   structure    validate-config.py result (every problem is an error)
-  skills       description length and trigger, body length, standard sections,
+  skills       frontmatter fields (required, allowed, types, field dependencies),
+               description length and trigger, body length, standard sections,
                bundled scripts referenced, scripts covered by a test
   rules        labels and policy keys used in rules match their definitions
   hooks        the guard hook blocks every "never" command in CLAUDE.md;
@@ -35,9 +36,25 @@ import yaml
 
 AREAS = ("structure", "skills", "rules", "hooks", "workflows", "consistency")
 SEVERITIES = ("error", "warn", "info")
-DESC_MAX = 1024
+# Claude Code truncates description + when_to_use at 1,536 chars in the skill listing.
+DESC_MAX = 1536
+# Above this, the trigger may sit past the truncation point; keep the main use case first.
+DESC_WARN = 1024
 DESC_MIN = 80
 BODY_MAX_LINES = 500
+# SKILL.md frontmatter policy. Field reference: https://code.claude.com/docs/en/skills (frontmatter).
+FM_REQUIRED = ("name", "description", "disable-model-invocation", "model", "effort")
+FM_OPTIONAL = ("when_to_use", "argument-hint", "allowed-tools", "disallowed-tools", "context", "agent",
+               "background", "hooks", "paths",
+               # Kept from the Claude Code reference: metadata.version, environment needs, menu visibility.
+               "metadata", "compatibility", "user-invocable")
+# Stack packs load inside another skill's turn. A model or effort there would override the caller's.
+FM_PACK_EXEMPT = ("model", "effort")
+FM_EFFORTS = ("low", "medium", "high", "xhigh", "max")
+FM_MODEL_RE = re.compile(r"^(inherit|default|opusplan|opus|sonnet|haiku|fable|claude-[a-z0-9.-]+)(\[1m\])?$")
+FM_BUILTIN_AGENTS = ("Explore", "Plan", "general-purpose")
+FM_COMPAT_MAX = 500
+SKILL_DIR_PATH_RE = re.compile(r"\$\{CLAUDE_SKILL_DIR\}/([\w./-]+\w)")
 WORKFLOW_SECTIONS = ("Purpose", "When to use / not use", "Outputs", "Stop conditions", "Anti-rationalization")
 # Slash commands that are Claude Code commands or HTTP paths, not skills.
 NON_SKILL_SLASH = {"loop", "fire", "health", "compact", "clear", "help", "config", "fast", "gan-build",
@@ -103,6 +120,69 @@ def split_frontmatter(text):
     return (fm if isinstance(fm, dict) else {}), m.group(2)
 
 
+def agent_frontmatters(root: Path):
+    """{agent name: frontmatter} for .claude/agents/*.md."""
+    d = root / ".claude" / "agents"
+    return {p.stem: split_frontmatter(p.read_text(encoding="utf-8"))[0] for p in sorted(d.glob("*.md"))} if d.exists() else {}
+
+
+def is_str_or_list(v):
+    return isinstance(v, str) or (isinstance(v, list) and all(isinstance(x, str) for x in v))
+
+
+def check_frontmatter(fm: dict, name: str, skill_dir: Path | None = None, agents=None, preloaded=()):
+    """Return [(severity, message)] for one SKILL.md frontmatter against the policy above."""
+    out = []
+    pack = name.startswith("stack-")
+    agents = set(agents or ())
+    for key in FM_REQUIRED:
+        if pack and key in FM_PACK_EXEMPT:
+            continue
+        if key not in fm or fm[key] is None or fm[key] == "":
+            out.append(("error", f"frontmatter lacks required field {key}"))
+    for key in fm:
+        if key not in FM_REQUIRED and key not in FM_OPTIONAL:
+            out.append(("error", f"frontmatter field {key} is not allowed (Claude Code ignores unknown keys silently)"))
+    if pack:
+        for key in FM_PACK_EXEMPT:
+            if key in fm:
+                out.append(("warn", f"stack pack sets {key}; it overrides the calling skill's {key} for the rest of the turn"))
+    for key in ("name", "description", "when_to_use", "argument-hint", "compatibility"):
+        if key in fm and fm[key] is not None and not isinstance(fm[key], str):
+            out.append(("error", f"{key} must be a string"))
+    for key in ("disable-model-invocation", "user-invocable", "background"):
+        if key in fm and not isinstance(fm[key], bool):
+            out.append(("error", f"{key} must be true or false, got {fm[key]!r}"))
+    if "model" in fm and fm["model"] and not FM_MODEL_RE.match(str(fm["model"])):
+        out.append(("error", f"model {fm['model']!r} is not inherit, an alias, or a claude-* id"))
+    if "effort" in fm and fm["effort"] and fm["effort"] not in FM_EFFORTS:
+        out.append(("error", f"effort {fm['effort']!r} is not one of {', '.join(FM_EFFORTS)}"))
+    if "context" in fm and fm["context"] != "fork":
+        out.append(("error", f"context {fm['context']!r} is not 'fork'"))
+    for key in ("agent", "background"):
+        if key in fm and fm.get("context") != "fork":
+            out.append(("error", f"{key} works only with context: fork"))
+    if "agent" in fm and fm["agent"] not in FM_BUILTIN_AGENTS and fm["agent"] not in agents:
+        out.append(("error", f"agent {fm['agent']!r} is neither built in nor in .claude/agents/"))
+    for key in ("allowed-tools", "disallowed-tools", "paths"):
+        if key in fm and not is_str_or_list(fm[key]):
+            out.append(("error", f"{key} must be a string or a list of strings"))
+    if "hooks" in fm and not isinstance(fm["hooks"], dict):
+        out.append(("error", "hooks must be a map"))
+    if "metadata" in fm and not isinstance(fm["metadata"], dict):
+        out.append(("error", "metadata must be a map; Claude Code drops other values"))
+    if len(str(fm.get("compatibility") or "")) > FM_COMPAT_MAX:
+        out.append(("error", f"compatibility has {len(str(fm['compatibility']))} chars; the limit is {FM_COMPAT_MAX}"))
+    tools = fm.get("allowed-tools")
+    if skill_dir is not None and is_str_or_list(tools):
+        for path in SKILL_DIR_PATH_RE.findall(" ".join(tools) if isinstance(tools, list) else tools):
+            if not (skill_dir / path).exists():
+                out.append(("error", f"allowed-tools names ${{CLAUDE_SKILL_DIR}}/{path}, which does not exist"))
+    if fm.get("disable-model-invocation") is True and preloaded:
+        out.append(("error", f"disable-model-invocation: true blocks the preload in agents: {', '.join(sorted(preloaded))}"))
+    return out
+
+
 def human_skills(claude_md):
     """Names in the CLAUDE.md human-invoked list."""
     names, inside = set(), False
@@ -139,16 +219,26 @@ def check_structure(a: Audit):
 def check_skills(a: Audit, only=None):
     unversioned = []
     tests = "\n".join(p.read_text(encoding="utf-8") for p in sorted((a.root / "tests").glob("test_*.py")))
+    agents = agent_frontmatters(a.root)
+    preloads: dict[str, set[str]] = {}
+    for agent, afm in agents.items():
+        for s in afm.get("skills") or []:
+            preloads.setdefault(str(s), set()).add(agent)
     for d in a.skill_dirs():
         if only and d.name != only:
             continue
         rel = f".claude/skills/{d.name}/SKILL.md"
         text = (d / "SKILL.md").read_text(encoding="utf-8")
         fm, body = split_frontmatter(text)
+        for sev, msg in check_frontmatter(fm, d.name, d, agents, preloads.get(d.name, ())):
+            a.add(sev, "skills", rel, msg)
         desc = " ".join(str(fm.get("description") or "").split())
-        if len(desc) > DESC_MAX:
-            a.add("error", "skills", rel, f"description has {len(desc)} chars; the limit is {DESC_MAX}")
-        elif 0 < len(desc) < DESC_MIN:
+        listing = len(desc) + len(" ".join(str(fm.get("when_to_use") or "").split()))
+        if listing > DESC_MAX:
+            a.add("error", "skills", rel, f"description + when_to_use has {listing} chars; the listing limit is {DESC_MAX}")
+        elif listing > DESC_WARN:
+            a.add("warn", "skills", rel, f"description + when_to_use has {listing} chars; the listing truncates, keep the main use case first")
+        if 0 < len(desc) < DESC_MIN:
             a.add("warn", "skills", rel, f"description has {len(desc)} chars; too short to trigger reliably")
         if desc and not re.search(r"\b(Use|Load|Invoke)\b", desc):
             a.add("warn", "skills", rel, "description says what, not when: add a 'Use when ...' trigger")
