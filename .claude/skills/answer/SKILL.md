@@ -2,6 +2,9 @@
 name: answer
 description: Let a human answer an agent's `ai:needs-human` or `ai:blocked` item from chat. Show the agent's questions, turn the human's casual reply into one answer comment, and when the human types `post now`, post it and set the labels so the next scheduled run resumes the item. Use when a human in an interactive session wants to answer, unblock, or reply to a pipeline item (`/answer #12`). Never use in scheduled or unattended runs.
 argument-hint: "<#n | owner/repo#n | issue or PR URL>"
+metadata:
+  version: "1.0.0"
+  owner: claude-cowork
 ---
 # Answer
 
@@ -87,7 +90,7 @@ Do not use when:
    Without `gh`, use GitHub MCP `add_issue_comment` and `issue_write` (method `update`, full label list). For a PR, the issue commands also work on the PR number.
    A label that does not exist on the item is skipped, not an error.
 
-9. **Confirm.** Reply with the comment link, the labels now on the item, and which scheduled task picks it up and when: the event trigger in minutes, or the next hourly sweep.
+9. **Confirm.** Reply with the comment link, the labels now on the item, and when the pipeline picks it up: the next `Pipeline: batch` run (daily, 14:30 WIB), a merge-triggered run (`pr-watch`), or now with `/run-pipeline`.
 
 ## Outputs
 

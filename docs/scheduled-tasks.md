@@ -15,6 +15,7 @@ Each run starts a fresh session in a fresh container. `/loop` is never used: it 
 - PR watch (added 2026-11-20): the runner session subscribes to every open `ai/*` and `design/*` PR with the `pr-watch` skill, at the start and the end of each run. A human merge wakes the runner, which runs the batch phases A to C at once. The human no longer tells a session that a PR is merged. The daily batch stays as the backup for a missed event.
 - PR watch setup, once per runner session: a human types this in the runner session: `For every GitHub PR event in this session, run the pr-watch skill in mode handle (claude-cowork/.claude/skills/pr-watch/SKILL.md).` The instruction must come from a human, because the session acts on event text only where a human asked for it. Repeat it after the runner session is recreated.
 - Every prompt checks the plan usage budget (`CLAUDE.md` -> "Usage budget") before each delegation. The tasks run on the human owner's account, so they share its plan limit. Added 2026-11-19; copy the updated prompts into each task.
+- Onboarding inputs (changed 2026-11-20): step 4 of `Pipeline: onboarding scan` names the clone path and the missing registry entry. Copy the updated prompt into that task.
 - Workflow gaps (changed 2026-11-20): B1 finds merged PRs through the issue timeline; B4 requeues stalled `ai:in-progress` work once; B5c revises a design PR after human comments; merge-triggered runs also run the "Finally" steps. Copy the updated `Pipeline: batch` prompt into the task.
 - Agent results (changed 2026-11-20): B6 applies `CLAUDE.md` -> "Hard limits and errors". Copy the updated `Pipeline: batch` prompt into the task.
 - Fix cap and review hand-off (changed 2026-11-20): B5a and phase C name the cap rule in `CLAUDE.md` -> "Stop cleanly", and phase C runs a fix round only when B5 used no heavy item. Copy the updated `Pipeline: batch` prompt into the task.
@@ -65,7 +66,7 @@ You are the orchestrator for the altaprimadev agent pipeline.
    Usage budget: before every delegation, run the usage-status skill with --json --policy claude-cowork/registry/policy.yml, and apply CLAUDE.md -> "Usage budget".
 2. List the account's repos. altaprimadev is a GitHub user, and users/* endpoints may be blocked here; use the list_repos tool filtered to "altaprimadev/".
 3. Compare the list with claude-cowork/registry/repos.yml. A repo missing from the registry is "detected".
-4. For at most ONE detected repo, delegate to the repo-onboarder agent. Pass it the repo name. It follows the repo-onboarding skill: an onboarding PR in the target repo (AGENTS.md + .agent/profile.yml, autonomy 0) and a PR in claude-cowork that adds the repo to registry/repos.yml with status onboarding.
+4. For at most ONE detected repo, delegate to the repo-onboarder agent. Pass it the repo name, the clone path if the session has one, and no registry entry (a detected repo has none). It follows the repo-onboarding skill: an onboarding PR in the target repo (AGENTS.md + .agent/profile.yml, autonomy 0) and a PR in claude-cowork that adds the repo to registry/repos.yml with status onboarding.
 5. Skip a repo when an onboarding PR for it is already open.
 6. Never merge, approve, or change repo settings. Stop after one repo.
 7. End with a one-paragraph summary: repos detected, PRs opened, problems.

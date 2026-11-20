@@ -1,6 +1,9 @@
 ---
 name: evidence-report
 description: Run the repo profile's install, lint, typecheck, test, and build commands, capture real output, and fill the PR body sections (Summary, Related issue, RED/GREEN evidence, Verification output, Risks, Rollback). Use after `tdd` finishes and before opening or updating an agent PR, and again after every fix round.
+metadata:
+  version: "1.0.0"
+  owner: claude-cowork
 ---
 # Evidence Report
 
@@ -67,7 +70,7 @@ Do not use to:
    # existing PR (fix round):
    gh pr edit <pr> --repo <owner/repo> --body-file "$TMPDIR/pr-body-<issue>.md"
    ```
-   At the attempt cap, open or update the PR as `--draft` so the output survives the container.
+   At the attempt cap, keep the output in a draft PR so it survives the container: a new PR with `gh pr create --draft`, an existing one with `gh pr ready <pr> --undo`.
 
 8. **On the cap:** add `ai:blocked` to the issue and the PR. Post one comment with the failing command, the exit code, and the failing output excerpt. Stop. Do not change other pipeline labels.
 

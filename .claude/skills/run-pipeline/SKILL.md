@@ -17,7 +17,7 @@ This skill sends the scheduled task's stored prompt to the runner session once. 
 
 | Argument | Scheduled task | Stages |
 |---|---|---|
-| `batch` (default) | `Pipeline: batch` | Intake, task review, one heavy item, review, report |
+| `batch` (default) | `Pipeline: batch` | Intake, close merged work, task review, promote, one heavy item, review, report (Monday to Friday only) |
 | `onboarding` | `Pipeline: onboarding scan` | Onboarding of one new repo |
 
 Do not use `fire_trigger`. A manual fire starts a new session without the repos, and the run stops at setup.

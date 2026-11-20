@@ -1,6 +1,9 @@
 ---
 name: plan-to-issues
 description: Split a merged design doc into ordered, one-PR sub-issues per repo with files touched, acceptance criteria, required tests, and "Depends on" links, and label them `ai:draft` for task review. Use after a human merges a design PR (Gate 1), and again whenever a planned sub-issue closes, to promote the next ones.
+metadata:
+  version: "1.0.0"
+  owner: claude-cowork
 ---
 # Plan to Issues
 

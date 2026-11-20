@@ -210,6 +210,31 @@ def check_rules(a: Audit):
                 keys.add(str(k))
                 walk(v)
     walk(policy)
+    # Numbers live in registry/policy.yml. Prose names the key, not a copy of the value.
+    numeric = {}
+
+    def walk_values(node):
+        if isinstance(node, dict):
+            for k, v in node.items():
+                if isinstance(v, (int, float)) and not isinstance(v, bool):
+                    numeric[str(k)] = v
+                walk_values(v)
+    walk_values(policy)
+    for p in [a.root / "CLAUDE.md"] + sorted((a.root / ".claude").rglob("*.md")) + sorted((a.root / "docs").glob("*.md")):
+        if p.name == "blend-decisions.md":
+            continue
+        in_fence = False
+        for n, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
+            if line.lstrip().startswith("```"):
+                in_fence = not in_fence
+            if in_fence:
+                continue
+            for k, v in numeric.items():
+                copied = (f"`{k}`" in line and re.search(rf"\(default {v}\)", line)) or (
+                    k.endswith("_pct") and re.search(rf"(?<![\d.]){v}%", line))
+                if copied:
+                    a.add("warn", "rules", f"{p.relative_to(a.root)}:{n}",
+                          f"copies the value of policy key `{k}` ({v}); name the key instead")
     stage_files = sorted((a.root / ".claude" / "agents").glob("*.md"))
     stage_files += [d / "SKILL.md" for d in a.skill_dirs() if d.name in STAGE_SKILLS or d.name.startswith("stack-")]
     for p in stage_files:

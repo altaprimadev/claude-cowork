@@ -2,6 +2,9 @@
 name: inbox
 description: Show a human everything in the pipeline that waits on them right now - `ai:needs-human` and `ai:blocked` items, design PRs at Gate 1, code PRs at Gate 2, and onboarding PRs - across the control repo and every registry repo, with links, age, and the next action. Read-only. Use when a human in an interactive session asks what waits on them, what is stuck, or for their inbox. Never use in scheduled or unattended runs.
 argument-hint: "[owner/repo to limit the list]"
+metadata:
+  version: "1.0.0"
+  owner: claude-cowork
 ---
 # Inbox
 
