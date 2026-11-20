@@ -44,13 +44,13 @@ flowchart TD
     B --> T[intake-triager<br/>intake-classify]
     T -->|size:small| DR[Sub-issue in target repo<br/>ai:draft]
     T -->|size:large<br/>ai:needs-design| D[designer<br/>async-design]
-    T -->|unclear| NH[ai:needs-human<br/>one comment, stop]
+    T -->|tier 3 no gate covers,<br/>after orchestrator vetting| NH[ai:needs-human<br/>one comment, stop]
     D --> DPR[Design PR<br/>docs/design/...]
     DPR -->|GATE 1<br/>human merges| P[planner<br/>plan-to-issues]
     P --> DR
     DR --> TR[task-reviewer<br/>task-review]
     TR -->|READY| R[ai:ready]
-    TR -->|NEEDS_HUMAN| NH
+    TR -->|NEEDS_HUMAN, vetted<br/>or BLOCKED limit| NH
     R --> I[implementer<br/>tdd + evidence-report]
     I --> PR[Code PR<br/>RED/GREEN + verification output]
     PR --> S1[spec-reviewer<br/>review-two-stage stage 1]

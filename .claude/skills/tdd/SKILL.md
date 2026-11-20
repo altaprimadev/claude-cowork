@@ -6,7 +6,7 @@ disable-model-invocation: false
 model: opus
 effort: high
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
   owner: claude-cowork
 ---
 # TDD
@@ -127,7 +127,8 @@ GREEN `<sha7>` — `bun test`
 
 - All acceptance criteria have a GREEN test and the full suite passes: hand over to `evidence-report`.
 - The criterion is ambiguous: apply `CLAUDE.md` → "Decide by default". Pick the reading that matches existing code and decisions, test that, and record it under Assumptions for the PR body.
-- You cannot write a failing test for a criterion even after that, or a tier 3 item remains: post nothing. Return `NEEDS_HUMAN` with `escalations:` to the orchestrator.
+- A tier 3 item: record it under "Decisions for the reviewer" for the PR and continue (`CLAUDE.md` -> "Continue when a gate follows").
+- You cannot write a failing test for a criterion even after that, or a wrong guess on a tier 3 item is irreversible or invalidates most of the work: post nothing. Return `NEEDS_HUMAN` with `escalations:` to the orchestrator.
 - A test stays red when fix attempts reach the cap (`CLAUDE.md` -> "Stop cleanly", implementation loop): add `ai:blocked`, comment with the failing output, stop.
 
 ## Anti-rationalization
