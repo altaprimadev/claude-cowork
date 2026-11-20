@@ -685,3 +685,16 @@ Utility for the runner session. Original to claude-cowork.
 | GitHub event trigger on `pull_request.closed` + merged | docs/open-questions.md Q2 | rejected | Every event starts a new session without the repos, the same failure as fire_trigger. |
 | On a merge, run batch phases A to C | brief / CLAUDE.md | write from brief | The pipeline already decides what follows each merge. No new stage logic. |
 | Ignore non-merge PR events | CLAUDE.md "Usage budget" | write from brief | Fix rounds and reviews stay on the batch priority order and budget. |
+
+### pipeline-status
+
+Sources read: none.
+
+Human-invoked, read-only. Original to claude-cowork. A narrow, current view next to `daily-report` (daily, wide) and `inbox` (only what waits on the human).
+
+| Atom | Source (repo, path, commit) | Decision | Reason |
+|---|---|---|---|
+| Runner state, next scheduled runs, next heavy item | brief (owner, 2026-11-20) | write from brief | The human wants to know what the pipeline does now and when it acts next. |
+| Group items by what they wait for | brief / `scripts/project_sync.py` | modify | Same label rules as the board, grouped by waiting reason: agent, schedule, merge, answer, dependency. |
+| Open dependencies from the `Depends on:` line | `plan-to-issues` task body format | take | Shows why a reviewed task has no stage label. |
+| Heavy item shown as a candidate | `docs/scheduled-tasks.md` B5 | modify | The batch picks at run time by priority and budget. |
