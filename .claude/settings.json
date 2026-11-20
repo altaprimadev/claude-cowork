@@ -26,6 +26,7 @@
       "Skill(run-pipeline)",
       "Skill(pr-watch)",
       "Skill(pipeline-status)",
+      "Skill(watchtower)",
       "Read",
       "Grep",
       "Glob",
