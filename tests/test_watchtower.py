@@ -77,6 +77,14 @@ def test_tag_pinned_action_and_pr_watch_without_finally(tmp_path):
     assert any("Finally" in m for m in msgs)
 
 
+def test_copied_policy_value_is_a_warning(tmp_path):
+    root = clone(tmp_path)
+    skill = root / ".claude" / "skills" / "inbox" / "SKILL.md"
+    skill.write_text(skill.read_text() + "\nPause at 90% of the window.\n")
+    msgs = messages(audit.run(root, "rules"), "rules")
+    assert any("policy key `pause_pct`" in m for m in msgs)
+
+
 def test_hook_gap_and_mcp_deny(tmp_path):
     root = clone(tmp_path)
     hook = root / ".claude" / "hooks" / "guard_bash.py"

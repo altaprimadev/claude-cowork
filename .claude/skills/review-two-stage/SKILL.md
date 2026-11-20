@@ -1,6 +1,9 @@
 ---
 name: review-two-stage
 description: Coordinate review of one agent-opened PR in two stages. Stage 1 checks the PR against its issue and design; stage 2 checks code quality only after stage 1 passes. The orchestrator posts one comment per round and sets ai:review-passed or ai:changes-needed. Use when an agent PR is opened or updated after a fix round.
+metadata:
+  version: "1.0.0"
+  owner: claude-cowork
 ---
 # Review Two-Stage
 

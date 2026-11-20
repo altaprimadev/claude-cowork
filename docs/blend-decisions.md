@@ -714,3 +714,38 @@ Human-invoked, read-only. Original to claude-cowork. Audits the control repo its
 | Finding needs `path:line` and a quote; at most five suggestions | `review-two-stage` evidence rule | modify | Keeps the report short and checkable. |
 | Fix findings automatically | none | rejected | Watchtower reports. The human picks fixes; a fix is a normal PR. |
 
+### task-review
+
+Sources read: not recorded when the skill was added (`f181d82`, 2026-11-19). The skill reuses atoms already recorded above for `review-two-stage` and `spec-reviewer`.
+
+Pipeline stage. A pre-implementation gate between drafting (`intake-classify`, `plan-to-issues`) and `ai:ready`.
+
+| Atom | Source (repo, path, commit) | Decision | Reason |
+|---|---|---|---|
+| Review a task before any code is written | brief (owner, 2026-11-19) | write from brief | A bad task becomes a bad PR and a wasted heavy slot. |
+| Spec checks: self-contained, grounded, testable, one PR in size, ordered | SP `skills/subagent-driven-development/task-reviewer-prompt.md` @22f0b46 (see `review-two-stage`) | modify | Applied to the issue body instead of a diff. |
+| Verdict READY, REVISE with a corrected body, or NEEDS_HUMAN | `review-two-stage` verdict pattern | modify | REVISE fixes the body in place, so no human round trip is needed for shape problems. |
+| Approval triggers count only when nothing authorizes them | `CLAUDE.md` -> "Decide by default" | take | A trigger the brief or a human decision asked for is not a question. |
+| REVISE loop cap | `CLAUDE.md` -> "Stop cleanly" | take | One cap rule for every fix loop. |
+
+### task-reviewer (agent)
+
+Sources read: as `task-review`.
+
+| Atom | Source (repo, path, commit) | Decision | Reason |
+|---|---|---|---|
+| Fresh-context, read-only reviewer | SP `skills/subagent-driven-development/task-reviewer-prompt.md` @22f0b46 (see `spec-reviewer`) | take | Same isolation as the PR reviewers. |
+| `disallowedTools: Write, Edit, NotebookEdit` | `spec-reviewer` agent | take | The orchestrator applies the verdict and labels. |
+
+### usage-status
+
+Sources read: none.
+
+Utility. Original to claude-cowork.
+
+| Atom | Source (repo, path, commit) | Decision | Reason |
+|---|---|---|---|
+| Read plan usage from `rate_limit_event` entries in the session transcript | brief (owner) | write from brief | The pipeline must stop at a clean point before the shared plan limit stops it mid-step. |
+| OAuth usage endpoint or `~/.claude/.credentials.json` | none | rejected | `CLAUDE.md`: never read credentials. The events hold the same numbers. |
+| Advice follows the five-hour window; only a reached limit pauses | `CLAUDE.md` -> "Usage budget" | take | The weekly percent is information. `allowed_warning` is not a reached limit (fixed 2026-11-20). |
+| Thresholds from `usage_budget` in `registry/policy.yml` | `registry/policy.yml` | take | One source for the numbers. |

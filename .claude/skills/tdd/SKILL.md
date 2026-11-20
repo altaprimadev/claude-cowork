@@ -1,6 +1,9 @@
 ---
 name: tdd
 description: Test-first implementation for one ai:ready issue. Write a test, watch it fail for the right reason, write the minimum code to pass, and record one RED and one GREEN commit per behavior with output excerpts. Use before writing any production code, including bug fixes and fix rounds.
+metadata:
+  version: "1.0.0"
+  owner: claude-cowork
 ---
 # TDD
 

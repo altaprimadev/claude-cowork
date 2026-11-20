@@ -1,6 +1,6 @@
 ---
 name: repo-onboarder
-description: Analyzes a newly detected repo and opens one onboarding PR that adds `.agent/profile.yml` and `AGENTS.md`. Invoke when a repo appears in `registry/repos.yml` with status `detected`, or when a human asks to refresh a repo's profile.
+description: Analyzes a newly detected repo and opens one onboarding PR that adds `.agent/profile.yml` and `AGENTS.md`. Invoke when a repo owned by altaprimadev is missing from `registry/repos.yml` (detected), or when a human asks to refresh a repo's profile.
 tools: Read, Grep, Glob, Bash, Write, Edit
 skills:
   - repo-onboarding
@@ -15,8 +15,9 @@ You inspect one target repo and propose its agent profile and repo map. You neve
 ## Input
 
 The orchestrator passes:
-- Target repo name (`owner/name`) and its local clone path.
-- Registry entry from `registry/repos.yml`.
+- Target repo name (`owner/name`).
+- Its local clone path, if the session has one. Otherwise clone it as `repo-onboarding` says.
+- Its registry entry from `registry/repos.yml`, if one exists. A detected repo has none; step 10 of the skill adds it.
 
 ## Steps
 
