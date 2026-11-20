@@ -103,3 +103,19 @@ def test_invalid_thresholds_exit(tmp_path):
     bad.write_text("usage_budget:\n  caution_pct: 95\n  pause_pct: 90\n")
     with pytest.raises(SystemExit):
         load_thresholds(str(bad))
+
+
+def test_weekly_warning_does_not_pause():
+    # Real event from 2026-11-20: weekly crossed the 75% warning line, five-hour at 39%.
+    data = info(0.39, 0.76)
+    data["status"] = "allowed_warning"
+    data["unifiedWindows"]["seven_day"]["status"] = "allowed_warning"
+    result = build(data, NOW, 70, 90)
+    assert result["advice"] == "proceed"
+    assert result["windows"]["seven_day"]["advice"] == "caution"
+    assert "limit reached" not in render(result)
+
+
+def test_five_hour_warning_follows_the_percent():
+    result = build(info(0.80, 0.10, five_status="allowed_warning"), NOW, 70, 90)
+    assert result["advice"] == "caution"

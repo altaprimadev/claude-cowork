@@ -10,7 +10,7 @@ allowed-tools:
   - Bash(python3 *usage_status.py*)
 compatibility: Python 3. Cloud sessions need the claude-code-remote MCP (list_events). Local sessions need status line JSON with a rate_limits field.
 metadata:
-  version: "1.2.0"
+  version: "1.2.1"
   owner: claude-cowork
 ---
 # Usage status
@@ -53,7 +53,7 @@ Every API call in a Claude Code session returns rate-limit info. In a cloud sess
    ```
 
    Flags:
-   - `--json`: machine-readable output. Top level: `advice` (five-hour window; a reached limit in any window pauses), `captured_at` (event time), `thresholds`, and `windows` with each window's percent, reset times, status, and advice.
+   - `--json`: machine-readable output. Top level: `advice` (five-hour window; a reached limit in any window pauses; `allowed_warning` is not a reached limit), `captured_at` (event time), `thresholds`, and `windows` with each window's percent, reset times, status, and advice.
    - `--policy <claude-cowork clone>/registry/policy.yml`: read thresholds from `usage_budget`. Without it, the script uses 70% and 90%.
 
 4. Reply with the script output exactly, inside a code block. Add one short line only when it helps:
