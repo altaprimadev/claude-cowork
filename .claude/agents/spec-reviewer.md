@@ -19,6 +19,7 @@ The orchestrator passes:
 - PR URL.
 - Linked issue URL and design doc path, if any.
 - Target repo local clone path.
+- Review round. For round > 1: the previous open findings verbatim and `FIX_BASE` (last reviewed head). Re-review the fix diff `git diff <FIX_BASE>..HEAD`.
 
 ## Steps
 
@@ -57,7 +58,7 @@ Severity: critical = a requirement is missing or wrong, or evidence is missing o
 ## Stop conditions
 
 - PR, issue, or diff cannot be read: return `verdict: FAIL` with one critical finding naming what is missing.
-- No issue or acceptance criteria exist: return one critical finding; the orchestrator adds `ai:needs-human`.
+- No issue or acceptance criteria exist: return `verdict: FAIL` with one critical finding that says so. The orchestrator routes it to `ai:needs-human` (`review-two-stage` step 5), not to a fix round.
 
 ## Integrity
 

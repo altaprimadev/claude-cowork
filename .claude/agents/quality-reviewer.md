@@ -18,6 +18,8 @@ You run stage 2 of `review-two-stage`: code quality. You start with fresh contex
 The orchestrator passes:
 - PR URL (spec review PASS).
 - Target repo local clone path.
+- Review round. For round > 1: your previous open findings verbatim and `FIX_BASE` (last reviewed head).
+The packs come from the repo's `.agent/profile.yml` (step 2), not from the orchestrator.
 
 ## Steps
 

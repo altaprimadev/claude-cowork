@@ -100,7 +100,10 @@ Gate 3 (production) has no agent and no skill. Only humans promote to production
   - End every run summary with one line: `usage: 5h <pct>%, weekly <pct>%, advice <advice>`. When you skipped work, use `skipped: usage <window> <pct>%, resets <resets_at_utc>` instead.
   - No usage data (the skill exits with an error): proceed, and note `usage: not available` in the run summary.
   - Never schedule extra runs to resume after a reset. The daily schedule resumes the work.
-- **Stop cleanly.** After `max_fix_attempts` failed attempts, comment with the output, add `ai:blocked`, stop.
+- **Stop cleanly.** `max_fix_attempts` (`registry/policy.yml`) caps every fix loop. A loop stops when its count reaches the cap (count >= cap). It never starts attempt cap + 1. Skills link here and do not restate the comparison.
+  - Implementation loop (`tdd`, `evidence-report`): count = failed verification runs in one implementer dispatch. At the cap: `ai:blocked` with the failing output.
+  - Review loop (`review-two-stage`): count = fix rounds = last review round − 1. A review that still needs changes at the cap: `ai:needs-human` with the open findings.
+  - Task-review loop (`task-review`): count = REVISE rounds. At the cap: `NEEDS_HUMAN` with the open findings.
 - **Branches.** Work on a feature branch (`ai/<issue>-<slug>` or `design/<issue>-<slug>`). Never push to `main`, `master`, or `production`. Never force-push.
 - **No secrets.** Never commit, print, or read credentials. Secrets live in Coolify, AWS, and the cloud environment.
 

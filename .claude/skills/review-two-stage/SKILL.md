@@ -39,7 +39,7 @@ Review runs at any autonomy level; it writes no code. At effective autonomy 0 th
    ```
    Find earlier `<!-- ai:review round=N head=<sha> -->` comments. Round = last N + 1, or 1. If the last marker's `head` equals `headRefOid`, nothing changed: stop.
 
-2. **Check the cap.** Fix rounds = round − 1. If fix rounds exceed `max_fix_attempts` (`registry/policy.yml`) and the last review did not pass: post one comment listing the open findings, add `ai:needs-human`, stop.
+2. **Check the cap.** Fix rounds = round − 1. The cap rule is `CLAUDE.md` -> "Stop cleanly" (review loop). A new head always gets its review, even at the cap: step 9 applies the cap after the review.
 
 3. **Dispatch stage 1.** Start a fresh `spec-reviewer` subagent. Pass only: PR URL, issue URL, design doc path (if any), clone path, round, and for round > 1 the previous open findings verbatim plus `FIX_BASE` (last reviewed head). Never pass your own history, and never tell a reviewer what not to flag.
 
@@ -47,8 +47,9 @@ Review runs at any autonomy level; it writes no code. At effective autonomy 0 th
    Resolve each `cannot-verify` item yourself by reading the code. A confirmed gap becomes a critical stage 1 finding.
 
 5. **Stage 1 FAIL** (any critical, or a confirmed gap): skip stage 2. Go to step 7.
+   The issue is missing or has no acceptance criteria: post the step 7 comment, add `ai:needs-human` instead of `ai:changes-needed`, and stop. A fix round cannot add criteria.
 
-6. **Dispatch stage 2.** First re-check the usage budget (`CLAUDE.md` -> "Usage budget"). On `pause`, stop without a comment or label: the next run reviews this head again from stage 1. Otherwise start a fresh `quality-reviewer` subagent with: PR URL, clone path, round, and for round > 1 its previous open findings plus `FIX_BASE`. Validate the return as in step 4.
+6. **Dispatch stage 2.** First re-check the usage budget (`CLAUDE.md` -> "Usage budget"). On `pause`, stop without a comment or label: the next run reviews this head again from stage 1. Otherwise start a fresh `quality-reviewer` subagent with: PR URL, clone path, round, and for round > 1 its previous open findings plus `FIX_BASE`. Validate the return: it must start with `verdict:`, and every finding needs a severity and a file:line. Stage 2 has no criteria list. Malformed or missing: dispatch one fresh reviewer again. Fails twice: `ai:needs-human`, stop.
 
 7. **Post one comment** for the round.
    ```bash
@@ -76,7 +77,10 @@ Review runs at any autonomy level; it writes no code. At effective autonomy 0 th
    gh pr edit <pr> --repo <owner/repo> --add-label ai:changes-needed --remove-label ai:review-passed
    ```
 
-9. **Hand off.** `ai:changes-needed` at autonomy ≥ 1: dispatch the implementer with the PR URL, the open critical and major findings verbatim, and the fix attempt number. When it pushes, start again at step 1. Add `ai:needs-human` instead of dispatching when autonomy is 0, or when fix rounds (round − 1) already equal `max_fix_attempts`.
+9. **Hand off.** Only for `ai:changes-needed`. Decide in this order:
+   - Autonomy 0, or fix rounds (round − 1) at the cap (`CLAUDE.md` -> "Stop cleanly"): add `ai:needs-human`, stop.
+   - A fix round is heavy work. Dispatch the implementer now only when all hold: this run has not used its one heavy item (`docs/scheduled-tasks.md` B5), and a fresh usage check gives `proceed`. Pass the PR URL, the open critical and major findings verbatim, and the fix attempt number (round). The fix uses this run's heavy item. When it pushes, start again at step 1.
+   - Otherwise stop with the label only. The next run picks the PR up in B5a.
 
 Never fix findings yourself. Never drop a finding silently; if you think one is wrong, say so in the comment with your reasoning, and let the human decide at Gate 2.
 
@@ -140,6 +144,7 @@ Return in the `quality-reviewer` agent output format, starting with `verdict:`.
 | "I'll review the diff myself; it's faster." | Reviewers need fresh context. Dispatch them. |
 | "This finding is wrong; I'll leave it out." | Post it with your note. The human decides. |
 | "Everything looks fine; I'll approve." | Agents never approve. Label `ai:review-passed`; a human approves. |
-| "One more round will converge." | At `max_fix_attempts`, route to `ai:needs-human`. |
+| "One more round will converge." | At the cap (`CLAUDE.md` -> "Stop cleanly"), route to `ai:needs-human`. |
+| "The fix is small; I'll dispatch it even though B5 already ran an implementer." | A fix round is heavy. One heavy item per run. Label and stop; B5a takes it next run. |
 
 Adapted from obra/superpowers and affaan-m/ECC (MIT). See docs/blend-decisions.md.

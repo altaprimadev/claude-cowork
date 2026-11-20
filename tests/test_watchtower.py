@@ -47,6 +47,17 @@ def test_missing_policy_key_and_skill_script(tmp_path):
     assert any("scripts/nope.py" in m for m in messages(audit.run(root, skill="inbox"), "skills"))
 
 
+def test_restated_fix_cap_is_an_error(tmp_path):
+    root = clone(tmp_path)
+    skill = root / ".claude" / "skills" / "inbox" / "SKILL.md"
+    skill.write_text(skill.read_text() + "\nStop when rounds exceed `max_fix_attempts`.\n")
+    msgs = messages(audit.run(root, "rules"), "rules")
+    assert any("max_fix_attempts comparison" in m for m in msgs)
+    skill.write_text(skill.read_text().replace(
+        "exceed `max_fix_attempts`.", "exceed `max_fix_attempts` (CLAUDE.md -> \"Stop cleanly\")."))
+    assert not any("max_fix_attempts comparison" in m for m in messages(audit.run(root, "rules"), "rules"))
+
+
 def test_hook_gap_and_mcp_deny(tmp_path):
     root = clone(tmp_path)
     hook = root / ".claude" / "hooks" / "guard_bash.py"
