@@ -61,6 +61,10 @@ HOOK_PROBES = (
     ("cat ~/.aws/credentials", "No secrets. Never read credentials"),
 )
 MCP_MERGE_TOOLS = ("mcp__github__merge_pull_request", "mcp__github__enable_pr_auto_merge")
+# A comparison against the fix cap. Only CLAUDE.md -> "Stop cleanly" may define one; other lines link to it.
+FIX_CAP_COMPARE_RE = re.compile(
+    r"(exceed\w*|at or above|fewer than|below|less than|more than|equal\w*|(?<!-)>=?|<=?)\s+(?:the\s+)?`?max_fix_attempts`?",
+    re.IGNORECASE)
 
 
 class Audit:
@@ -200,6 +204,14 @@ def check_rules(a: Audit):
                 keys.add(str(k))
                 walk(v)
     walk(policy)
+    cap_sources = sorted((a.root / ".claude").rglob("*.md")) + sorted((a.root / "docs").glob("*.md"))
+    for p in cap_sources:
+        if p.name == "blend-decisions.md":
+            continue
+        for n, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
+            if FIX_CAP_COMPARE_RE.search(line) and "Stop cleanly" not in line:
+                a.add("error", "rules", f"{p.relative_to(a.root)}:{n}",
+                      "restates the max_fix_attempts comparison; link CLAUDE.md -> \"Stop cleanly\" instead")
     for p in [a.root / "CLAUDE.md"] + sorted((a.root / ".claude").rglob("*.md")):
         for line in p.read_text(encoding="utf-8").splitlines():
             if "policy.yml" not in line:

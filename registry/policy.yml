@@ -26,7 +26,7 @@ usage_budget:
   caution_pct: 70   # at or above: light stages only
   pause_pct: 90     # at or above: no new stage work
 
-# Attempts before an agent stops and labels ai:blocked.
+# Cap for every fix loop. Count >= cap stops the loop. Labels per loop: CLAUDE.md -> "Stop cleanly".
 max_fix_attempts: 3
 
 # Repo that hosts daily report issues and briefs.

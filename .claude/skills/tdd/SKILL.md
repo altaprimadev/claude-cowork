@@ -121,7 +121,7 @@ GREEN `<sha7>` — `bun test`
 - All acceptance criteria have a GREEN test and the full suite passes: hand over to `evidence-report`.
 - The criterion is ambiguous: apply `CLAUDE.md` → "Decide by default". Pick the reading that matches existing code and decisions, test that, and record it under Assumptions for the PR body.
 - You cannot write a failing test for a criterion even after that, or a tier 3 item remains: post nothing. Return `NEEDS_HUMAN` with `escalations:` to the orchestrator.
-- A test stays red after `max_fix_attempts` (`registry/policy.yml`) fix attempts: add `ai:blocked`, comment with the failing output, stop.
+- A test stays red when fix attempts reach the cap (`CLAUDE.md` -> "Stop cleanly", implementation loop): add `ai:blocked`, comment with the failing output, stop.
 
 ## Anti-rationalization
 

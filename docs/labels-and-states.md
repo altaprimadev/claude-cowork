@@ -56,7 +56,7 @@ stateDiagram-v2
     Trivial --> InProgress
     Ready --> InProgress: implementer (ai:in-progress)
     InProgress --> PROpen: PR with evidence
-    InProgress --> Blocked: max_fix_attempts reached (ai:blocked)
+    InProgress --> Blocked: implementation loop at max_fix_attempts (ai:blocked)
 
     PROpen --> Stage1: spec-reviewer
     Stage1 --> ChangesNeeded: fail
@@ -64,7 +64,7 @@ stateDiagram-v2
     Stage2 --> ChangesNeeded: critical finding (ai:changes-needed)
     Stage2 --> ReviewPassed: ai:review-passed
     ChangesNeeded --> InProgress: implementer fixes
-    ChangesNeeded --> NeedsHuman: max rounds reached
+    ChangesNeeded --> NeedsHuman: review loop at max_fix_attempts (ai:needs-human)
 
     ReviewPassed --> Merged: GATE 2 - human approves and merges
     Merged --> Production: GATE 3 - human promotes (Coolify or production branch)

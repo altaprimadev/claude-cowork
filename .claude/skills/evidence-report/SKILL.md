@@ -58,7 +58,7 @@ Do not use to:
 
 5. **Check requirements line by line.** For each acceptance criterion, name the test or output that proves it. A criterion without proof is not met, even if all commands pass.
 
-6. **On any failure, fix and repeat.** Fix the cause (follow `tdd` for behavior fixes; use the repo's own formatter for format errors, e.g. `bunx biome check --write .`). Commit the fix. Re-run every command from step 1. Count each full re-run as one attempt. Stop at `max_fix_attempts`.
+6. **On any failure, fix and repeat.** Fix the cause (follow `tdd` for behavior fixes; use the repo's own formatter for format errors, e.g. `bunx biome check --write .`). Commit the fix. Re-run every command from step 1. Count each full re-run as one attempt. Stop when attempts reach the cap (`CLAUDE.md` -> "Stop cleanly", implementation loop).
 
 7. **Build the PR body** in `"${TMPDIR:-/tmp}/pr-body-<issue>.md"` with the template sections below. Then:
    ```bash
@@ -141,7 +141,7 @@ Install output goes under Verification output only when it failed or warned.
 | "Typecheck is slow; tests cover it." | Run every configured command. |
 | "This failure is pre-existing." | Report it by name with output. Silence is a false claim. |
 | "The output is long; I'll summarize it as passing." | Paste the summary lines. A summary without output is a claim. |
-| "One more attempt will fix it." | At `max_fix_attempts`, stop and label `ai:blocked`. |
+| "One more attempt will fix it." | At the cap (`CLAUDE.md` -> "Stop cleanly"), stop and label `ai:blocked`. |
 | "The evidence file is gone; I remember the RED output." | Memory is not output. Re-run from the commits or say it is missing. |
 
 Adapted from obra/superpowers and affaan-m/ECC (MIT). See docs/blend-decisions.md.

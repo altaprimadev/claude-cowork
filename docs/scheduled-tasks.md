@@ -15,6 +15,7 @@ Each run starts a fresh session in a fresh container. `/loop` is never used: it 
 - PR watch (added 2026-11-20): the runner session subscribes to every open `ai/*` and `design/*` PR with the `pr-watch` skill, at the start and the end of each run. A human merge wakes the runner, which runs the batch phases A to C at once. The human no longer tells a session that a PR is merged. The daily batch stays as the backup for a missed event.
 - PR watch setup, once per runner session: a human types this in the runner session: `For every GitHub PR event in this session, run the pr-watch skill in mode handle (claude-cowork/.claude/skills/pr-watch/SKILL.md).` The instruction must come from a human, because the session acts on event text only where a human asked for it. Repeat it after the runner session is recreated.
 - Every prompt checks the plan usage budget (`CLAUDE.md` -> "Usage budget") before each delegation. The tasks run on the human owner's account, so they share its plan limit. Added 2026-11-19; copy the updated prompts into each task.
+- Fix cap and review hand-off (changed 2026-11-20): B5a and phase C name the cap rule in `CLAUDE.md` -> "Stop cleanly", and phase C runs a fix round only when B5 used no heavy item. Copy the updated `Pipeline: batch` prompt into the task.
 - If the runner session is archived or loses a repo, recreate it, have a human attach the push repos in it, and rebind the tasks (`persistent_session_id`).
 
 ## Common settings
@@ -101,20 +102,20 @@ B2. Task review. For each issue labeled ai:draft (at most 5 per run), delegate t
 B3. Promote. For each planned issue with no stage label whose "Depends on" items are all closed or merged, promote it to ai:ready (plan-to-issues promote mode). Promotion needs no agent; skip it only when advice is pause.
 B4. Count running work: open issues labeled ai:in-progress across managed repos. Do not exceed max_parallel_sessions overall or max_parallel_tasks_per_repo per repo. An ai:in-progress issue that already has an open agent PR is not running work; leave it to review.
 B5. Pick exactly ONE heavy item, in this priority order, and delegate it. Heavy items run only when advice is proceed; otherwise skip B5 and record the skipped line:
-   a. An agent PR labeled ai:changes-needed with unresolved findings, fewer than max_fix_attempts rounds -> implementer agent with the review findings.
+   a. An agent PR labeled ai:changes-needed with unresolved findings, fix rounds (last review round - 1) below max_fix_attempts (CLAUDE.md -> "Stop cleanly") -> implementer agent with the review findings.
    b. A merged design PR (head branch design/*) whose design has no sub-issues yet, in a repo with autonomy 2 -> planner agent (plan-to-issues). Then run B2 again for the new drafts.
    c. An issue labeled ai:ready, not ai:in-progress, all dependencies closed, autonomy allows its size -> set ai:in-progress, remove ai:ready, then implementer agent (tdd, evidence-report, packs from .agent/profile.yml).
    d. An issue labeled size:large + ai:needs-design, no open design PR, autonomy 2 -> designer agent (async-design).
 B6. Apply each agent's result: comments and labels as returned. If an agent stops with ai:needs-human or ai:blocked, make sure the label and comment are present.
 
 Phase C, review:
-C1. Load the review-two-stage skill and follow it.
+C1. Load the review-two-stage skill and follow it. Its step 9 runs a fix round only when B5 delegated no heavy item in this run and advice is proceed; otherwise it labels and stops, and B5a takes the PR next run.
 C2. Find open, non-draft PRs with head branch ai/* in active managed repos whose latest commit has no `<!-- ai:review round=N head=<sha> -->` comment. This includes a PR opened or updated in phase B.
 C3. For each such PR, oldest first, at most 3 per run:
-   a. Delegate stage 1 to the spec-reviewer agent with the PR URL and its linked issue.
-   b. Only if stage 1 passes, re-check the usage budget. On pause, stop this PR without a comment or label. Otherwise delegate stage 2 to the quality-reviewer agent with the PR URL and the repo's packs.
+   a. Delegate stage 1 to the spec-reviewer agent with the inputs review-two-stage step 3 names.
+   b. Only if stage 1 passes, re-check the usage budget. On pause, stop this PR without a comment or label. Otherwise delegate stage 2 to the quality-reviewer agent with the inputs review-two-stage step 6 names. It reads the packs from .agent/profile.yml itself.
    c. Post ONE review comment with all findings. Never approve.
-   d. Set ai:changes-needed if stage 1 failed or any finding is critical. Otherwise set ai:review-passed.
+   d. Set ai:changes-needed if stage 1 failed or any finding is critical. Otherwise set ai:review-passed. Then apply review-two-stage step 9.
 
 Phase D, report (Monday to Friday, Asia/Jakarta date, only):
 D1. Delegate to the reporter agent (daily-report) for all repos in registry/repos.yml. Pass it the usage-status JSON from the budget check, or "not available". The report is an issue in altaprimadev/claude-cowork titled "Daily report YYYY-MM-DD" (UTC date) with label ai:report. If today's issue exists, update it.
