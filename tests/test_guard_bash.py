@@ -114,8 +114,9 @@ class GuardBashTest(unittest.TestCase):
             with self.subTest(cmd=cmd):
                 self.assertBlocked(cmd)
 
-    def test_force_with_lease_on_feature_branch_allowed(self):
-        self.assertAllowed("git push --force-with-lease origin feat/x")
+    def test_force_with_lease_on_feature_branch_blocked(self):
+        # CLAUDE.md: never force-push, with no exception for feature branches.
+        self.assertBlocked("git push --force-with-lease origin feat/x")
 
     def test_force_with_lease_on_protected_branch_blocked(self):
         self.assertBlocked("git push --force-with-lease origin main")
