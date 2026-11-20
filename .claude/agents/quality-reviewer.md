@@ -49,7 +49,7 @@ findings:
     file: <path:line>
     issue: <what is wrong>
     failure: <input, state, outcome>
-    fix: <suggested change>
+    fix: <one change; no alternatives>
 strengths: <one or two lines>
 ```
 

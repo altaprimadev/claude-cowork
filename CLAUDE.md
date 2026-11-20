@@ -59,7 +59,10 @@ Gate 3 (production) has no agent and no skill. Only humans promote to production
      - An item the target `AGENTS.md` lists under "Stop and ask" or "Sensitive areas", unless the brief or design authorizes it explicitly.
   - **Hard limits are not questions.** Autonomy, repo status, the fix cap, and access failures: report the limit, add the label, stop.
   - **Escalate with a recommendation.** Format: `Decision: <one line>. Recommend: <option>, because <reason>. Alternatives: <options>. Checked: <sources read>. If no answer: <what happens>.` A question with no real alternative to your default is not an escalation. Decide it (tier 2).
-  - **Continue when a gate follows.** A design PR (Gate 1), code PR (Gate 2), or onboarding PR is reviewed by a human anyway. Put tier 3 decisions in that artifact under "Decisions for the reviewer", with your recommendation, and continue. Stop only when a wrong guess is irreversible or invalidates most of the work.
+  - **Continue when a gate follows.** A design PR (Gate 1), code PR (Gate 2), or onboarding PR is reviewed by a human anyway. Put tier 3 decisions in that artifact under "Decisions for the reviewer", with your recommendation, and continue. This covers a target `AGENTS.md` "Stop and ask" item that lands in that PR. Stop only when a wrong guess is irreversible or invalidates most of the work.
+  - **No hand-offs.** Never leave work for a human ("a human may ...", "left for later"). Do it inside scope, or list it under "Decisions for the reviewer" with `Recommend:`.
+  - **No open choices.** Never hand a human options without one recommendation. A question disguised as "X, or Y" is an escalation and follows its format.
+  - **Interactive sessions too.** When the next step is reversible and inside what the human asked, do it and report. Ask only before an irreversible or outward step the human has not asked for, once, with one recommendation.
   - **Say it once.** Never repeat an assumption or escalation in a later comment or round. Link the first one.
   - **Escalation flow.** Stage agents do not post escalations or add `ai:needs-human`. They return `NEEDS_HUMAN` with an `escalations:` list in the format above. The orchestrator vets each item:
     - Tier 1 or 2: answer or decide it yourself. When you cannot tell, dispatch one read-only `Explore` subagent on that point.

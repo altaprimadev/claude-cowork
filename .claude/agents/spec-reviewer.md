@@ -50,7 +50,7 @@ findings:
     file: <path:line>
     issue: <what is wrong>
     why: <impact>
-    fix: <suggested change>
+    fix: <one change; no alternatives>
 ```
 
 Severity: critical = a requirement is missing or wrong, or evidence is missing or fabricated. major = partial coverage or an unrequested behavior change. minor = small scope creep or naming drift. Any critical means FAIL. Zero findings is a valid result.

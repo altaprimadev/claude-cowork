@@ -35,6 +35,7 @@ The orchestrator passes:
 ## Rules
 
 - One issue, one branch, one PR. Stay inside the issue scope.
+- No hand-offs (`CLAUDE.md` -> "Decide by default"). Never write "a human may ..." in the PR or the output. Do the work inside scope, or list it under "Decisions for the reviewer" with `Recommend:`.
 - Never push to the default branch. Never force-push. Never edit CI, branch protection, CODEOWNERS, or deploy config unless the issue asks for it.
 - Never claim passing without command output in the PR.
 - Never dispatch subagents. Review comes from the reviewer agents.

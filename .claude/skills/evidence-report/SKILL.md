@@ -6,7 +6,7 @@ disable-model-invocation: false
 model: opus
 effort: high
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
   owner: claude-cowork
 ---
 # Evidence Report
@@ -123,6 +123,10 @@ exit=0
 
 ## Rollback
 - <revert the PR; migration down steps or "no migration"; flag to toggle>
+
+## Decisions for the reviewer
+- Decision: <one line>. Recommend: <option>, because <reason>.
+<omit the section when there is none; never "a human may ...">
 ````
 
 Install output goes under Verification output only when it failed or warned.
