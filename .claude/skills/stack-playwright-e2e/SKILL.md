@@ -52,7 +52,7 @@ The repo's `playwright.config.ts` and installed `@playwright/test` version are t
 ### Flaky-test policy
 1. A test that fails then passes on retry is flaky. Report it; do not call the run green without saying so.
 2. Find the cause first: run `--repeat-each=10` on the test. Fix the race (locator, assertion, data).
-3. Quarantine (`test.fixme`, `test.skip`, tag exclusion) needs a human decision. Post one comment with evidence and the proposed quarantine, add `ai:needs-human`, and stop.
+3. Quarantine (`test.fixme`, `test.skip`, tag exclusion) needs a human decision. Do not post or label. Return `NEEDS_HUMAN` with one `escalations:` item: the proposed quarantine as the recommendation, the `--repeat-each` evidence under Checked. The orchestrator vets it.
 4. Never skip, delete, or loosen a failing test to get a green run.
 5. Never raise timeouts or retries as a fix without a stated cause.
 
@@ -92,7 +92,7 @@ Browser install:
 ## Stop conditions
 - `test_types` lacks `e2e`: write no E2E tests.
 - Browser install fails or the app cannot start: post one comment with the error output, add `ai:blocked`, stop.
-- A test needs quarantine: `ai:needs-human`, stop.
+- A test needs quarantine: return `NEEDS_HUMAN` with an escalation (rule 3), stop.
 
 ## Review checklist (quality-reviewer)
 - [ ] critical: test skipped, deleted, or weakened to pass; real credentials or production URL in tests.

@@ -16,7 +16,7 @@ Load together with `stack-typescript-bun`.
 - Read the pinned `prisma` and `@prisma/client` versions in `package.json`. Use only that version. Never run `bunx prisma@latest`.
 - This skill targets Prisma ORM 6/7 with `schema.prisma` and `prisma migrate`.
 - Prisma 7: `prisma-client` generator with an explicit `output`, a driver adapter (`@prisma/adapter-pg`), and the datasource URL in `prisma.config.ts`. `migrate dev` does not run `generate`; run it yourself.
-- Prisma ORM 8 (release candidate as of 2026-11) replaces `schema.prisma`, `generate`, and `migrate dev/deploy` with a contract and `prisma db migrate`. If the repo uses Prisma 8 or the commands below fail as unknown, stop. Post one comment with the question and the default assumption ("keep current major, no upgrade"), add `ai:needs-human`.
+- Prisma ORM 8 (release candidate as of 2026-11) replaces `schema.prisma`, `generate`, and `migrate dev/deploy` with a contract and `prisma db migrate`. If the repo uses Prisma 8 or the commands below fail as unknown, stop. Keep the current major: never upgrade or downgrade Prisma. Return `BLOCKED` with `limit: Prisma 8 is not covered by stack-prisma-postgres` and the failing command output. Do not comment or label: the orchestrator adds `ai:needs-human` (`CLAUDE.md` -> "Hard limits and errors").
 
 ## Commands (local or ephemeral test DB only)
 ```bash
@@ -32,7 +32,7 @@ bunx prisma migrate deploy                        # apply committed migrations (
 ```
 - `migrate dev` may detect drift and reset the database. Run it only against a disposable local or CI database. Never against shared, staging, or production.
 - Never run `migrate reset`, `db push`, or `--accept-data-loss` outside a disposable database.
-- If no disposable database is available in the session, stop with `ai:needs-human` instead of pointing at a shared one.
+- If no disposable database is available in the session, stop instead of pointing at a shared one. Return `BLOCKED` with `limit: no disposable database`. Do not comment or label: the orchestrator adds `ai:needs-human` (`CLAUDE.md` -> "Hard limits and errors").
 
 ## Migration rules
 - Every schema change is a committed migration. No manual SQL on any shared database.

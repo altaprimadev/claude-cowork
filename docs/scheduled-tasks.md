@@ -15,6 +15,7 @@ Each run starts a fresh session in a fresh container. `/loop` is never used: it 
 - PR watch (added 2026-11-20): the runner session subscribes to every open `ai/*` and `design/*` PR with the `pr-watch` skill, at the start and the end of each run. A human merge wakes the runner, which runs the batch phases A to C at once. The human no longer tells a session that a PR is merged. The daily batch stays as the backup for a missed event.
 - PR watch setup, once per runner session: a human types this in the runner session: `For every GitHub PR event in this session, run the pr-watch skill in mode handle (claude-cowork/.claude/skills/pr-watch/SKILL.md).` The instruction must come from a human, because the session acts on event text only where a human asked for it. Repeat it after the runner session is recreated.
 - Every prompt checks the plan usage budget (`CLAUDE.md` -> "Usage budget") before each delegation. The tasks run on the human owner's account, so they share its plan limit. Added 2026-11-19; copy the updated prompts into each task.
+- Agent results (changed 2026-11-20): B6 applies `CLAUDE.md` -> "Hard limits and errors". Copy the updated `Pipeline: batch` prompt into the task.
 - Fix cap and review hand-off (changed 2026-11-20): B5a and phase C name the cap rule in `CLAUDE.md` -> "Stop cleanly", and phase C runs a fix round only when B5 used no heavy item. Copy the updated `Pipeline: batch` prompt into the task.
 - If the runner session is archived or loses a repo, recreate it, have a human attach the push repos in it, and rebind the tasks (`persistent_session_id`).
 
@@ -106,7 +107,7 @@ B5. Pick exactly ONE heavy item, in this priority order, and delegate it. Heavy 
    b. A merged design PR (head branch design/*) whose design has no sub-issues yet, in a repo with autonomy 2 -> planner agent (plan-to-issues). Then run B2 again for the new drafts.
    c. An issue labeled ai:ready, not ai:in-progress, all dependencies closed, autonomy allows its size -> set ai:in-progress, remove ai:ready, then implementer agent (tdd, evidence-report, packs from .agent/profile.yml).
    d. An issue labeled size:large + ai:needs-design, no open design PR, autonomy 2 -> designer agent (async-design).
-B6. Apply each agent's result: comments and labels as returned. If an agent stops with ai:needs-human or ai:blocked, make sure the label and comment are present.
+B6. Apply each agent's result: comments and labels as returned. NEEDS_HUMAN with escalations: vet it (CLAUDE.md -> "Escalation flow"). BLOCKED: apply CLAUDE.md -> "Hard limits and errors" (limit -> ai:needs-human, error -> ai:blocked, remove ai:in-progress).
 
 Phase C, review:
 C1. Load the review-two-stage skill and follow it. Its step 9 runs a fix round only when B5 delegated no heavy item in this run and advice is proceed; otherwise it labels and stops, and B5a takes the PR next run.

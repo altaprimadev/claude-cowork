@@ -58,6 +58,13 @@ def test_restated_fix_cap_is_an_error(tmp_path):
     assert not any("max_fix_attempts comparison" in m for m in messages(audit.run(root, "rules"), "rules"))
 
 
+def test_stage_skill_adding_needs_human_is_an_error(tmp_path):
+    root = clone(tmp_path)
+    skill = root / ".claude" / "skills" / "tdd" / "SKILL.md"
+    skill.write_text(skill.read_text() + "\n- Something odd: comment, add `ai:needs-human`, stop.\n")
+    assert any("adds ai:needs-human" in m for m in messages(audit.run(root, "rules"), "rules"))
+
+
 def test_hook_gap_and_mcp_deny(tmp_path):
     root = clone(tmp_path)
     hook = root / ".claude" / "hooks" / "guard_bash.py"

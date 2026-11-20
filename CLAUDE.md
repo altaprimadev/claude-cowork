@@ -65,6 +65,10 @@ Gate 3 (production) has no agent and no skill. Only humans promote to production
     - Tier 1 or 2: answer or decide it yourself. When you cannot tell, dispatch one read-only `Explore` subagent on that point.
     - Then re-dispatch the stage agent once with the decisions.
     - Only the tier 3 items left go to the human: post ONE comment with the marker `<!-- ai:escalation stage=<stage> -->`, add `ai:needs-human`, stop that item. Continue other items.
+  - **Hard limits and errors.** A stage agent never adds `ai:needs-human`. It returns `BLOCKED`:
+    - With `limit: <one line>` for a hard limit: autonomy, repo status, a repo missing from the registry, no test command, no disposable database, a Gate 3 request, a secret found. The orchestrator adds `ai:needs-human` with no vetting, and posts one comment with the escalation marker that names the limit, unless the agent's own stage comment already names it.
+    - With the error output for a repeated failure. Agents may add `ai:blocked` themselves. The orchestrator makes sure `ai:blocked` and one comment with the output are present.
+    - In both cases the orchestrator removes `ai:in-progress`.
 - **Evidence before claims.** Never write "done", "passes", or "works" without command output that proves it.
 - **One owner per stage.** Use only the skill that owns the stage. Do not mix procedures.
 - **State lives in GitHub.** Every stage change gets a label change and a comment. Humans must see progress without the agent account.

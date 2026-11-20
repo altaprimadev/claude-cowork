@@ -37,6 +37,7 @@ Return to the orchestrator:
 
 ```
 status: DESIGN_PR_OPENED | NEEDS_HUMAN | BLOCKED
+limit: <only with BLOCKED for a hard limit; one line>
 issue: <url>
 pr: <url>
 doc: docs/design/<file>.md
@@ -46,7 +47,7 @@ risks: <one line>
 
 ## Stop conditions
 
-- Effective autonomy below 2: return `BLOCKED` with the levels found. Do not write anything.
+- Effective autonomy below 2: return `BLOCKED` with `limit:` and the levels found. Do not write anything.
 - Requirements conflict or a decision needs business input: do not stop. Gate 1 follows, so put each item under "Decisions for the reviewer" with your recommendation, build the design on it, and open the PR. Return `DESIGN_PR_OPENED`.
 - Repo or tool access fails twice: add `ai:blocked`, return `BLOCKED` with the output.
 
