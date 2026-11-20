@@ -53,7 +53,7 @@ Every API call in a Claude Code session returns rate-limit info. In a cloud sess
    ```
 
    Flags:
-   - `--json`: machine-readable output. Top level: `advice` (worst window), `captured_at` (event time), `thresholds`, and `windows` with each window's percent, reset times, status, and advice.
+   - `--json`: machine-readable output. Top level: `advice` (five-hour window; a reached limit in any window pauses), `captured_at` (event time), `thresholds`, and `windows` with each window's percent, reset times, status, and advice.
    - `--policy <claude-cowork clone>/registry/policy.yml`: read thresholds from `usage_budget`. Without it, the script uses 70% and 90%.
 
 4. Reply with the script output exactly, inside a code block. Add one short line only when it helps:
@@ -64,13 +64,13 @@ Every API call in a Claude Code session returns rate-limit info. In a cloud sess
 
 **In the claude-cowork pipeline**, the orchestrator runs this skill before each delegation and applies `CLAUDE.md` -> "Usage budget". That rule decides which stages run. Use the table below only outside the pipeline, in interactive sessions.
 
-When you check usage for your own planning, run the script with `--json`. Read the top-level `advice`; it already takes the worse of the five-hour and weekly windows.
+When you check usage for your own planning, run the script with `--json`. Read the top-level `advice`. It follows the five-hour window; the weekly percent does not change it unless the weekly limit is reached.
 
 | `advice` | Condition (default thresholds) | What to do |
 |---|---|---|
-| `proceed` | Both windows below 70% | Start or continue the task. |
-| `caution` | A window at 70% to 89% | Take only work that fits in a few steps. Commit and push after each step, so a stop loses nothing. Check again before the next step. |
-| `pause` | A window at 90% or more, or status not `allowed` | Stop at the next clean point. Commit and push. Tell the human the resume time (`resets_at_utc` of the window that paused). |
+| `proceed` | Five-hour window below 70% | Start or continue the task. |
+| `caution` | Five-hour window at 70% to 89% | Take only work that fits in a few steps. Commit and push after each step, so a stop loses nothing. Check again before the next step. |
+| `pause` | Five-hour window at 90% or more, or any window's status not `allowed` | Stop at the next clean point. Commit and push. Tell the human the resume time (`resets_at_utc` of the window that paused). |
 
 Why stop early: a session that hits the limit stops in the middle of a step. Half-written files and unpushed commits are hard to recover in an ephemeral container. A clean stop at 90% costs a little capacity and saves the work.
 

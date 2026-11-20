@@ -12,8 +12,10 @@ Default output (reset time is for the five-hour window):
   - 5h: 29%
   - weekly: 70%
 
---json prints the overall advice (worst window), thresholds, capture time,
-and per-window details. --policy reads thresholds from registry/policy.yml
+--json prints the overall advice, thresholds, capture time, and per-window
+details. The overall advice follows the five-hour window only; the weekly
+percent is informational. A window whose limit is reached (status not
+`allowed`) still pauses, because no request can run then. --policy reads thresholds from registry/policy.yml
 (usage_budget.caution_pct, usage_budget.pause_pct).
 
 Use --session-id to print the MCP session id for this cloud session.
@@ -29,7 +31,6 @@ WINDOWS = ("five_hour", "seven_day")
 LABELS = {"five_hour": "5h", "seven_day": "weekly"}
 DEFAULT_CAUTION = 70
 DEFAULT_PAUSE = 90
-RANK = {"proceed": 0, "caution": 1, "pause": 2}
 
 
 def session_id():
@@ -153,8 +154,10 @@ def build(data, now, caution, pause):
                    "status": st, "advice": advice(pct, st, caution, pause)}
     if "five_hour" not in rows:
         raise ValueError(f"five_hour window not in data (found: {', '.join(win)})")
-    worst = max(rows.values(), key=lambda r: RANK[r["advice"]])["advice"]
-    return {"advice": worst, "captured_at": captured_at,
+    overall = rows["five_hour"]["advice"]
+    if any(r["status"] and r["status"] != "allowed" for r in rows.values()):
+        overall = "pause"
+    return {"advice": overall, "captured_at": captured_at,
             "thresholds": {"caution_pct": caution, "pause_pct": pause},
             "windows": rows}
 

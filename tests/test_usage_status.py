@@ -47,11 +47,17 @@ def test_uses_the_newest_event_and_its_capture_time():
     (0.70, 0.10, "caution"),
     (0.89, 0.10, "caution"),
     (0.90, 0.10, "pause"),
-    (0.10, 0.92, "pause"),   # weekly window alone can pause
-    (0.10, 0.75, "caution"),
+    (0.10, 0.92, "proceed"),  # weekly percent is ignored
+    (0.10, 0.75, "proceed"),
 ])
-def test_overall_advice_is_the_worst_window(five, seven, expected):
+def test_overall_advice_follows_the_five_hour_window(five, seven, expected):
     assert build(info(five, seven), NOW, 70, 90)["advice"] == expected
+
+
+def test_reached_weekly_limit_still_pauses():
+    data = info(0.10, 1.0)
+    data["unifiedWindows"]["seven_day"]["status"] = "rejected"
+    assert build(data, NOW, 70, 90)["advice"] == "pause"
 
 
 def test_rejected_status_pauses_and_is_printed():
