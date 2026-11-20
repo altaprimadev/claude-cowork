@@ -14,8 +14,8 @@ Default output (reset time is for the five-hour window):
 
 --json prints the overall advice, thresholds, capture time, and per-window
 details. The overall advice follows the five-hour window only; the weekly
-percent is informational. A window whose limit is reached (status not
-`allowed`) still pauses, because no request can run then. --policy reads thresholds from registry/policy.yml
+percent is informational. A window whose limit is reached (status neither
+`allowed` nor `allowed_warning`) still pauses, because no request can run then. --policy reads thresholds from registry/policy.yml
 (usage_budget.caution_pct, usage_budget.pause_pct).
 
 Use --session-id to print the MCP session id for this cloud session.
@@ -109,8 +109,17 @@ def extract(data):
     return snapshots[-1]
 
 
+# Statuses that still allow requests. "allowed_warning" only means a warning
+# threshold was crossed; the percent decides the advice.
+ALLOWED_STATUSES = ("allowed", "allowed_warning")
+
+
+def limit_reached(status):
+    return bool(status) and status not in ALLOWED_STATUSES
+
+
 def advice(pct, status, caution, pause):
-    if status and status != "allowed":
+    if limit_reached(status):
         return "pause"
     if pct >= pause:
         return "pause"
@@ -155,7 +164,7 @@ def build(data, now, caution, pause):
     if "five_hour" not in rows:
         raise ValueError(f"five_hour window not in data (found: {', '.join(win)})")
     overall = rows["five_hour"]["advice"]
-    if any(r["status"] and r["status"] != "allowed" for r in rows.values()):
+    if any(limit_reached(r["status"]) for r in rows.values()):
         overall = "pause"
     return {"advice": overall, "captured_at": captured_at,
             "thresholds": {"caution_pct": caution, "pause_pct": pause},
@@ -166,7 +175,7 @@ def render(result):
     rows = result["windows"]
     lines = [f"remaining hour to reset: {rows['five_hour']['remaining']}", "usage percentage:"]
     lines += [f"- {LABELS[n]}: {r['usage_percent']}%" for n, r in rows.items()]
-    blocked = [LABELS[n] for n, r in rows.items() if r["status"] and r["status"] != "allowed"]
+    blocked = [LABELS[n] for n, r in rows.items() if limit_reached(r["status"])]
     if blocked:
         lines.append(f"status: limit reached ({', '.join(blocked)})")
     return "\n".join(lines)
