@@ -1,6 +1,10 @@
 ---
 name: skills-help
-description: List the claude-cowork skills with a one-line description each, grouped into human-invoked, pipeline stages, utilities, and stack packs, or show one skill in full. Use when a human asks which skills exist, what a skill does, or how to call it ("skill apa saja", "help", "cara pakai /inbox"), even if they do not say "skills-help".
+description: List the claude-cowork skills with a one-line description each, grouped into human-invoked, pipeline stages, utilities, and stack packs, or show one skill in full.
+when_to_use: Use when a human asks which skills exist, what a skill does, or how to call it ("skill apa saja", "help", "cara pakai /inbox"), even if they do not say "skills-help".
+disable-model-invocation: false
+model: haiku
+effort: low
 argument-hint: "[skill name]"
 metadata:
   version: "1.1.0"

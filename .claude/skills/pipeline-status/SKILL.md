@@ -1,6 +1,10 @@
 ---
 name: pipeline-status
-description: Show a human what the agent pipeline is doing right now - whether the runner is working or idle, when the next scheduled run fires, which tasks are in progress, which PRs wait for agent review or a human merge, what the next run will pick up, and which tasks wait on dependencies. Read-only, in chat. Use when a human in an interactive session asks for the pipeline status ("status pipeline", "lagi ngerjain apa", "nunggu apa"), even if they do not say "pipeline-status". Never use in scheduled or unattended runs.
+description: Show a human what the agent pipeline is doing right now - whether the runner is working or idle, when the next scheduled run fires, which tasks are in progress, which PRs wait for agent review or a human merge, what the next run will pick up, and which tasks wait on dependencies. Read-only, in chat.
+when_to_use: Use when a human in an interactive session asks for the pipeline status ("status pipeline", "lagi ngerjain apa", "nunggu apa"), even if they do not say "pipeline-status". Never use in scheduled or unattended runs.
+disable-model-invocation: false
+model: sonnet
+effort: medium
 argument-hint: "[owner/repo to limit the list]"
 compatibility: Cloud sessions. Needs the claude-code-remote MCP (list_triggers, get_session, list_events) and gh.
 metadata:

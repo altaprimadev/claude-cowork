@@ -1,6 +1,8 @@
 ---
 name: stack-hono-api
-description: Rules for HTTP APIs built with Hono on Bun - routing, validation, middleware, error handling, RPC types, and tests with app.request() and bun test. Load when `.agent/profile.yml` `packs` lists stack-hono-api and you design, implement, or review API endpoints.
+description: Rules for HTTP APIs built with Hono on Bun - routing, validation, middleware, error handling, RPC types, and tests with app.request() and bun test.
+when_to_use: Load when `.agent/profile.yml` `packs` lists stack-hono-api and you design, implement, or review API endpoints.
+disable-model-invocation: false
 ---
 # Stack: Hono API on Bun
 

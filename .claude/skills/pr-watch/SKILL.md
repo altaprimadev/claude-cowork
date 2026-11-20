@@ -1,6 +1,10 @@
 ---
 name: pr-watch
-description: Let the runner session watch every open pipeline PR through subscribe_pr_activity, and run the next pipeline steps as soon as a human merges one, so the human never has to tell an agent "#X is merged". Use in the runner session only - `subscribe` at the start and end of every scheduled run, `handle` when a GitHub PR event arrives.
+description: Let the runner session watch every open pipeline PR through subscribe_pr_activity, and run the next pipeline steps as soon as a human merges one, so the human never has to tell an agent "#X is merged".
+when_to_use: Use in the runner session only - `subscribe` at the start and end of every scheduled run, `handle` when a GitHub PR event arrives.
+disable-model-invocation: false
+model: opus
+effort: high
 argument-hint: "[subscribe | handle]"
 compatibility: Cloud runner session only. Needs the claude-code-remote MCP (subscribe_pr_activity, unsubscribe_pr_activity) and gh.
 metadata:

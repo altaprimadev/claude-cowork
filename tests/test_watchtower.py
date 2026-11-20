@@ -124,3 +124,68 @@ def test_render_and_exit_code(capsys):
     assert audit.main(["--root", str(ROOT), "--area", "rules"]) == 0
     assert capsys.readouterr().out.startswith("watchtower: 0 error")
     assert audit.main(["--root", str(ROOT), "--skill", "nosuch"]) == 2
+
+
+FULL_FM = {"name": "inbox", "description": "x", "when_to_use": "Use when x.", "disable-model-invocation": False, "model": "opus", "effort": "low"}
+
+
+def fm_messages(fm, name="inbox", **kw):
+    return [m for _, m in audit.check_frontmatter(fm, name, **kw)]
+
+
+def test_frontmatter_complete_is_clean():
+    assert audit.check_frontmatter(dict(FULL_FM), "inbox") == []
+
+
+def test_frontmatter_required_and_unknown_fields():
+    msgs = fm_messages({"name": "inbox", "description": "x", "allowed_tools": "Read"})
+    for key in ("when_to_use", "disable-model-invocation", "model", "effort"):
+        assert any(f"required field {key}" in m for m in msgs)
+    assert any("allowed_tools is not allowed" in m for m in msgs)
+
+
+def test_frontmatter_stack_pack_skips_model_and_effort():
+    fm = {"name": "stack-x", "description": "x", "when_to_use": "Load when x.", "disable-model-invocation": False}
+    assert fm_messages(fm, "stack-x") == []
+    assert any("overrides" in m for m in fm_messages({**fm, "effort": "high"}, "stack-x"))
+
+
+def test_frontmatter_types_and_enums():
+    msgs = fm_messages({**FULL_FM, "disable-model-invocation": "no", "model": "gpt-4", "effort": "huge",
+                        "metadata": "1.0", "paths": 3, "compatibility": "x" * 501})
+    for part in ("disable-model-invocation must be true or false", "model 'gpt-4'", "effort 'huge'",
+                 "metadata must be a map", "paths must be", "compatibility has 501"):
+        assert any(part in m for m in msgs), part
+
+
+def test_frontmatter_fork_dependencies():
+    msgs = fm_messages({**FULL_FM, "agent": "Explore", "background": False})
+    assert any("agent works only with context: fork" in m for m in msgs)
+    assert any("background works only with context: fork" in m for m in msgs)
+    assert any("'nobody'" in m for m in fm_messages({**FULL_FM, "context": "fork", "agent": "nobody"}))
+    assert fm_messages({**FULL_FM, "context": "fork", "agent": "planner"}, agents={"planner"}) == []
+
+
+def test_frontmatter_preload_and_allowed_tools_path(tmp_path):
+    fm = {**FULL_FM, "disable-model-invocation": True}
+    assert any("blocks the preload" in m for m in fm_messages(fm, preloaded={"designer"}))
+    tools = {**FULL_FM, "allowed-tools": ["Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/gone.py *)"]}
+    assert any("scripts/gone.py" in m for m in fm_messages(tools, skill_dir=tmp_path))
+
+
+def test_trigger_in_description_is_an_error(tmp_path):
+    root = clone(tmp_path)
+    msgs = messages(audit.run(root, skill="inbox"), "skills")
+    assert not any("move it to when_to_use" in m or "names no trigger" in m for m in msgs)
+    skill = root / ".claude" / "skills" / "inbox" / "SKILL.md"
+    text = skill.read_text()
+    skill.write_text(text.replace("Read-only.\n", "Read-only. Use when a human asks for their inbox.\n", 1))
+    assert any("move it to when_to_use" in m for m in messages(audit.run(root, skill="inbox"), "skills"))
+
+
+def test_unquoted_hash_in_frontmatter_is_an_error(tmp_path):
+    root = clone(tmp_path)
+    skill = root / ".claude" / "skills" / "inbox" / "SKILL.md"
+    text = skill.read_text()
+    skill.write_text(text.replace("\nmodel:", "\nargument-hint: see /inbox #12\nmodel:", 1))
+    assert any("holds ' #'" in m for m in messages(audit.run(root, skill="inbox"), "skills"))

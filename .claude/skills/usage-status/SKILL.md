@@ -1,9 +1,11 @@
 ---
 name: usage-status
-description: Report the active plan's usage-limit status (time left until the limit window resets, percent used) from Claude Code rate-limit events, formatted by a bundled Python script. Use whenever someone asks how much plan usage, quota, or limit is left, or when the limit resets ("sisa usage", "kuota", "limit reset kapan"), even if they do not say "usage-status".
-when_to_use: Before starting a task, so the agent can predict whether the work will finish without hitting the limit. During long work, to decide when to pause at a clean point and when to resume after the reset.
-argument-hint: "[--json] [--policy registry/policy.yml]"
+description: Report the active plan's usage-limit status (time left until the limit window resets, percent used) from Claude Code rate-limit events, formatted by a bundled Python script.
+when_to_use: Use whenever someone asks how much plan usage, quota, or limit is left, or when the limit resets ("sisa usage", "kuota", "limit reset kapan"), even if they do not say "usage-status". Also use before starting a task, to predict whether the work will finish without hitting the limit, and during long work, to decide when to pause at a clean point and when to resume after the reset.
 disable-model-invocation: false
+model: opus
+effort: high
+argument-hint: "[--json] [--policy registry/policy.yml]"
 user-invocable: true
 allowed-tools:
   - mcp__claude-code-remote__list_events

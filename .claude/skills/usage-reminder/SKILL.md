@@ -1,6 +1,10 @@
 ---
 name: usage-reminder
-description: Remind the human at every five-hour usage reset. At each reset, report the status of open pipeline tasks across active registry repos, or, when nothing is active, suggest productive use of the fresh window (write a brief, answer pending items). Self-rescheduling via send_later. Use when a human asks to start, stop, check, or run the usage reset reminder ("reminder reset", "ingatkan saat usage reset"), or when a reminder message asks to run it. Never use from the pipeline scheduled tasks.
+description: Remind the human at every five-hour usage reset. At each reset, report the status of open pipeline tasks across active registry repos, or, when nothing is active, suggest productive use of the fresh window (write a brief, answer pending items). Self-rescheduling via send_later.
+when_to_use: Use when a human asks to start, stop, check, or run the usage reset reminder ("reminder reset", "ingatkan saat usage reset"), or when a reminder message asks to run it. Never use from the pipeline scheduled tasks.
+disable-model-invocation: false
+model: sonnet
+effort: low
 argument-hint: "start | run | status | stop"
 compatibility: Cloud sessions only. Needs the claude-code-remote MCP (send_later, list_triggers, delete_trigger, list_events) and read access to the active registry repos.
 metadata:

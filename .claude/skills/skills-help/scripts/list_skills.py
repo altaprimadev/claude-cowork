@@ -76,6 +76,7 @@ def collect(root):
             group = "utility"
         skills.append({"name": name, "group": group,
                        "description": " ".join(str(fm.get("description", "")).split()),
+                       "when_to_use": " ".join(str(fm.get("when_to_use", "")).split()),
                        "argument_hint": fm.get("argument-hint", "")})
     return skills
 
@@ -103,6 +104,8 @@ def render(skills):
 def render_one(s):
     lines = [f"/{s['name']}" + (f" {s['argument_hint']}" if s["argument_hint"] else ""),
              f"group: {s['group']}", "", s["description"]]
+    if s.get("when_to_use"):
+        lines += ["", s["when_to_use"]]
     return "\n".join(lines)
 
 

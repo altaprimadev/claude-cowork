@@ -1,6 +1,8 @@
 ---
 name: stack-prisma-postgres
-description: Rules for Prisma ORM on PostgreSQL with Bun - schema design, safe migrations (expand/contract), indexes, transactions, N+1 prevention. Load when `.agent/profile.yml` `packs` lists stack-prisma-postgres and you design, implement, or review schema, migrations, or queries.
+description: Rules for Prisma ORM on PostgreSQL with Bun - schema design, safe migrations (expand/contract), indexes, transactions, N+1 prevention.
+when_to_use: Load when `.agent/profile.yml` `packs` lists stack-prisma-postgres and you design, implement, or review schema, migrations, or queries.
+disable-model-invocation: false
 ---
 # Stack: Prisma + PostgreSQL on Bun
 

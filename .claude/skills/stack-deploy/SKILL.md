@@ -1,6 +1,8 @@
 ---
 name: stack-deploy
-description: Rules, commands, and review checklist for Dockerfiles, Compose files, Coolify deployment config, and AWS access in Bun services. Load when the repo profile `packs` lists stack-deploy and the task changes container, deployment, or cloud configuration. Production deploys stay human-only (Gate 3).
+description: Rules, commands, and review checklist for Dockerfiles, Compose files, Coolify deployment config, and AWS access in Bun services. Production deploys stay human-only (Gate 3).
+when_to_use: Load when the repo profile `packs` lists stack-deploy and the task changes container, deployment, or cloud configuration.
+disable-model-invocation: false
 ---
 # Stack: Deploy (Docker, Coolify, AWS)
 

@@ -1,6 +1,10 @@
 ---
 name: task-review
-description: Review one drafted task (sub-issue labeled `ai:draft`) before any implementation starts. Check that it is self-contained, grounded in the code, testable, correctly ordered, and one PR in size, and flag work that needs human approval. Return READY, REVISE (with a corrected body), or NEEDS_HUMAN. Use whenever a sub-issue carries `ai:draft`.
+description: Review one drafted task (sub-issue labeled `ai:draft`) before any implementation starts. Check that it is self-contained, grounded in the code, testable, correctly ordered, and one PR in size, and flag work that needs human approval. Return READY, REVISE (with a corrected body), or NEEDS_HUMAN.
+when_to_use: Use whenever a sub-issue carries `ai:draft`.
+disable-model-invocation: false
+model: opus
+effort: high
 metadata:
   version: "1.0.0"
   owner: claude-cowork

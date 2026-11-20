@@ -1,6 +1,10 @@
 ---
 name: intake-classify
-description: Triage one `ai:brief` issue in the control repo. Resolve the affected repos from the registry, classify size:small or size:large, check autonomy, post one summary comment, and route the brief to design or to a single drafted sub-issue (`ai:draft`) for task review. Use when a brief carries `ai:brief` but not `ai:triaged`.
+description: Triage one `ai:brief` issue in the control repo. Resolve the affected repos from the registry, classify size:small or size:large, check autonomy, post one summary comment, and route the brief to design or to a single drafted sub-issue (`ai:draft`) for task review.
+when_to_use: Use when a brief carries `ai:brief` but not `ai:triaged`.
+disable-model-invocation: false
+model: opus
+effort: high
 metadata:
   version: "1.0.0"
   owner: claude-cowork

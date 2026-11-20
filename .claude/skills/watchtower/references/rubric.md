@@ -10,7 +10,7 @@ Severity:
 
 ## Skills (`.claude/skills/*/SKILL.md`)
 
-1. **Trigger.** The description says what the skill does and when to use it, in the third person. A human's likely phrasing (often Indonesian) triggers it. It does not overlap another skill's trigger.
+1. **Trigger.** The description says what the skill does, in the third person, with no trigger sentence. `when_to_use` says when to use it and when not to (`Use when ...`, `Never use ...`). A human's likely phrasing (often Indonesian) triggers it. It does not overlap another skill's trigger.
 2. **One owner.** The skill does one stage or one human task. It does not repeat a procedure another skill owns. It links instead.
 3. **Procedure.** Numbered steps an agent can follow without guessing. Every command is complete. Every input has a source.
 4. **Stops.** Stop conditions cover the failure paths: missing access, empty input, usage pause, hard limits.
@@ -19,6 +19,12 @@ Severity:
 7. **Progressive disclosure.** Long templates and reference detail live in `references/`. The body stays the procedure.
 8. **Scripts.** Deterministic work (parsing, grouping, formatting) lives in a tested script, not in prose.
 9. **Language.** Concise technical English. The chat reply language matches `CLAUDE.md`.
+10. **Frontmatter values.** The script checks presence and types (required: `name`, `description`, `when_to_use`, `disable-model-invocation`, `model`, `effort`; stack packs skip `model` and `effort`). Review whether the values fit the skill:
+    - `effort` follows the stage weight in `CLAUDE.md` -> "Usage budget": heavy stages and judgment reviews `high`, light stages `medium`, read-only chat lookups `low`.
+    - `model` names the smallest model that does the job. Never `inherit` or `default`. Skills that reason (design, planning, triage, task review, code review, implementation, audits, drafting from a human's intent) use `opus`. Mechanical skills (run a script, format output, list items) may use `sonnet` or `haiku`.
+    - The skill's `model` and `effort` apply to the rest of the invoking turn. A skill the orchestrator invokes inside a pipeline run (for example `usage-status` before each delegation, `review-two-stage`, `pr-watch`) uses `opus` and `high`, or it downgrades the rest of the run.
+    - `disable-model-invocation: true` fits a human skill with side effects that must not start from casual phrasing. It removes the description from context and blocks agent preload.
+    - A read-only skill names its write tools in `disallowed-tools`. A skill that runs its own script scopes `allowed-tools` with `${CLAUDE_SKILL_DIR}`.
 
 ## Agents (`.claude/agents/*.md`)
 
