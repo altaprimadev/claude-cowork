@@ -38,6 +38,7 @@ Human-invoked skills run only in interactive sessions, never in scheduled tasks,
 - `answer`: answer an `ai:needs-human` or `ai:blocked` item; post on `post now`.
 - `usage-reminder`: remind the human at every five-hour usage reset with task status or a nudge to write a brief (`start`, `run`, `status`, `stop`).
 - `skills-help`: list every skill with a one-line description, or show one skill in full.
+- `watchtower`: audit and review this repo's skills, agents, workflows, rules, and hooks for drift and contradictions; suggest improvements. Read-only.
 - `run-pipeline`: start a pipeline run now in the runner session instead of waiting for its schedule (`batch`, `onboarding`), after a usage and runner check.
 The runner session watches open pipeline PRs with the `pr-watch` skill. A human merge runs the batch phases A to C at once (`docs/scheduled-tasks.md`). Only the runner subscribes to `ai/*` and `design/*` PRs.
 An interactive session subscribes to every PR it opens itself (`subscribe_pr_activity`). On a merge, it tells the human in chat and names any follow-up step, such as copying a changed prompt into a scheduled task. It never pushes more to a merged PR.

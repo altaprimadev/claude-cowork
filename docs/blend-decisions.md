@@ -698,3 +698,19 @@ Human-invoked, read-only. Original to claude-cowork. A narrow, current view next
 | Group items by what they wait for | brief / `scripts/project_sync.py` | modify | Same label rules as the board, grouped by waiting reason: agent, schedule, merge, answer, dependency. |
 | Open dependencies from the `Depends on:` line | `plan-to-issues` task body format | take | Shows why a reviewed task has no stage label. |
 | Heavy item shown as a candidate | `docs/scheduled-tasks.md` B5 | modify | The batch picks at run time by priority and budget. |
+
+### watchtower
+
+Sources read: `scripts/validate-config.py`.
+
+Human-invoked, read-only. Original to claude-cowork. Audits the control repo itself; the CI validator stays the structural gate.
+
+| Atom | Source (repo, path, commit) | Decision | Reason |
+|---|---|---|---|
+| Audit skills, workflows, rules, hooks, consistency; suggest improvements | brief (owner, 2026-11-20) | write from brief | The config grows by many small PRs. Drift between files passes CI. |
+| Run `validate-config.py` as the first layer | `scripts/validate-config.py` | take | One structural gate. Watchtower adds checks, it does not fork them. |
+| Mechanical checks in a tested script, judgment in a rubric | `skills-help`, `pipeline-status` pattern | modify | Repeatable findings come from code. The model reviews only what code cannot see. |
+| Probe the guard hook with the commands CLAUDE.md forbids | `CLAUDE.md` global rules | write from brief | Proves each "never" rule has an enforcing layer, not only text. |
+| Finding needs `path:line` and a quote; at most five suggestions | `review-two-stage` evidence rule | modify | Keeps the report short and checkable. |
+| Fix findings automatically | none | rejected | Watchtower reports. The human picks fixes; a fix is a normal PR. |
+
