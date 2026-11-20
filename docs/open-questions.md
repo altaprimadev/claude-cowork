@@ -124,7 +124,7 @@ Findings:
 - **Gap (not verified):** whether auto mode alone approves those Skill prompts.
 
 Design impact:
-- No skill in this repo declares `allowed-tools`, `disallowed-tools`, or `hooks`.
+- Skills declare no `allowed-tools`, `disallowed-tools`, or `hooks`. One exception: `usage-status` declares `allowed-tools` for `list_events` and its script, because the orchestrator calls it before each delegation. `watchtower` warns on any other skill that declares one.
 - `.claude/settings.json` still allows `Skill(<name>)` for every skill. `scripts/validate-config.py` enforces this.
 - Repo permission rules do not load in multi-repo sessions (Q4). Add the same allow rules to the org's managed settings. See `docs/setup.md`, step 5.
 - Do not add `ask` rules for commands that scheduled tasks need.

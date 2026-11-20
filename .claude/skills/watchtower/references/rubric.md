@@ -6,7 +6,9 @@ Report a finding only with a `path:line` and a quote that proves it. Drop anythi
 Severity:
 - `error`: an agent following the text does the wrong thing, or two rules contradict.
 - `warn`: drift, a gap, or wording an agent can misread.
-- `suggest`: an improvement. Not broken today.
+- `info`: an improvement or style point. Not broken today.
+
+The script uses the same three levels.
 
 ## Skills (`.claude/skills/*/SKILL.md`)
 
@@ -24,11 +26,11 @@ Severity:
     - `model` names the smallest model that does the job. Never `inherit` or `default`. Skills that reason (design, planning, triage, task review, code review, implementation, audits, drafting from a human's intent) use `opus`. Mechanical skills (run a script, format output, list items) may use `sonnet` or `haiku`.
     - The skill's `model` and `effort` apply to the rest of the invoking turn. A skill the orchestrator invokes inside a pipeline run (for example `usage-status` before each delegation, `review-two-stage`, `pr-watch`) uses `opus` and `high`, or it downgrades the rest of the run.
     - `disable-model-invocation: true` fits a human skill with side effects that must not start from casual phrasing. It removes the description from context and blocks agent preload.
-    - A read-only skill names its write tools in `disallowed-tools`. A skill that runs its own script scopes `allowed-tools` with `${CLAUDE_SKILL_DIR}`.
+    - Skills declare no `allowed-tools`, `disallowed-tools`, or `hooks` (`docs/open-questions.md` Q5): the Skill tool can prompt for them and stall an unattended run. The script warns on each one outside its recorded exception. A read-only skill says so under Outputs. Read-only agents enforce it with `disallowedTools`.
 
 ## Agents (`.claude/agents/*.md`)
 
-1. The tool list is the minimum. Reviewers and the task reviewer have no write tools.
+1. The tool list is the minimum. The script checks that `spec-reviewer`, `quality-reviewer`, and `task-reviewer` have no write tools; review the rest.
 2. The input list matches what the orchestrator passes in the skill and in `docs/scheduled-tasks.md`.
 3. The output format matches what the orchestrator parses (`PASS`, `CHANGES`, `NEEDS_HUMAN` with `escalations:`).
 4. The agent does not post escalations or set `ai:needs-human` (CLAUDE.md "Escalation flow").

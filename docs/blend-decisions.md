@@ -713,6 +713,10 @@ Human-invoked, read-only. Original to claude-cowork. Audits the control repo its
 | Probe the guard hook with the commands CLAUDE.md forbids | `CLAUDE.md` global rules | write from brief | Proves each "never" rule has an enforcing layer, not only text. |
 | Finding needs `path:line` and a quote; at most five suggestions | `review-two-stage` evidence rule | modify | Keeps the report short and checkable. |
 | Fix findings automatically | none | rejected | Watchtower reports. The human picks fixes; a fix is a normal PR. |
+| `--skill` runs every area, filtered to that skill | watchtower self-review (2026-11-20) | write from brief | A single-skill audit must not skip label, policy, and path checks. |
+| One severity scale (`error`, `warn`, `info`) for script and rubric | watchtower self-review (2026-11-20) | write from brief | One count line in the reply. |
+| Usage check before the `all` fan-out; `Explore` subagents | `CLAUDE.md` -> "Usage budget" | modify | Three parallel reviewers are heavy. `Explore` has no write tools. |
+| Read-only skills without `disallowed-tools` | `docs/open-questions.md` Q5 | take | The field can prompt and stall an unattended run. Agents carry `disallowedTools` instead. |
 
 ### task-review
 
