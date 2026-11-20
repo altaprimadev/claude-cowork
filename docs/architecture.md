@@ -60,6 +60,8 @@ flowchart TD
     CN --> I
     S2 -->|ok| RP[ai:review-passed]
     RP -->|GATE 2<br/>human approves + merges| M[Integration branch<br/>from AGENTS.md, usually development]
+    M -.->|merge event, pr-watch<br/>runs the batch at once| R
+    I -.->|no PR after 24 h<br/>B4 requeue once| R
     M -->|staging deploy| STG[Staging via Coolify]
     STG -->|GATE 3<br/>human promotes| PROD[Production]
 

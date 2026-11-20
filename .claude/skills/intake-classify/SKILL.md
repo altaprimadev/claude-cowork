@@ -4,9 +4,9 @@ description: Triage one `ai:brief` issue in the control repo. Resolve the affect
 when_to_use: Use when a brief carries `ai:brief` but not `ai:triaged`.
 disable-model-invocation: false
 model: opus
-effort: high
+effort: medium
 metadata:
-  version: "1.0.0"
+  version: "1.0.1"
   owner: claude-cowork
 ---
 # Intake Classify

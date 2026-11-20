@@ -4,9 +4,9 @@ description: Detect org repos missing from the registry, then analyze one repo a
 when_to_use: Use when `gh repo list altaprimadev` shows a repo not in `registry/repos.yml`, when a repo has status `detected`, or when a human asks to refresh a repo profile.
 disable-model-invocation: false
 model: opus
-effort: high
+effort: medium
 metadata:
-  version: "1.1.0"
+  version: "1.1.1"
   owner: claude-cowork
 ---
 # Repo Onboarding

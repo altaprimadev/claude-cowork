@@ -161,6 +161,8 @@ def classify(data: dict[str, dict], now: int) -> dict[str, list[dict]]:
                 g["intake"].append(item)
             elif is_task and not any(l.startswith("ai:") for l in labels):
                 item["deps"] = open_deps(body, repo, open_numbers)
+                # Promote mode (batch B3) only moves planned tasks. Others need /answer to resume.
+                item["planned"] = "<!-- ai:plan" in body
                 g["waiting_deps"].append(item)
     for items in g.values():
         items.sort(key=lambda i: (i["repo"], i["number"]))
@@ -236,6 +238,8 @@ def render(s: dict) -> str:
          + [line(i, "design") for i in g["design"]]),
         ("Nunggu dependency", [line(i, "nunggu " + ", ".join(d.split("/")[-1] for d in i["deps"]))
                                if i["deps"] else line(i, "dependency selesai, di-promote run berikutnya")
+                               if i.get("planned", True)
+                               else line(i, "tanpa label stage dan bukan task terencana; lanjutkan lewat /answer")
                                for i in g["waiting_deps"]]),
         ("Mandek", [line(i, f"ai:in-progress tanpa PR, {i['idle_hours']} jam nggak ada aktivitas")
                     for i in g["stale"]]),

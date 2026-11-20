@@ -7,7 +7,7 @@ model: opus
 effort: medium
 argument-hint: "<#n | owner/repo#n | issue or PR URL>"
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
   owner: claude-cowork
 ---
 # Answer
@@ -48,9 +48,11 @@ Do not use when:
    - a repo that is not `active` or not in the registry,
    - missing branch protection.
 
-   For these, do not change labels. Explain what would fix it: a PR to `registry/repos.yml` and `.agent/profile.yml`, onboarding, or a GitHub plan change. Offer the other options:
-   - **Do it yourself:** leave the item as is.
-   - **Close it:** comment why, then close the issue as not planned.
+   For these, do not change labels. Name the one fix that matches the blocker, as a recommendation:
+   - autonomy too low: `Recommend: a PR that raises autonomy in registry/repos.yml and .agent/profile.yml`;
+   - repo not `active` or not in the registry: `Recommend: let the onboarding scan finish onboarding, then merge the activation PR`;
+   - missing branch protection: `Recommend: a GitHub plan change, or branch_protection: unavailable in the registry entry if the human accepts the compensating rules`.
+   If the human does not want the work any more, close the issue as not planned with a one-line reason.
 
    Removing the label here would only loop the agent back to the same stop and spend usage.
 

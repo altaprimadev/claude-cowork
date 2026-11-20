@@ -6,7 +6,7 @@ disable-model-invocation: false
 model: opus
 effort: high
 metadata:
-  version: "1.1.0"
+  version: "1.2.0"
   owner: claude-cowork
 ---
 # TDD
@@ -129,7 +129,7 @@ GREEN `<sha7>` — `bun test`
 - The criterion is ambiguous: apply `CLAUDE.md` → "Decide by default". Pick the reading that matches existing code and decisions, test that, and record it under Assumptions for the PR body.
 - A tier 3 item: record it under "Decisions for the reviewer" for the PR and continue (`CLAUDE.md` -> "Continue when a gate follows").
 - You cannot write a failing test for a criterion even after that, or a wrong guess on a tier 3 item is irreversible or invalidates most of the work: post nothing. Return `NEEDS_HUMAN` with `escalations:` to the orchestrator.
-- A test stays red when fix attempts reach the cap (`CLAUDE.md` -> "Stop cleanly", implementation loop): add `ai:blocked`, comment with the failing output, stop.
+- A test stays red when fix attempts reach the cap (`CLAUDE.md` -> "Stop cleanly", implementation loop): follow `evidence-report` step 8. It owns the draft PR, the `ai:blocked` label, and the one comment.
 
 ## Anti-rationalization
 
