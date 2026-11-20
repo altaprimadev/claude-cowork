@@ -189,3 +189,39 @@ def test_unquoted_hash_in_frontmatter_is_an_error(tmp_path):
     text = skill.read_text()
     skill.write_text(text.replace("\nmodel:", "\nargument-hint: see /inbox #12\nmodel:", 1))
     assert any("holds ' #'" in m for m in messages(audit.run(root, skill="inbox"), "skills"))
+
+
+def test_skill_scope_runs_every_area_and_keeps_only_that_skill(tmp_path):
+    root = clone(tmp_path)
+    inbox = root / ".claude" / "skills" / "inbox" / "SKILL.md"
+    inbox.write_text(inbox.read_text() + "\nSet `ai:waiting` here.\n")
+    tdd = root / ".claude" / "skills" / "tdd" / "SKILL.md"
+    tdd.write_text(tdd.read_text() + "\nSet `ai:parked` here.\n")
+    findings = audit.run(root, skill="inbox")
+    msgs = messages(findings, "rules")
+    assert any("ai:waiting" in m for m in msgs)
+    assert not any("ai:parked" in m for m in msgs)
+    assert all(audit.about_skill(f, "inbox") for f in findings)
+
+
+def test_skill_scope_keeps_findings_that_name_the_skill():
+    assert audit.about_skill({"path": "docs/blend-decisions.md", "message": "no entry for skill inbox"}, "inbox")
+    assert not audit.about_skill({"path": "docs/blend-decisions.md", "message": "no entry for skill inbox-x"}, "inbox")
+
+
+def test_tool_fields_warn_outside_the_exception():
+    assert any("open-questions.md Q5" in m for m in fm_messages({**FULL_FM, "disallowed-tools": ["Write"]}))
+    fm = {**FULL_FM, "name": "usage-status", "allowed-tools": ["Bash(python3 *usage_status.py*)"]}
+    assert fm_messages(fm, "usage-status") == []
+
+
+def test_read_only_agent_with_write_tools(tmp_path):
+    root = clone(tmp_path)
+    agent = root / ".claude" / "agents" / "spec-reviewer.md"
+    text = agent.read_text()
+    agent.write_text(text.replace("tools: Read, Grep, Glob, Bash\n", "tools: Read, Grep, Glob, Bash, Edit\n", 1)
+                     .replace("disallowedTools: Write, Edit, NotebookEdit\n", "disallowedTools: Write\n", 1))
+    msgs = messages(audit.run(root, "agents"), "agents")
+    assert any("write tools: Edit" in m for m in msgs)
+    assert any("disallowedTools lacks Edit, NotebookEdit" in m for m in msgs)
+    assert messages(audit.run(ROOT, "agents"), "agents") == []

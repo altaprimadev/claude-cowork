@@ -5,10 +5,10 @@ when_to_use: Use when a human in an interactive session asks to audit, review, h
 disable-model-invocation: false
 model: opus
 effort: high
-argument-hint: "[all|skills|workflows|rules|hooks|consistency|<skill name>]"
+argument-hint: "[all|structure|skills|agents|rules|hooks|workflows|consistency|<skill name>]"
 compatibility: Needs python3 with PyYAML and a claude-cowork clone.
 metadata:
-  version: "1.1.0"
+  version: "1.2.0"
   owner: claude-cowork
 ---
 # Watchtower
@@ -38,9 +38,9 @@ Do not use when:
 
 1. **Scope.** Read the argument:
    - none or `all`: every area.
-   - `skills`, `workflows`, `rules`, `hooks`, `consistency`: that area.
-   - a skill name: that skill only.
-   Pull first: `git -C <clone> pull --ff-only` on the current branch. Note the commit you audit.
+   - `structure`, `skills`, `agents`, `rules`, `hooks`, `workflows`, `consistency`: that area.
+   - a skill name: every check, filtered to findings about that skill.
+   Pull first: `git -C <clone> pull --ff-only` on the current branch. When the pull fails (no upstream, diverged), audit the local `HEAD` and say so in the first reply line. Note the commit you audit.
 2. **Mechanical checks.** Run the script from the clone:
    ```bash
    python3 <skill-dir>/scripts/audit.py --json                  # all areas
@@ -48,20 +48,25 @@ Do not use when:
    python3 <skill-dir>/scripts/audit.py --json --skill inbox    # one skill
    ```
    Exit 1 means at least one `error`. Keep every finding. Do not re-check them by hand.
+   `--skill` runs every area and keeps the findings in that skill's folder or that name the skill.
 3. **Judgment review.** Read `references/rubric.md`. Review the files of each area in scope against its section.
    - One area or one skill: review it yourself.
-   - `all`: dispatch one read-only subagent per area group, in parallel: skills and agents; workflows; rules and hooks. Give each the rubric section, the file list, and the script findings for its area so it does not repeat them. Do consistency yourself.
+   - `all`: check usage first with the `usage-status` skill (`--json --policy <clone>/registry/policy.yml`).
+     - `advice: proceed` or no usage data: dispatch one `Explore` subagent per area group, in parallel: skills and agents; workflows; rules and hooks. `Explore` has no write tools. Tell it to read each file in full, not excerpts. Give each the rubric section, the file list, and the script findings for its area so it does not repeat them. Do consistency yourself.
+     - `advice: caution`: no subagents. Review every area yourself.
+     - `advice: pause`: skip the judgment review. Report the script findings and say the review waits for the reset (`resets_at_utc`).
    - Each finding needs a `path:line` and a quote. Drop any finding without one.
 4. **Vet.** Check every judgment finding before you report it. Open the quoted line. Drop it when another file already settles the point, or when it repeats a script finding.
 5. **Reply** in semi-casual Bahasa Indonesia, in this order:
-   - One line: commit audited and counts per severity.
+   - One line: commit audited and counts per severity (`error`, `warn`, `info`). Script and judgment findings share this scale.
    - A table per area: severity, `claude-cowork/<path>:<line>`, the finding in one line. Errors first.
    - **Saran perbaikan**: at most five, ranked, from the rubric's last section.
    - One closing line: offer to fix the selected items on a branch with a PR, on the human's word.
 
 ## Outputs
 
-- One chat reply. No file, branch, GitHub, or scheduled-task write.
+- One chat reply. No file, branch, GitHub, or scheduled-task write. The pull in step 1 is the only change to the checkout.
+- Read-only rests on this text. The skill declares no `disallowed-tools` (`docs/open-questions.md` Q5).
 - A fix happens only after the human picks the items. It is then a normal change: branch, tests, PR, and a subscription to the PR (`CLAUDE.md`).
 
 ## Stop conditions
@@ -69,6 +74,7 @@ Do not use when:
 - After the reply.
 - The script exits 2 (no such skill): show the name and the skill list from `skills-help`, then stop.
 - PyYAML is missing: say so and stop. Do not audit by hand alone.
+- Usage `advice: pause` on `all`: stop after the script findings (step 3).
 
 ## Anti-rationalization
 

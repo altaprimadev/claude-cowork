@@ -7,8 +7,10 @@ checks that a passing CI does not catch:
   structure    validate-config.py result (every problem is an error)
   skills       frontmatter fields (required, allowed, types, field dependencies),
                description without trigger, when_to_use trigger, listing length, body length, standard sections,
-               bundled scripts referenced, scripts covered by a test
+               bundled scripts referenced, scripts covered by a test,
+               tool fields only where docs/open-questions.md Q5 allows them
   rules        labels and policy keys used in rules match their definitions
+  agents       reviewer agents have no write tools
   hooks        the guard hook blocks every "never" command in CLAUDE.md;
                settings deny the merge tools the hook cannot see
   workflows    GitHub workflow hygiene; slash commands name real skills
@@ -19,6 +21,7 @@ Severity: error (broken), warn (drift or a gap), info (style).
 
 Usage:
   audit.py [--root <clone>] [--json] [--area <area>] [--skill <name>]
+--skill runs every area and keeps the findings about that skill.
 Exit 1 when any error is found, 0 otherwise.
 """
 from __future__ import annotations
@@ -34,7 +37,7 @@ from pathlib import Path
 
 import yaml
 
-AREAS = ("structure", "skills", "rules", "hooks", "workflows", "consistency")
+AREAS = ("structure", "skills", "agents", "rules", "hooks", "workflows", "consistency")
 SEVERITIES = ("error", "warn", "info")
 # Claude Code truncates description + when_to_use at 1,536 chars in the skill listing.
 DESC_MAX = 1536
@@ -55,6 +58,10 @@ FM_EFFORTS = ("low", "medium", "high", "xhigh", "max")
 FM_MODEL_RE = re.compile(r"^(opus|sonnet|haiku|fable|claude-[a-z0-9.-]+)(\[1m\])?$")
 FM_BUILTIN_AGENTS = ("Explore", "Plan", "general-purpose")
 FM_COMPAT_MAX = 500
+# docs/open-questions.md Q5: these fields can make the Skill tool prompt, which stalls an unattended run.
+# Skills leave them out. usage-status keeps allowed-tools so the orchestrator can run it mid-run.
+FM_TOOL_FIELDS = ("allowed-tools", "disallowed-tools", "hooks")
+FM_TOOL_FIELD_EXCEPTIONS = ("usage-status",)
 # A trigger sentence ("Use when ...", "Load only when ...", "Never use in ...") belongs in when_to_use.
 # description says what the skill does; when_to_use says when to use it and when not to.
 TRIGGER_SENTENCE_RE = re.compile(r"(?:^|[.;:]\s+)((?:Use|Load|Invoke|Never use|Do not use)\b[^.;]*)")
@@ -185,6 +192,10 @@ def check_frontmatter(fm: dict, name: str, skill_dir: Path | None = None, agents
         for path in SKILL_DIR_PATH_RE.findall(" ".join(tools) if isinstance(tools, list) else tools):
             if not (skill_dir / path).exists():
                 out.append(("error", f"allowed-tools names ${{CLAUDE_SKILL_DIR}}/{path}, which does not exist"))
+    for key in FM_TOOL_FIELDS:
+        if key in fm and name not in FM_TOOL_FIELD_EXCEPTIONS:
+            out.append(("warn", f"{key} can make the Skill tool prompt and stall an unattended run; "
+                                "leave it out (docs/open-questions.md Q5)"))
     if fm.get("disable-model-invocation") is True and preloaded:
         out.append(("error", f"disable-model-invocation: true blocks the preload in agents: {', '.join(sorted(preloaded))}"))
     return out
@@ -279,6 +290,37 @@ def check_skills(a: Audit, only=None):
                     a.add("warn", "skills", f".claude/skills/{d.name}/scripts/{f.name}", "script has no test in tests/")
     if unversioned:
         a.add("info", "skills", ".claude/skills/", f"metadata.version missing in {len(unversioned)} skills: {', '.join(unversioned)}")
+
+
+# --- agents ------------------------------------------------------------------
+
+# Read-only agents: CLAUDE.md -> "Stage map" and the rubric's Agents section. They return findings
+# to the orchestrator and never write to the checkout.
+READ_ONLY_AGENTS = ("spec-reviewer", "quality-reviewer", "task-reviewer")
+WRITE_TOOLS = ("Write", "Edit", "NotebookEdit")
+
+
+def tool_list(v):
+    if isinstance(v, str):
+        return [t.strip() for t in v.split(",") if t.strip()]
+    return [str(t).strip() for t in v] if isinstance(v, list) else []
+
+
+def check_agents(a: Audit):
+    agents = agent_frontmatters(a.root)
+    for name in READ_ONLY_AGENTS:
+        rel = f".claude/agents/{name}.md"
+        if name not in agents:
+            a.add("error", "agents", rel, "read-only agent missing")
+            continue
+        fm = agents[name]
+        granted = [t for t in tool_list(fm.get("tools")) if t in WRITE_TOOLS]
+        if granted:
+            a.add("error", "agents", rel, f"read-only agent has write tools: {', '.join(granted)}")
+        denied = set(tool_list(fm.get("disallowedTools")))
+        missing = [t for t in WRITE_TOOLS if t not in denied]
+        if missing:
+            a.add("warn", "agents", rel, f"disallowedTools lacks {', '.join(missing)}; a later tools change could grant them")
 
 
 # --- rules -------------------------------------------------------------------
@@ -482,12 +524,10 @@ def check_consistency(a: Audit, skills: set[str]):
 def run(root: Path, area=None, skill=None):
     a = Audit(root)
     skills = {d.name for d in a.skill_dirs()}
-    if skill:
-        check_skills(a, skill)
-        return a.findings
     steps = {
         "structure": lambda: check_structure(a),
-        "skills": lambda: check_skills(a),
+        "skills": lambda: check_skills(a, skill),
+        "agents": lambda: check_agents(a),
         "rules": lambda: check_rules(a),
         "hooks": lambda: check_hooks(a),
         "workflows": lambda: check_workflows(a, skills),
@@ -495,8 +535,17 @@ def run(root: Path, area=None, skill=None):
     }
     for name in ([area] if area else AREAS):
         steps[name]()
+    findings = a.findings
+    if skill:
+        findings = [f for f in findings if about_skill(f, skill)]
     order = {s: i for i, s in enumerate(SEVERITIES)}
-    return sorted(a.findings, key=lambda f: (AREAS.index(f["area"]), order[f["severity"]], f["path"]))
+    return sorted(findings, key=lambda f: (AREAS.index(f["area"]), order[f["severity"]], f["path"]))
+
+
+def about_skill(finding, skill):
+    """True when a finding is in the skill's folder or names the skill."""
+    return (finding["path"].startswith(f".claude/skills/{skill}/")
+            or re.search(rf"(?<![\w-]){re.escape(skill)}(?![\w-])", finding["message"]) is not None)
 
 
 def render(findings):
