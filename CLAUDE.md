@@ -34,6 +34,7 @@ You coordinate review with the `review-two-stage` skill. Run stage 2 only after 
 Human-invoked skills run only in interactive sessions, never in scheduled tasks, and are not pipeline stages. Use them directly when a human asks:
 - `draft-brief`: draft a brief; post it on `post now`.
 - `inbox`: list what waits on the human.
+- `pipeline-status`: show what the pipeline does now and what each item waits for (runner, schedule, merge, queue, dependencies).
 - `answer`: answer an `ai:needs-human` or `ai:blocked` item; post on `post now`.
 - `usage-reminder`: remind the human at every five-hour usage reset with task status or a nudge to write a brief (`start`, `run`, `status`, `stop`).
 - `skills-help`: list every skill with a one-line description, or show one skill in full.
