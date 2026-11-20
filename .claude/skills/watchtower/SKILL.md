@@ -8,7 +8,7 @@ effort: high
 argument-hint: "[all|structure|skills|agents|rules|hooks|workflows|consistency|<skill name>]"
 compatibility: Needs python3 with PyYAML and a claude-cowork clone.
 metadata:
-  version: "1.2.0"
+  version: "1.3.0"
   owner: claude-cowork
 ---
 # Watchtower
@@ -49,7 +49,7 @@ Do not use when:
    ```
    Exit 1 means at least one `error`. Keep every finding. Do not re-check them by hand.
    `--skill` runs every area and keeps the findings in that skill's folder or that name the skill.
-3. **Judgment review.** Read `references/rubric.md`. Review the files of each area in scope against its section.
+3. **Judgment review.** Read `references/rubric.md`. Review the files of each area in scope against its section. Apply the "Persona" section to every area.
    - One area or one skill: review it yourself.
    - `all`: check usage first with the `usage-status` skill (`--json --policy <clone>/registry/policy.yml`).
      - `advice: proceed` or no usage data: dispatch one `Explore` subagent per area group, in parallel: skills and agents; workflows; rules and hooks. `Explore` has no write tools. Tell it to read each file in full, not excerpts. Give each the rubric section, the file list, and the script findings for its area so it does not repeat them. Do consistency yourself.
