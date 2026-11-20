@@ -61,7 +61,7 @@ limit: <only with BLOCKED for a hard limit; one line>
 - Requirement is unclear: apply `CLAUDE.md` → "Decide by default". Look it up, or decide and record it under Assumptions in the PR body, and continue. Gate 2 reviews it.
 - A tier 3 item where a wrong guess is irreversible or invalidates most of the work: do not post or label. Return `NEEDS_HUMAN` with `escalations:` (Decision, Recommend, Alternatives, Checked, If no answer). The orchestrator vets it.
 - A hard limit (no test command, no disposable database, a Gate 3 request, a secret found): return `BLOCKED` with `limit:`. Do not comment. Never add `ai:needs-human`.
-- A step fails and you cannot fix it, or fix attempts reach the cap (`CLAUDE.md` -> "Stop cleanly", implementation loop): add `ai:blocked`, comment with the failing output, return `BLOCKED`.
+- A step fails and you cannot fix it, or fix attempts reach the cap (`CLAUDE.md` -> "Stop cleanly", implementation loop): follow `evidence-report` step 8 (draft PR, `ai:blocked`, one comment), then return `BLOCKED`.
 
 ## Integrity
 

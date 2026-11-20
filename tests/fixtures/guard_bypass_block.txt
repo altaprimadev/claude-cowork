@@ -126,3 +126,82 @@ cat ~/.aws/config
 cat ~/.netrc
 ---
 cat ~/.config/gh/hosts.yml
+---
+# Watchtower audit 2026-11-20 (round 2): shell grammar, git config, gh api paths, credentials.
+{ gh pr merge 5; }
+---
+if true; then gh pr merge 5; fi
+---
+while false; do :; done; ! gh pr review 5 --approve
+---
+true && { gh api -X PUT repos/o/r/pulls/1/merge; }
+---
+G=git; $G push origin main
+---
+"$(which git)" push origin main
+---
+find . -maxdepth 0 -exec git push origin main \;
+---
+setsid git push origin main
+---
+stdbuf -o0 git push origin main
+---
+busybox sh -c "git push origin main"
+---
+gh alias set m "pr merge"
+---
+curl -X PUT -H "Authorization: token x" https://api.github.com/repos/o/r/pulls/1/merge
+---
+git -c alias.p=push p origin main
+---
+git -c alias.p='!git push origin main' p
+---
+git -c remote.origin.push=HEAD:main push origin
+---
+git -c push.default=upstream push
+---
+git config remote.origin.push HEAD:main
+---
+git config alias.p push
+---
+git send-pack origin main
+---
+echo main | xargs git push origin
+---
+gh api -X PUT repos/o/r/contents/README.md -f branch=main -f message=x -f content=eA== -f sha=abc
+---
+gh api -X PUT repos/o/r/contents/README.md -f message=x -f content=eA==
+---
+gh api -X PUT 'repos/o/r/pulls/1/merge?x=1'
+---
+gh api -X PUT repos/o/r/pulls/1/merge/
+---
+gh api -X PATCH repos/o/r/git/refs/heads/main/ -f sha=abc
+---
+gh api graphql -f query='mutation($e:PullRequestReviewEvent!){addPullRequestReview(input:{pullRequestId:"x",event:$e}){clientMutationId}}' -f e=APPROVE
+---
+gh api graphql -f query="$(cat q.graphql)"
+---
+bash -c "bash -c 'bash -c \"bash -c \\\"bash -c \\\\\\\"git push origin main\\\\\\\"\\\"\"'"
+---
+env -S "gh pr merge 5 '"
+---
+gh auth status --show-token
+---
+gh auth status -t
+---
+printenv GH_TOKEN
+---
+git credential fill
+---
+cat ~/.git-credentials
+---
+cat ~/.aws/cred*
+---
+gh release create v1.0.0
+---
+gh api -X POST repos/o/r/deployments -f ref=main -f environment=production
+---
+git push origin v1.0.0:refs/tags/v1.0.0
+---
+git push --tags

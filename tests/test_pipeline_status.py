@@ -77,3 +77,11 @@ def test_render_shows_runner_schedule_and_usage():
     assert "**Antrian run berikutnya** (1)" in out
     assert "- a/b: HTTP 403" in out
     assert out.endswith("usage: 5h 40%, weekly 60%, advice proceed")
+
+
+def test_unplanned_task_without_stage_label_is_not_promoted():
+    small = issue(30, body="Parent: altaprimadev/claude-cowork#5\nTrivial: no")
+    planned = issue(31, body="<!-- ai:plan parent=a/b#1 task=1 -->\nParent: a/b#1\nDepends on: none")
+    out = render(build(data([small, planned]), {}, None, None, None, NOW))
+    assert "svc#30" in out and "tanpa label stage" in out
+    assert "di-promote run berikutnya" in out.split("svc#31", 1)[1].split("\n", 1)[0]

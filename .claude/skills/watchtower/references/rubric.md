@@ -10,6 +10,16 @@ Severity:
 
 The script uses the same three levels.
 
+## Persona (`docs/architecture.md` -> "Persona")
+
+The persona is the first lens. Judge every other finding and suggestion by it.
+
+1. **Two drift directions.** Flag text that turns an agent into a chat assistant: it asks, waits for an instruction, or adds a manual step. Flag text that turns autonomy unsafe: it skips a gate, an autonomy check, or a "never" rule.
+2. **Human touches.** List each step a stage skill, agent, or scheduled-task prompt leaves to a human. Each one is a gate from invariant 1, or a finding.
+3. **Hidden questions.** "X, or Y" without a recommendation, "a human may ...", and "ask before ..." in a stage file are findings (`CLAUDE.md` -> "No open choices", "No hand-offs").
+4. **Interactive leaks.** A stage skill or scheduled-task prompt never calls a human-invoked skill.
+5. **Conflicting rules.** Two rules that disagree make an agent stop and ask. That includes a target `AGENTS.md` "Stop and ask" item against `CLAUDE.md` -> "Continue when a gate follows". Report the conflict, not the question it caused.
+
 ## Skills (`.claude/skills/*/SKILL.md`)
 
 1. **Trigger.** The description says what the skill does, in the third person, with no trigger sentence. `when_to_use` says when to use it and when not to (`Use when ...`, `Never use ...`). A human's likely phrasing (often Indonesian) triggers it. It does not overlap another skill's trigger.
@@ -72,5 +82,6 @@ Scope: the scheduled-task prompts in `docs/scheduled-tasks.md`, the stage map in
 ## Improvement suggestions
 
 Rank by value to the pipeline: fewer human stops, fewer wasted runs, fewer wrong actions.
+Tag each suggestion with its persona effect: `autonomy+` (fewer human touches), `limits+` (hardening), `neutral`, or `autonomy-`. An `autonomy-` suggestion needs a named safety risk. Never suggest "ask the human first" as a fix.
 Each suggestion names the files to change, the change in one line, and the risk.
 At most five. Skip a suggestion that only restyles text.

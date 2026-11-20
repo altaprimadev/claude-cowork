@@ -47,7 +47,12 @@ CREDENTIAL_PATTERNS = [
     r"(^|/)\.env\.(production|prod)(\.local)?$",
     r"(^|/)\.netrc$",
     r"(^|/)\.config/gh/hosts\.yml$",
+    r"(^|/)\.git-credentials$",
+    r"(^|/)\.aws/",                         # any file under ~/.aws, globs included
 ]
+
+# Environment variables that hold credentials. printenv/echo of these is blocked.
+SECRET_VAR_RE = re.compile(r"(TOKEN|SECRET|PASSWORD|PASSWD|API_?KEY|PRIVATE_KEY|CREDENTIAL)", re.IGNORECASE)
 
 # gh api paths that change repository integrity settings.
 # gh api paths whose non-GET calls change repository or account administration.
@@ -67,6 +72,9 @@ GH_API_PROTECTED_PATHS = [
     r"^/?user(/|$)",                       # the agent's own account settings
     r"^/?orgs/",
     r"/pulls/\d+/merge$",                 # merge a PR through the API (Gate 2)
+    r"/deployments",                       # create a deployment (Gate 3)
+    r"/releases",                          # create or change a release (Gate 3)
+    r"/git/tags",                          # create a tag object (release tags are human-only)
     r"/auto_merge",                        # enable auto-merge (Gate 2)
     r"^/?repos/[^/]+/[^/]+/merges$",       # merge one branch into another
 ]
@@ -87,6 +95,12 @@ GH_ADMIN_SUBCOMMANDS = {
     ("ruleset", "delete"),
     ("auth", "token"),
     ("auth", "refresh"),
+    ("alias", "set"),
+    ("alias", "import"),
+    ("release", "create"),
+    ("release", "edit"),
+    ("release", "delete"),
+    ("release", "upload"),
 }
 
 # gh subcommands that start, enable, or disable workflows. A workflow can deploy (Gate 3).
@@ -111,13 +125,26 @@ SH_FAMILY = {"sh", "bash", "zsh", "dash", "ksh"}
 SHELL_VALUE_FLAGS = {"-o", "+o", "-O", "+O", "--rcfile", "--init-file"}
 
 # Commands that wrap another command. The guard inspects the wrapped command.
-WRAPPERS = {"sudo", "command", "exec", "nohup", "time", "nice", "env", "xargs", "timeout"}
+WRAPPERS = {"sudo", "doas", "command", "exec", "nohup", "time", "nice", "env", "xargs", "timeout",
+            "setsid", "stdbuf", "ionice", "unbuffer", "chronic", "busybox", "builtin"}
+
+# Shell words that start a compound command. The command after them is the one that runs.
+SHELL_KEYWORDS = {"{", "}", "!", "if", "then", "else", "elif", "fi", "do", "done", "while", "until",
+                  "time", "coproc"}
+
+# git -c / git config keys that change what a push sends or run another command.
+GIT_RISKY_CONFIG_RE = re.compile(r"^(alias\.|remote\.[^=]*\.push|push\.|url\..*\.pushinsteadof|core\.hookspath)",
+                                 re.IGNORECASE)
+
+# Maximum nesting of shells, eval, and substitutions the guard follows. Deeper is blocked.
+MAX_DEPTH = 4
 
 # Wrapper options that take a value, so the value is not mistaken for the wrapped command.
 WRAPPER_VALUE_FLAGS = {
     "sudo": {"-u", "-g", "-h", "-p", "-C", "-D", "-R", "-T", "-U", "--user", "--group", "--host",
              "--prompt", "--chdir", "--chroot", "--close-from", "--other-user", "--command-timeout"},
     "timeout": {"-s", "-k", "--signal", "--kill-after"},
+    "ionice": {"-c", "-n", "-p", "--class", "--classdata", "--pid"},
     "nice": {"-n", "--adjustment"},
     "env": {"-u", "-C", "--unset", "--chdir"},
     "xargs": {"-I", "-n", "-P", "-L", "-s", "-d", "-E", "-a", "--max-args", "--max-procs",
@@ -129,7 +156,7 @@ ASSIGN_RE = re.compile(r"([A-Za-z_][A-Za-z0-9_]*)=(.*)", re.DOTALL)
 
 CONFIG_PATH = Path(__file__).with_name("guard_bash.config.json")
 CONFIG_KEYS = {
-    "protected_branches": "list[str], replaces PROTECTED_BRANCHES",
+    "protected_branches": "list[str], adds to PROTECTED_BRANCHES (never removes one)",
     "allowed_rm_roots": "list[str], absolute dirs where recursive rm is allowed (besides workspace, cwd, /tmp)",
     "extra_blocked_regex": "list[str], regexes matched against the raw command",
 }
@@ -146,6 +173,8 @@ class Context:
     extra_regex: list[str] = field(default_factory=list)
     # Shell variables assigned earlier in the same command (B=main; git push origin $B).
     variables: dict[str, str] = field(default_factory=dict)
+    # True while checking a command that xargs runs with extra arguments.
+    appended_args: bool = False
 
 
 class Blocked(Exception):
@@ -193,11 +222,46 @@ def split_segments(tokens: list[str]) -> list[tuple[list[str], str]]:
     return [(argv, op) for argv, op in segments if argv]
 
 
+def split_or_block(text: str) -> list[str]:
+    try:
+        return shlex.split(text)
+    except ValueError as exc:
+        raise Blocked(f"cannot parse the command string ({exc}); the guard cannot check it.") from exc
+
+
+def wrapper_names(argv: list[str]) -> set[str]:
+    """Wrapper commands in front of the real command (`echo x | xargs git push` -> {"xargs"})."""
+    names, rest = set(), list(argv)
+    while rest:
+        stripped = strip_wrappers(rest)
+        if len(stripped) == len(rest):
+            break
+        names.add(os.path.basename(rest[0]))
+        rest = rest[1:]
+    return names
+
+
+def find_exec_commands(argv: list[str]) -> list[list[str]]:
+    """Commands that find runs with -exec, -execdir, -ok, or -okdir."""
+    out, i = [], 1
+    while i < len(argv):
+        if argv[i] in ("-exec", "-execdir", "-ok", "-okdir"):
+            j = i + 1
+            while j < len(argv) and argv[j] not in (";", "+", "\\;"):
+                j += 1
+            out.append(argv[i + 1 : j])
+            i = j
+        i += 1
+    return out
+
+
 def strip_wrappers(argv: list[str]) -> list[str]:
     argv = list(argv)
     while argv:
         head = os.path.basename(argv[0])
-        if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*=.*", argv[0]):
+        if argv[0] in SHELL_KEYWORDS:
+            argv = argv[1:]
+        elif re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*=.*", argv[0]):
             argv = argv[1:]
         elif head in WRAPPERS:
             argv = argv[1:]
@@ -207,10 +271,10 @@ def strip_wrappers(argv: list[str]) -> list[str]:
                             or (head == "env" and re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*=.*", argv[0]))):
                 if head == "env" and argv[0] in ("-S", "--split-string") and len(argv) > 1:
                     # env -S "cmd args" splits the string into the command.
-                    argv = shlex.split(argv[1]) + argv[2:]
+                    argv = split_or_block(argv[1]) + argv[2:]
                     break
                 if head == "env" and argv[0].startswith("--split-string="):
-                    argv = shlex.split(argv[0].split("=", 1)[1]) + argv[1:]
+                    argv = split_or_block(argv[0].split("=", 1)[1]) + argv[1:]
                     break
                 argv = argv[2:] if argv[0] in value_flags else argv[1:]
         else:
@@ -314,12 +378,30 @@ def check_git(argv: list[str], ctx: Context) -> None:
         if argv[i] in ("-C", "-c") and i + 1 < len(argv):
             if argv[i] == "-C":
                 git_cwd = os.path.join(ctx.cwd, expand_home(argv[i + 1]))
+            elif GIT_RISKY_CONFIG_RE.search(argv[i + 1]):
+                raise Blocked(f"git -c {argv[i + 1].split('=', 1)[0]} can change what a push sends or run "
+                              "another command. The guard cannot check it.")
             i += 2
+        elif argv[i].startswith("--config-env"):
+            raise Blocked("git --config-env hides configuration from the guard.")
         else:
             i += 1
     if i >= len(argv):
         return
     sub, args = argv[i], argv[i + 1 :]
+
+    if sub == "config":
+        keys = [a for a in args if not a.startswith("-")]
+        if keys and GIT_RISKY_CONFIG_RE.search(keys[0]) and (len(keys) > 1 or any(
+                a in ("--add", "--replace-all") for a in args)):
+            raise Blocked(f"git config {keys[0]} can change what a push sends or run another command.")
+        return
+
+    if sub in ("send-pack", "http-push"):
+        raise Blocked(f"git {sub} pushes without the push checks. Use git push to a feature branch.")
+
+    if sub == "credential":
+        raise Blocked("git credential reads or stores credentials.")
 
     if sub == "commit":
         for a in args:
@@ -343,6 +425,8 @@ def check_git(argv: list[str], ctx: Context) -> None:
             raise Blocked(f"git push {a} is a force-push. Agents never force-push (CLAUDE.md). Push a new commit instead.")
         if a in ("--mirror", "--all"):
             raise Blocked(f"git push {a} can overwrite protected branches.")
+        if a in ("--tags", "--follow-tags"):
+            raise Blocked(f"git push {a} pushes release tags. Humans tag releases (Gate 3).")
         if a in ("-o", "--push-option", "--repo", "--receive-pack", "--exec"):
             skip_next = True
             continue
@@ -352,6 +436,8 @@ def check_git(argv: list[str], ctx: Context) -> None:
 
     refspecs = positional[1:]
     branch = None
+    if ctx.appended_args and len(positional) < 3:
+        raise Blocked("xargs adds push arguments the guard cannot see. Name the branch literally.")
     if not refspecs:
         branch = current_branch(git_cwd)
         if branch in ctx.protected:
@@ -366,6 +452,10 @@ def check_git(argv: list[str], ctx: Context) -> None:
         if spec.startswith("+"):
             raise Blocked(f"force refspec '{spec}' is not allowed.")
         dst = spec.split(":", 1)[1] if ":" in spec else spec
+        if dst.startswith("refs/tags/") or re.fullmatch(r"v\d+(\.\d+)*", dst):
+            raise Blocked(f"git push of tag '{dst}' is not allowed. Humans tag releases (Gate 3).")
+        if dst == "@":
+            dst = "HEAD"
         if dst in ("HEAD", ""):
             dst = spec.split(":", 1)[0] if dst == "" else dst
         if dst == "HEAD":
@@ -445,18 +535,24 @@ def check_gh_graphql(rest: list[str]) -> None:
         raise Blocked("gh api graphql --input hides the query from the guard. Pass the query with -f query=...")
     for field_value in gh_api_fields(rest):
         value = field_value.split("=", 1)[1] if "=" in field_value else field_value
+        if "$(" in value or "`" in value:
+            raise Blocked("gh api graphql with a substituted query hides it from the guard. Pass it inline.")
         if value.startswith("@"):
             raise Blocked("gh api graphql with a query file hides the query from the guard. Pass it inline.")
         if not re.search(r"\bmutation\b", value):
             continue
         if m := GRAPHQL_BLOCKED_MUTATIONS.search(value):
             raise Blocked(f"GraphQL mutation {m.group(1)} merges or moves refs. Humans merge (Gate 2).")
-        if GRAPHQL_REVIEW_MUTATIONS.search(value) and re.search(r"\bAPPROVE\b", value):
+        if GRAPHQL_REVIEW_MUTATIONS.search(value) and any(
+                re.search(r"\bAPPROVE\b", f) for f in gh_api_fields(rest)):
             raise Blocked("GraphQL review with event APPROVE is not allowed. Agents never approve.")
 
 
 def check_gh(argv: list[str], ctx: Context) -> None:
     args = strip_gh_global_flags(argv[1:])
+    if len(args) >= 2 and args[0] == "auth" and args[1] == "status" and any(
+            a in ("-t", "--show-token") for a in args[2:]):
+        raise Blocked("gh auth status --show-token prints a credential.")
     if len(args) >= 2 and args[0] == "pr" and args[1] == "merge":
         raise Blocked("gh pr merge is not allowed. Merging is a human decision (Gate 2).")
     if len(args) >= 2 and args[0] == "pr" and args[1] == "review":
@@ -493,11 +589,18 @@ def check_gh(argv: list[str], ctx: Context) -> None:
                 has_fields = True
         if method == "GET" and has_fields:
             method = "POST"
+        path = re.sub(r"[?#].*$", "", path).rstrip("/") or path
         if path.lstrip("/") == "graphql":
             check_gh_graphql(rest)
             return
         if method == "GET":
             return
+        if re.search(r"/contents/", path) and method in ("PUT", "DELETE", "POST", "PATCH"):
+            branch_fields = [f.split("=", 1)[1] for f in gh_api_fields(rest) if f.startswith("branch=")]
+            if not branch_fields or branch_fields[-1] in ctx.protected:
+                raise Blocked(f"gh api {method} {path} commits to "
+                              f"'{branch_fields[-1] if branch_fields else 'the default branch'}'. "
+                              "Commit to a feature branch with -f branch=<branch>.")
         if any(re.search(p, path) for p in GH_API_PROTECTED_PATHS):
             raise Blocked(f"gh api {method} {path} changes repository protection. Humans run scripts/setup-branch-protection.sh.")
         if re.search(r"/pulls/\d+/reviews(/\d+/events)?$", path) and any(
@@ -516,8 +619,28 @@ def check_credentials(argv: list[str], ctx: Context) -> None:
     for a in argv:
         candidate = a.split("=", 1)[1] if a.startswith("-") and "=" in a else a
         candidate = candidate.replace("${HOME}", "~").replace("$HOME", "~")
-        if any(re.search(p, candidate) for p in CREDENTIAL_PATTERNS):
+        resolved = os.path.join(expand_home(ctx.cwd), candidate) if candidate and not candidate.startswith(("/", "~")) else candidate
+        home = os.path.expanduser("~")
+        if resolved.startswith(home + "/"):
+            resolved = "~" + resolved[len(home):]
+        if any(re.search(p, c) for p in CREDENTIAL_PATTERNS for c in (candidate, resolved)):
             raise Blocked(f"access to credential file '{a}' is not allowed.")
+    name = os.path.basename(argv[0]) if argv else ""
+    if name == "printenv" and (len(argv) == 1 or any(SECRET_VAR_RE.search(a) for a in argv[1:])):
+        raise Blocked("printenv can print credentials. Name a non-secret variable.")
+
+
+def check_curl_github(argv: list[str]) -> None:
+    """curl/wget writes to the GitHub API skip the gh api checks."""
+    if os.path.basename(argv[0]) not in DOWNLOADERS:
+        return
+    if not any("api.github.com" in a or "/graphql" in a for a in argv):
+        return
+    writes = any(a in ("-X", "--request", "-d", "--data", "--data-raw", "--data-binary", "--json", "-F", "--form",
+                       "-T", "--upload-file", "--method", "--post-data")
+                 or a.startswith(("-X", "--request=", "--data", "--json", "--method=", "--post-data")) for a in argv[1:])
+    if writes:
+        raise Blocked("curl/wget writes to the GitHub API skip the guard. Use gh api.")
 
 
 def check_pipe_to_shell(segments: list[tuple[list[str], str]]) -> None:
@@ -577,8 +700,11 @@ def strip_heredocs(command: str) -> tuple[str, list[str]]:
 
 def evaluate(command: str, ctx: Context, depth: int = 0) -> None:
     """Raise Blocked if the command violates a rule."""
-    if depth > 3 or not command.strip():
+    if not command.strip():
         return
+    if depth > MAX_DEPTH:
+        raise Blocked(f"the command nests shells or substitutions more than {MAX_DEPTH} levels deep. "
+                      "The guard cannot check it.")
     command, heredoc_subs = strip_heredocs(command)
     for inner in heredoc_subs:
         evaluate(inner, ctx, depth + 1)
@@ -605,8 +731,26 @@ def evaluate(command: str, ctx: Context, depth: int = 0) -> None:
         piped_in, prev_op = prev_op in ("|", "|&"), op
         if not argv:
             continue
+        if "$" in argv[0] or "`" in argv[0]:
+            expanded = expand_vars(argv[0], ctx)
+            if "$" in expanded or "`" in expanded:
+                raise Blocked(f"the command name '{argv[0]}' comes from a substitution the guard cannot resolve.")
+            argv = split_or_block(expanded) + argv[1:]
+            argv = strip_wrappers(argv)
+            if not argv:
+                continue
         name = os.path.basename(argv[0])
+        if name == "cd":
+            target = expand_home(expand_vars(argv[1], ctx)) if len(argv) > 1 else os.path.expanduser("~")
+            ctx.cwd = os.path.normpath(os.path.join(ctx.cwd, target))
+            continue
+        ctx.appended_args = "xargs" in wrapper_names(raw_argv)
         check_credentials(argv, ctx)
+        check_curl_github(argv)
+        if name == "find":
+            for inner in find_exec_commands(argv):
+                if inner:
+                    evaluate(shlex.join(inner), ctx, depth + 1)
         inner_cmd = shell_command_string(argv) if name in SHELLS else None
         if inner_cmd is not None:
             evaluate(inner_cmd, ctx, depth + 1)
@@ -617,7 +761,10 @@ def evaluate(command: str, ctx: Context, depth: int = 0) -> None:
         elif name in SH_FAMILY and piped_in and reads_stdin(argv):
             raise Blocked(f"piping commands into {name} hides them from the guard. Use {name} -c \"...\" instead.")
         elif name == "eval":
-            evaluate(" ".join(argv[1:]), ctx, depth + 1)
+            rest = " ".join(argv[1:])
+            # eval "$(ssh-agent -s)": the substitution was checked above; its output is tool output.
+            if not re.fullmatch(r"\$\([^()]*\)|`[^`]*`", rest):
+                evaluate(rest, ctx, depth + 1)
         elif name == "git":
             check_git(argv, ctx)
         elif name == "rm":
@@ -630,7 +777,8 @@ def build_context(payload: dict) -> Context:
     cfg = load_config()
     cwd = payload.get("cwd") or os.getcwd()
     project_dir = os.environ.get("CLAUDE_PROJECT_DIR") or cwd
-    protected = set(cfg.get("protected_branches") or PROTECTED_BRANCHES)
+    # The config only adds branches. An edit to the working copy can never unprotect one.
+    protected = PROTECTED_BRANCHES | {b for b in cfg.get("protected_branches", []) if isinstance(b, str)}
     rm_roots = [os.path.expanduser(r) for r in cfg.get("allowed_rm_roots", []) if isinstance(r, str)]
     extra = [r for r in cfg.get("extra_blocked_regex", []) if isinstance(r, str)]
     return Context(cwd=cwd, project_dir=project_dir, protected=protected, rm_roots=rm_roots, extra_regex=extra)

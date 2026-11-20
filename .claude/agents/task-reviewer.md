@@ -39,7 +39,7 @@ Return the block defined in `task-review` → Outputs, starting directly with th
 
 ## Stop conditions
 
-- The issue, parent, or clone cannot be read: return `verdict: NEEDS_HUMAN` naming what is missing.
+- The issue, parent, or clone cannot be read: return `verdict: BLOCKED` with `limit:` naming what is missing.
 
 ## Integrity
 

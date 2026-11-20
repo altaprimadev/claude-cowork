@@ -6,7 +6,7 @@ disable-model-invocation: false
 model: opus
 effort: high
 metadata:
-  version: "1.1.0"
+  version: "1.3.0"
   owner: claude-cowork
 ---
 # Review Two-Stage
@@ -25,6 +25,7 @@ Use when:
 
 Do not use when:
 - The PR is a design PR (`design/*` branch). A human reviews it for Gate 1.
+- The PR is an onboarding or registry PR (`ai/onboarding-*`, `ai/registry-*`). It has no issue, and a human reviews it.
 - The PR is labeled `ai:blocked` or `ai:needs-human`.
 - The PR is merged or closed.
 
@@ -32,7 +33,7 @@ Review runs at any autonomy level; it writes no code. At effective autonomy 0 th
 
 ## Shared rules
 
-- **Severity.** `critical` = must fix before merge. `major` = should fix; a human decides at Gate 2. `minor` = polish.
+- **Severity.** `critical` = must fix before merge. `major` = should fix: it starts a fix round when the orchestrator recommends `fix in this PR` (step 8). `minor` = polish.
 - **Proof.** Every finding has file:line, what is wrong, why it matters, and a fix. A critical finding also has the snippet, the failure scenario (input, state, outcome), and why existing guards miss it. Cannot provide that: downgrade or drop.
 - **One fix.** Each finding names one fix. Never offer options ("accept, or revert") or ask the human to choose. A change you would accept as is is not a finding.
 - **Zero findings is valid.** Do not manufacture findings.
@@ -51,13 +52,13 @@ Review runs at any autonomy level; it writes no code. At effective autonomy 0 th
 
 3. **Dispatch stage 1.** Start a fresh `spec-reviewer` subagent. Pass only: PR URL, issue URL, design doc path (if any), clone path, round, and for round > 1 the previous open findings verbatim plus `FIX_BASE` (last reviewed head). Never pass your own history, and never tell a reviewer what not to flag.
 
-4. **Validate the return.** It must start with `verdict:` and list every acceptance criterion. Malformed or missing: dispatch one fresh reviewer again. Fails twice: `ai:needs-human`, stop.
+4. **Validate the return.** It must start with `verdict:` and list every acceptance criterion. Malformed or missing: dispatch one fresh reviewer again. Fails twice: add `ai:blocked`, post one comment with both returns (`CLAUDE.md` -> "Hard limits and errors"), and stop.
    Resolve each `cannot-verify` item yourself by reading the code. A confirmed gap becomes a critical stage 1 finding.
 
 5. **Stage 1 FAIL** (any critical, or a confirmed gap): skip stage 2. Go to step 7.
    The issue is missing or has no acceptance criteria: post the step 7 comment, add `ai:needs-human` instead of `ai:changes-needed`, and stop. A fix round cannot add criteria.
 
-6. **Dispatch stage 2.** First re-check the usage budget (`CLAUDE.md` -> "Usage budget"). On `pause`, stop without a comment or label: the next run reviews this head again from stage 1. Otherwise start a fresh `quality-reviewer` subagent with: PR URL, clone path, round, and for round > 1 its previous open findings plus `FIX_BASE`. Validate the return: it must start with `verdict:`, and every finding needs a severity and a file:line. Stage 2 has no criteria list. Malformed or missing: dispatch one fresh reviewer again. Fails twice: `ai:needs-human`, stop.
+6. **Dispatch stage 2.** First re-check the usage budget (`CLAUDE.md` -> "Usage budget"). On `pause`, stop without a comment or label: the next run reviews this head again from stage 1. Otherwise start a fresh `quality-reviewer` subagent with: PR URL, clone path, round, and for round > 1 its previous open findings plus `FIX_BASE`. Validate the return: it must start with `verdict:`, and every finding needs a severity and a file:line. Stage 2 has no criteria list. Malformed or missing: dispatch one fresh reviewer again. Fails twice: add `ai:blocked`, post one comment with both returns, and stop.
 
 7. **Post one comment** for the round.
    ```bash
@@ -79,18 +80,19 @@ Review runs at any autonomy level; it writes no code. At effective autonomy 0 th
    ```
 
 8. **Set the label** on the PR. Remove the opposite label if present.
-   - Stage 1 FAIL or any critical: `ai:changes-needed`.
-   - Otherwise: `ai:review-passed`. Majors and minors stay listed for the human. Each major carries `Recommend: fix in this PR | follow-up issue | accept as is`, with a one-line reason, so Gate 2 is a yes or no, not an open question.
+   - Give each major one `Recommend: fix in this PR | follow-up issue | accept as is`, with a one-line reason. Pick `fix in this PR` when the fix stays inside the issue scope.
+   - Stage 1 FAIL, any critical, or any major with `fix in this PR`: `ai:changes-needed`. The fix round carries those majors with the criticals.
+   - Otherwise: `ai:review-passed`. The remaining majors and the minors stay listed, so Gate 2 is a yes or no, not an open question.
    ```bash
    gh pr edit <pr> --repo <owner/repo> --add-label ai:changes-needed --remove-label ai:review-passed
    ```
 
 9. **Hand off.** Only for `ai:changes-needed`. Decide in this order:
    - Autonomy 0, or fix rounds (round − 1) at the cap (`CLAUDE.md` -> "Stop cleanly"): add `ai:needs-human`, stop.
-   - A fix round is heavy work. Dispatch the implementer now only when all hold: this run has not used its one heavy item (`docs/scheduled-tasks.md` B5), and a fresh usage check gives `proceed`. Pass the PR URL, the open critical and major findings verbatim, and the fix attempt number (round). The fix uses this run's heavy item. When it pushes, start again at step 1.
+   - A fix round is heavy work. Dispatch the implementer now only when all hold: this run has not used its one heavy item (`docs/scheduled-tasks.md` B5), and a fresh usage check gives `proceed`. Pass the PR URL, the open criticals and the majors marked `fix in this PR`, verbatim, and the fix attempt number (round). The fix uses this run's heavy item. When it pushes, start again at step 1.
    - Otherwise stop with the label only. The next run picks the PR up in B5a.
 
-Never fix findings yourself. Never drop a finding silently; if you think one is wrong, say so in the comment with your reasoning, and let the human decide at Gate 2.
+Never fix findings yourself. Never drop a finding silently. If you think one is wrong, check it: read the code, or dispatch one read-only `Explore` subagent. Wrong: drop it and list it under "Dropped findings" in the comment with a one-line reason. Right: keep it.
 
 ## Stage 1: spec review
 
@@ -150,7 +152,7 @@ Return in the `quality-reviewer` agent output format, starting with `verdict:`.
 | "Stage 1 has one gap; let quality review run anyway." | Stage 2 runs only after stage 1 passes. |
 | "The PR body says tests pass." | The body is a claim. Check the commits and the output. |
 | "I'll review the diff myself; it's faster." | Reviewers need fresh context. Dispatch them. |
-| "This finding is wrong; I'll leave it out." | Post it with your note. The human decides. |
+| "This finding is wrong; I'll leave it out." | Check it in the code. Drop it only under "Dropped findings" with the reason. |
 | "Everything looks fine; I'll approve." | Agents never approve. Label `ai:review-passed`; a human approves. |
 | "One more round will converge." | At the cap (`CLAUDE.md` -> "Stop cleanly"), route to `ai:needs-human`. |
 | "The fix is small; I'll dispatch it even though B5 already ran an implementer." | A fix round is heavy. One heavy item per run. Label and stop; B5a takes it next run. |

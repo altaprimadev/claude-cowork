@@ -10,6 +10,18 @@ Humans write briefs, watch progress, and approve at gates. Agents do the work.
 - **One agent identity.** A company Claude account plus a GitHub machine user. The agent does work. It never approves.
 - **Integrity from the platform.** Branch protection, required checks, CODEOWNERS, and Coolify permissions enforce the gates. Prompts and hooks only add layers on top.
 
+## Persona
+
+`claude-cowork` is an autonomous agentic workflow. Every skill, agent, rule, and scheduled task keeps these invariants. `watchtower` audits against them (rubric "Persona").
+
+1. **Agents work; humans gate.** A human writes the brief, merges at Gates 1, 2, and 3, merges onboarding PRs, and answers tier 3 escalations. Any other human step is friction to remove.
+2. **Decide by default.** Agents settle open points themselves (`CLAUDE.md` -> "Decide by default"). A question a source or a reversible choice can settle is a defect.
+3. **Flow without prompts.** Every label state has an automated next step, except at a gate. A human merge starts the next step without a human message (`pr-watch`).
+4. **Resumable.** State lives in GitHub, not in chat or local files. A rerun posts no duplicate comment or issue (`<!-- ai:... -->` markers).
+5. **Stop cleanly.** Every loop has a cap, and heavy stages check usage first. A stopped item shows in `inbox` or `pipeline-status`.
+6. **Machine contracts.** Stage agents return a parseable result (a `verdict:` or `status:` line, such as `PASS`, `CHANGES_NEEDED`, `NEEDS_HUMAN`, `BLOCKED`), not free prose.
+7. **Autonomy inside limits.** Speed never relaxes a gate, the autonomy level, or a "never" rule.
+
 ## Layers
 
 | Layer | Lives in | Role | Can it be bypassed by the agent? |
@@ -32,13 +44,13 @@ flowchart TD
     B --> T[intake-triager<br/>intake-classify]
     T -->|size:small| DR[Sub-issue in target repo<br/>ai:draft]
     T -->|size:large<br/>ai:needs-design| D[designer<br/>async-design]
-    T -->|unclear| NH[ai:needs-human<br/>one comment, stop]
+    T -->|tier 3 no gate covers,<br/>after orchestrator vetting| NH[ai:needs-human<br/>one comment, stop]
     D --> DPR[Design PR<br/>docs/design/...]
     DPR -->|GATE 1<br/>human merges| P[planner<br/>plan-to-issues]
     P --> DR
     DR --> TR[task-reviewer<br/>task-review]
     TR -->|READY| R[ai:ready]
-    TR -->|NEEDS_HUMAN| NH
+    TR -->|NEEDS_HUMAN, vetted<br/>or BLOCKED limit| NH
     R --> I[implementer<br/>tdd + evidence-report]
     I --> PR[Code PR<br/>RED/GREEN + verification output]
     PR --> S1[spec-reviewer<br/>review-two-stage stage 1]
@@ -48,6 +60,8 @@ flowchart TD
     CN --> I
     S2 -->|ok| RP[ai:review-passed]
     RP -->|GATE 2<br/>human approves + merges| M[Integration branch<br/>from AGENTS.md, usually development]
+    M -.->|merge event, pr-watch<br/>runs the batch at once| R
+    I -.->|no PR after 24 h<br/>B4 requeue once| R
     M -->|staging deploy| STG[Staging via Coolify]
     STG -->|GATE 3<br/>human promotes| PROD[Production]
 

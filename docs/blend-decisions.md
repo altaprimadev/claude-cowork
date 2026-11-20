@@ -719,6 +719,7 @@ Human-invoked, read-only. Original to claude-cowork. Audits the control repo its
 | One severity scale (`error`, `warn`, `info`) for script and rubric | watchtower self-review (2026-11-20) | write from brief | One count line in the reply. |
 | Usage check before the `all` fan-out; `Explore` subagents | `CLAUDE.md` -> "Usage budget" | modify | Three parallel reviewers are heavy. `Explore` has no write tools. |
 | Read-only skills without `disallowed-tools` | `docs/open-questions.md` Q5 | take | The field can prompt and stall an unattended run. Agents carry `disallowedTools` instead. |
+| Persona lens (`docs/architecture.md` -> "Persona") first; persona tag on suggestions | owner feedback (2026-11-20) | write from brief | Guards the autonomous workflow against drift toward a chat assistant or toward unsafe autonomy. |
 
 ### task-review
 

@@ -4,10 +4,10 @@ description: Show a human everything in the pipeline that waits on them right no
 when_to_use: Use when a human in an interactive session asks what waits on them, what is stuck, or for their inbox. Never use in scheduled or unattended runs.
 disable-model-invocation: false
 model: sonnet
-effort: medium
+effort: low
 argument-hint: "[owner/repo to limit the list]"
 metadata:
-  version: "1.0.0"
+  version: "1.0.1"
   owner: claude-cowork
 ---
 # Inbox

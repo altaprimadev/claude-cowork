@@ -4,11 +4,11 @@ description: Show a human what the agent pipeline is doing right now - whether t
 when_to_use: Use when a human in an interactive session asks for the pipeline status ("status pipeline", "lagi ngerjain apa", "nunggu apa"), even if they do not say "pipeline-status". Never use in scheduled or unattended runs.
 disable-model-invocation: false
 model: sonnet
-effort: medium
+effort: low
 argument-hint: "[owner/repo to limit the list]"
 compatibility: Cloud sessions. Needs the claude-code-remote MCP (list_triggers, get_session, list_events) and gh.
 metadata:
-  version: "1.0.0"
+  version: "1.0.1"
   owner: claude-cowork
 ---
 # Pipeline status

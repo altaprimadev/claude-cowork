@@ -41,7 +41,7 @@ Human-invoked skills run only in interactive sessions, never in scheduled tasks,
 - `watchtower`: audit and review this repo's skills, agents, workflows, rules, and hooks for drift and contradictions; suggest improvements. Read-only.
 - `run-pipeline`: start a pipeline run now in the runner session instead of waiting for its schedule (`batch`, `onboarding`), after a usage and runner check.
 The runner session watches open pipeline PRs with the `pr-watch` skill. A human merge runs the batch phases A to C at once (`docs/scheduled-tasks.md`). Only the runner subscribes to `ai/*` and `design/*` PRs.
-An interactive session subscribes to every PR it opens itself (`subscribe_pr_activity`). On a merge, it tells the human in chat and names any follow-up step, such as copying a changed prompt into a scheduled task. It never pushes more to a merged PR.
+An interactive session subscribes to every PR it opens itself (`subscribe_pr_activity`). On a merge, it tells the human in chat and names any follow-up step a human must do, such as installing a changed hook in the managed settings. The batch run syncs changed scheduled-task prompts itself. It never pushes more to a merged PR.
 Stack packs are the skills listed in the target repo's `.agent/profile.yml` -> `packs`.
 Gate 3 (production) has no agent and no skill. Only humans promote to production.
 
@@ -59,15 +59,15 @@ Gate 3 (production) has no agent and no skill. Only humans promote to production
      - An item the target `AGENTS.md` lists under "Stop and ask" or "Sensitive areas", unless the brief or design authorizes it explicitly.
   - **Hard limits are not questions.** Autonomy, repo status, the fix cap, and access failures: report the limit, add the label, stop.
   - **Escalate with a recommendation.** Format: `Decision: <one line>. Recommend: <option>, because <reason>. Alternatives: <options>. Checked: <sources read>. If no answer: <what happens>.` A question with no real alternative to your default is not an escalation. Decide it (tier 2).
-  - **Continue when a gate follows.** A design PR (Gate 1), code PR (Gate 2), or onboarding PR is reviewed by a human anyway. Put tier 3 decisions in that artifact under "Decisions for the reviewer", with your recommendation, and continue. This covers a target `AGENTS.md` "Stop and ask" item that lands in that PR. Stop only when a wrong guess is irreversible or invalidates most of the work.
+  - **Continue when a gate follows.** A design PR (Gate 1), code PR (Gate 2), or onboarding PR is reviewed by a human anyway. Put tier 3 decisions in that artifact under "Decisions for the reviewer", with your recommendation, and continue. This covers every tier 3 item above, including a target `AGENTS.md` "Stop and ask" item, and the stages before the PR (task review, implementation). Stop only when a wrong guess is irreversible or invalidates most of the work.
   - **No hand-offs.** Never leave work for a human ("a human may ...", "left for later"). Do it inside scope, or list it under "Decisions for the reviewer" with `Recommend:`.
   - **No open choices.** Never hand a human options without one recommendation. A question disguised as "X, or Y" is an escalation and follows its format.
-  - **Interactive sessions too.** When the next step is reversible and inside what the human asked, do it and report. Ask only before an irreversible or outward step the human has not asked for, once, with one recommendation.
+  - **Interactive sessions too.** When the next step is reversible and inside what the human asked, do it and report. Ask only before an irreversible or outward step the human has not asked for, once, with one recommendation. A skill's own confirmation step (`post now`) is that one ask.
   - **Say it once.** Never repeat an assumption or escalation in a later comment or round. Link the first one.
   - **Escalation flow.** Stage agents do not post escalations or add `ai:needs-human`. They return `NEEDS_HUMAN` with an `escalations:` list in the format above. The orchestrator vets each item:
     - Tier 1 or 2: answer or decide it yourself. When you cannot tell, dispatch one read-only `Explore` subagent on that point.
     - Then re-dispatch the stage agent once with the decisions.
-    - Only the tier 3 items left go to the human: post ONE comment with the marker `<!-- ai:escalation stage=<stage> -->`, add `ai:needs-human`, stop that item. Continue other items.
+    - Only the tier 3 items left that no gate covers ("Continue when a gate follows") go to the human: post ONE comment with the marker `<!-- ai:escalation stage=<stage> -->`, add `ai:needs-human`, stop that item. Continue other items.
   - **Hard limits and errors.** A stage agent never adds `ai:needs-human`. It returns `BLOCKED`:
     - With `limit: <one line>` for a hard limit: autonomy, repo status, a repo missing from the registry, no test command, no disposable database, a Gate 3 request, a secret found. The orchestrator adds `ai:needs-human` with no vetting, and posts one comment with the escalation marker that names the limit, unless the agent's own stage comment already names it.
     - With the error output for a repeated failure. Agents may add `ai:blocked` themselves. The orchestrator makes sure `ai:blocked` and one comment with the output are present.
@@ -78,7 +78,7 @@ Gate 3 (production) has no agent and no skill. Only humans promote to production
   - Tasks are issues. Intake and planning create them as `ai:draft`. Only `task-review` turns a draft into `ai:ready`.
   - The GitHub Project board mirrors labels through `.github/workflows/project-sync.yml`. Agents never write to the Project. After a label change, dispatch the sync: `gh api -X POST repos/altaprimadev/claude-cowork/actions/workflows/project-sync.yml/dispatches -f ref=main`. A failed dispatch is not an error; the hourly run catches up.
 - **Respect autonomy.** Effective level = min(`registry/repos.yml` autonomy, target `.agent/profile.yml` autonomy).
-  - `0`: review and comment only. No branches, no code PRs.
+  - `0`: review and comment only. No branches, no code PRs. One exception: in the control repo (`claude-cowork`), `repo-onboarding` opens registry PRs (`ai/registry-*`, `ai/onboarding-*`). A human merges them.
   - `1`: `size:small` work only.
   - `2`: full pipeline.
   - Check branch protection on the default branch: `gh api repos/<owner>/<repo>/branches/<branch>/protection`.
@@ -111,6 +111,7 @@ Gate 3 (production) has no agent and no skill. Only humans promote to production
   - Implementation loop (`tdd`, `evidence-report`): count = failed verification runs in one implementer dispatch. At the cap: `ai:blocked` with the failing output.
   - Review loop (`review-two-stage`): count = fix rounds = last review round − 1. A review that still needs changes at the cap: `ai:needs-human` with the open findings.
   - Task-review loop (`task-review`): count = REVISE rounds. At the cap: `NEEDS_HUMAN` with the open findings.
+  - A human answer (`<!-- human:answer -->` comment) after a cap stop resets that loop. Only rounds after the answer count.
 - **Branches.** Work on a feature branch (`ai/<issue>-<slug>` or `design/<issue>-<slug>`). Never push to a protected branch (`.claude/hooks/guard_bash.config.json` -> `protected_branches`). Never force-push.
 - **No secrets.** Never commit, print, or read credentials. Secrets live in Coolify, AWS, and the cloud environment.
 

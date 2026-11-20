@@ -6,7 +6,7 @@ disable-model-invocation: false
 model: opus
 effort: high
 metadata:
-  version: "1.1.0"
+  version: "1.2.0"
   owner: claude-cowork
 ---
 # Evidence Report
@@ -141,7 +141,8 @@ Install output goes under Verification output only when it failed or warned.
 
 - All configured commands exit 0, every criterion has proof, PR body posted: done. Return the one-line evidence summary (e.g. `lint ok, typecheck ok, 42/42 tests, build ok, build not configured`).
 - `max_fix_attempts` reached: `ai:blocked`, stop.
-- A failure needs a decision outside the issue scope (dependency upgrade, CI change): post nothing. Return `NEEDS_HUMAN` with `escalations:` (Decision, Recommend, Alternatives, Checked, If no answer). The orchestrator vets it (`CLAUDE.md` → "Decide by default").
+- A failure needs a dependency upgrade: make the smallest upgrade that fixes it, and list it under "Decisions for the reviewer" (`CLAUDE.md` -> "Continue when a gate follows").
+- A failure needs a CI or deploy config change, which the implementer rules forbid: keep the output in a draft PR, add `ai:blocked`, and post one comment with the failing output (step 8).
 
 ## Anti-rationalization
 
