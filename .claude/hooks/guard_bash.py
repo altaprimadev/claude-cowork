@@ -89,8 +89,43 @@ GH_ADMIN_SUBCOMMANDS = {
     ("auth", "refresh"),
 }
 
+# gh subcommands that start, enable, or disable workflows. A workflow can deploy (Gate 3).
+GH_WORKFLOW_SUBCOMMANDS = {"run", "enable", "disable"}
+
+# The only workflow an agent may dispatch: the label-to-board sync (CLAUDE.md, State lives in GitHub).
+GH_DISPATCH_ALLOWED = {"project-sync.yml"}
+
+# gh global flags that take a value and may come before the subcommand.
+GH_GLOBAL_VALUE_FLAGS = {"-R", "--repo", "--hostname"}
+
+# GraphQL mutations that merge, approve, or move refs. Matched only inside a `mutation`.
+GRAPHQL_BLOCKED_MUTATIONS = re.compile(
+    r"\b(mergePullRequest|enablePullRequestAutoMerge|mergeBranch|updateRefs?|deleteRef|"
+    r"updateBranchProtectionRule|deleteBranchProtectionRule)\b"
+)
+GRAPHQL_REVIEW_MUTATIONS = re.compile(r"\b(addPullRequestReview|submitPullRequestReview)\b")
+
+# Shells that run a command string with -c, or read commands from stdin.
+SH_FAMILY = {"sh", "bash", "zsh", "dash", "ksh"}
+# Shell options that take a value (bash -o pipefail -c ...).
+SHELL_VALUE_FLAGS = {"-o", "+o", "-O", "+O", "--rcfile", "--init-file"}
+
 # Commands that wrap another command. The guard inspects the wrapped command.
 WRAPPERS = {"sudo", "command", "exec", "nohup", "time", "nice", "env", "xargs", "timeout"}
+
+# Wrapper options that take a value, so the value is not mistaken for the wrapped command.
+WRAPPER_VALUE_FLAGS = {
+    "sudo": {"-u", "-g", "-h", "-p", "-C", "-D", "-R", "-T", "-U", "--user", "--group", "--host",
+             "--prompt", "--chdir", "--chroot", "--close-from", "--other-user", "--command-timeout"},
+    "timeout": {"-s", "-k", "--signal", "--kill-after"},
+    "nice": {"-n", "--adjustment"},
+    "env": {"-u", "-C", "--unset", "--chdir"},
+    "xargs": {"-I", "-n", "-P", "-L", "-s", "-d", "-E", "-a", "--max-args", "--max-procs",
+              "--delimiter", "--arg-file", "--max-lines", "--max-chars", "--eof", "--replace"},
+}
+
+VAR_RE = re.compile(r"\$\{?([A-Za-z_][A-Za-z0-9_]*)\}?")
+ASSIGN_RE = re.compile(r"([A-Za-z_][A-Za-z0-9_]*)=(.*)", re.DOTALL)
 
 CONFIG_PATH = Path(__file__).with_name("guard_bash.config.json")
 CONFIG_KEYS = {
@@ -109,6 +144,8 @@ class Context:
     protected: set[str]
     rm_roots: list[str]
     extra_regex: list[str] = field(default_factory=list)
+    # Shell variables assigned earlier in the same command (B=main; git push origin $B).
+    variables: dict[str, str] = field(default_factory=dict)
 
 
 class Blocked(Exception):
@@ -164,12 +201,86 @@ def strip_wrappers(argv: list[str]) -> list[str]:
             argv = argv[1:]
         elif head in WRAPPERS:
             argv = argv[1:]
-            # Drop wrapper options such as `sudo -u x`, `timeout 10`, `env -i`.
-            while argv and (argv[0].startswith("-") or re.fullmatch(r"\d+[smhd]?", argv[0])):
-                argv = argv[1:]
+            value_flags = WRAPPER_VALUE_FLAGS.get(head, set())
+            # Drop wrapper options such as `sudo -u x`, `timeout -s KILL 10`, `env -i`.
+            while argv and (argv[0].startswith("-") or re.fullmatch(r"\d+[smhd]?", argv[0])
+                            or (head == "env" and re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*=.*", argv[0]))):
+                if head == "env" and argv[0] in ("-S", "--split-string") and len(argv) > 1:
+                    # env -S "cmd args" splits the string into the command.
+                    argv = shlex.split(argv[1]) + argv[2:]
+                    break
+                if head == "env" and argv[0].startswith("--split-string="):
+                    argv = shlex.split(argv[0].split("=", 1)[1]) + argv[1:]
+                    break
+                argv = argv[2:] if argv[0] in value_flags else argv[1:]
         else:
             break
     return argv
+
+
+def expand_vars(text: str, ctx: Context) -> str:
+    """Expand $NAME and ${NAME} from earlier assignments in the command, then the environment."""
+
+    def repl(m: re.Match) -> str:
+        name = m.group(1)
+        if name in ctx.variables:
+            return ctx.variables[name]
+        return os.environ.get(name, m.group(0))
+
+    return VAR_RE.sub(repl, text)
+
+
+def record_assignments(argv: list[str], ctx: Context) -> None:
+    """Remember NAME=value words: a bare assignment, a prefix, or `export NAME=value`."""
+    words = argv[1:] if argv and argv[0] in ("export", "declare", "local", "readonly") else argv
+    for w in words:
+        m = ASSIGN_RE.fullmatch(w)
+        if not m:
+            break
+        ctx.variables[m.group(1)] = expand_vars(m.group(2), ctx)
+
+
+def shell_command_string(argv: list[str]) -> str | None:
+    """Return the -c command string of a shell call (bash -lc "cmd"), or None."""
+    has_c, i = False, 1
+    while i < len(argv):
+        a = argv[i]
+        if a in SHELL_VALUE_FLAGS:
+            i += 2
+            continue
+        if a == "--":
+            i += 1
+            break
+        if re.fullmatch(r"[-+][A-Za-z]+", a):
+            has_c |= a.startswith("-") and "c" in a[1:]
+            i += 1
+            continue
+        if a.startswith("--"):
+            i += 1
+            continue
+        break
+    if has_c and i < len(argv):
+        return argv[i]
+    return None
+
+
+def reads_stdin(argv: list[str]) -> bool:
+    """True when a sh-family shell runs commands from stdin: no -c and no script file."""
+    if os.path.basename(argv[0]) not in SH_FAMILY or shell_command_string(argv) is not None:
+        return False
+    i = 1
+    while i < len(argv):
+        a = argv[i]
+        if a in SHELL_VALUE_FLAGS:
+            i += 2
+            continue
+        if a == "-s" or a == "-":
+            return True
+        if a.startswith(("-", "+")):
+            i += 1
+            continue
+        return a.startswith("<")  # only a redirect follows, no script file
+    return True
 
 
 def current_branch(cwd: str) -> str | None:
@@ -227,8 +338,9 @@ def check_git(argv: list[str], ctx: Context) -> None:
             continue
         if a in ("--no-verify",):
             raise Blocked("git push --no-verify skips hooks.")
-        if a in ("--force", "-f") or (re.fullmatch(r"-[A-Za-z]+", a) and "f" in a[1:]):
-            raise Blocked("git push --force is not allowed. Use --force-with-lease on a non-protected branch.")
+        if (a in ("--force", "-f") or a.startswith(("--force-with-lease", "--force-if-includes"))
+                or (re.fullmatch(r"-[A-Za-z]+", a) and "f" in a[1:])):
+            raise Blocked(f"git push {a} is a force-push. Agents never force-push (CLAUDE.md). Push a new commit instead.")
         if a in ("--mirror", "--all"):
             raise Blocked(f"git push {a} can overwrite protected branches.")
         if a in ("-o", "--push-option", "--repo", "--receive-pack", "--exec"):
@@ -246,7 +358,11 @@ def check_git(argv: list[str], ctx: Context) -> None:
             raise Blocked(f"git push from protected branch '{branch}' is not allowed. Push a feature branch.")
         return
 
-    for spec in refspecs:
+    for raw_spec in refspecs:
+        spec = expand_vars(raw_spec, ctx)
+        if "$" in spec or "`" in spec:
+            raise Blocked(f"git push refspec '{raw_spec}' uses a variable or substitution the guard cannot resolve. "
+                          "Use a literal branch name.")
         if spec.startswith("+"):
             raise Blocked(f"force refspec '{spec}' is not allowed.")
         dst = spec.split(":", 1)[1] if ":" in spec else spec
@@ -301,15 +417,56 @@ def check_rm(argv: list[str], ctx: Context) -> None:
                 raise Blocked(f"recursive rm of absolute path outside the workspace ('{t}') is not allowed.")
 
 
+def strip_gh_global_flags(args: list[str]) -> list[str]:
+    """Drop gh global flags before the subcommand: `gh -R o/r pr merge` -> `pr merge`."""
+    while args and args[0].startswith("-"):
+        if args[0] in GH_GLOBAL_VALUE_FLAGS:
+            args = args[2:]
+        else:
+            args = args[1:]  # --repo=o/r, -Ro/r, --help ...
+    return args
+
+
+def gh_api_fields(rest: list[str]) -> list[str]:
+    """Values of -f/-F/--field/--raw-field, as `key=value` strings."""
+    out = []
+    for j, a in enumerate(rest):
+        if a in ("-f", "-F", "--field", "--raw-field") and j + 1 < len(rest):
+            out.append(rest[j + 1])
+        elif a.startswith(("--field=", "--raw-field=")):
+            out.append(a.split("=", 1)[1])
+        elif re.fullmatch(r"-[fF].+", a):
+            out.append(a[2:])
+    return out
+
+
+def check_gh_graphql(rest: list[str]) -> None:
+    if any(a == "--input" or a.startswith("--input=") for a in rest):
+        raise Blocked("gh api graphql --input hides the query from the guard. Pass the query with -f query=...")
+    for field_value in gh_api_fields(rest):
+        value = field_value.split("=", 1)[1] if "=" in field_value else field_value
+        if value.startswith("@"):
+            raise Blocked("gh api graphql with a query file hides the query from the guard. Pass it inline.")
+        if not re.search(r"\bmutation\b", value):
+            continue
+        if m := GRAPHQL_BLOCKED_MUTATIONS.search(value):
+            raise Blocked(f"GraphQL mutation {m.group(1)} merges or moves refs. Humans merge (Gate 2).")
+        if GRAPHQL_REVIEW_MUTATIONS.search(value) and re.search(r"\bAPPROVE\b", value):
+            raise Blocked("GraphQL review with event APPROVE is not allowed. Agents never approve.")
+
+
 def check_gh(argv: list[str], ctx: Context) -> None:
-    args = argv[1:]
+    args = strip_gh_global_flags(argv[1:])
     if len(args) >= 2 and args[0] == "pr" and args[1] == "merge":
         raise Blocked("gh pr merge is not allowed. Merging is a human decision (Gate 2).")
     if len(args) >= 2 and args[0] == "pr" and args[1] == "review":
-        if any(a in ("--approve", "-a") or (re.fullmatch(r"-[A-Za-z]+", a) and "a" in a[1:]) for a in args[2:]):
+        if any(a in ("--approve", "-a") or a.startswith("--approve=")
+               or (re.fullmatch(r"-[A-Za-z]+", a) and "a" in a[1:]) for a in args[2:]):
             raise Blocked("gh pr review --approve is not allowed. Agents never approve.")
     if len(args) >= 2 and (args[0], args[1]) in GH_ADMIN_SUBCOMMANDS:
         raise Blocked(f"gh {args[0]} {args[1]} changes repository administration or secrets. Humans do this.")
+    if len(args) >= 2 and args[0] == "workflow" and args[1] in GH_WORKFLOW_SUBCOMMANDS:
+        raise Blocked(f"gh workflow {args[1]} can start a deploy. Humans run workflows (Gate 3).")
     if args and args[0] == "api":
         rest = args[1:]
         value_opts = {"-X", "--method", "-f", "-F", "--field", "--raw-field", "--input", "-H", "--header",
@@ -336,8 +493,23 @@ def check_gh(argv: list[str], ctx: Context) -> None:
                 has_fields = True
         if method == "GET" and has_fields:
             method = "POST"
-        if method != "GET" and any(re.search(p, path) for p in GH_API_PROTECTED_PATHS):
+        if path.lstrip("/") == "graphql":
+            check_gh_graphql(rest)
+            return
+        if method == "GET":
+            return
+        if any(re.search(p, path) for p in GH_API_PROTECTED_PATHS):
             raise Blocked(f"gh api {method} {path} changes repository protection. Humans run scripts/setup-branch-protection.sh.")
+        if re.search(r"/pulls/\d+/reviews(/\d+/events)?$", path) and any(
+            re.fullmatch(r"event=APPROVE", f) for f in gh_api_fields(rest)
+        ):
+            raise Blocked("gh api review with event=APPROVE is not allowed. Agents never approve.")
+        m = re.search(r"/git/refs/heads/(.+)$", path)
+        if m and m.group(1) in ctx.protected:
+            raise Blocked(f"gh api {method} on protected branch ref '{m.group(1)}' is not allowed.")
+        m = re.search(r"/actions/workflows/([^/]+)/(dispatches|enable|disable)$", path)
+        if m and not (m.group(2) == "dispatches" and m.group(1) in GH_DISPATCH_ALLOWED):
+            raise Blocked(f"gh api {method} {path} can start a deploy. Only project-sync.yml may be dispatched.")
 
 
 def check_credentials(argv: list[str], ctx: Context) -> None:
@@ -387,7 +559,16 @@ def strip_heredocs(command: str) -> tuple[str, list[str]]:
 
     def repl(m: re.Match) -> str:
         quoted, body = bool(m.group(1)), m.group(3)
-        if not quoted:
+        line_start = command.rfind("\n", 0, m.start()) + 1
+        prefix = command[line_start : m.start()]
+        try:
+            words = strip_wrappers(split_segments(tokenize(prefix))[-1][0]) if prefix.strip() else []
+        except (ValueError, IndexError):
+            words = []
+        if words and reads_stdin(words):
+            # The heredoc feeds a shell, so its body is commands, quoted or not.
+            nested.append(body)
+        elif not quoted:
             nested.extend(a or b for a, b in re.findall(r"\$\(([^()]*)\)|`([^`]*)`", body))
         return m.group(0)[: m.start(3) - m.start(0)]
 
@@ -408,7 +589,7 @@ def evaluate(command: str, ctx: Context, depth: int = 0) -> None:
     try:
         tokens = tokenize(command)
     except ValueError as exc:
-        warn(f"could not tokenize command ({exc}); applying regex checks only")
+        warn(f"could not tokenize command ({exc}); falling back to whitespace split")
         tokens = command.split()
     segments = split_segments(tokens)
     check_pipe_to_shell([(strip_wrappers(a), op) for a, op in segments])
@@ -417,16 +598,26 @@ def evaluate(command: str, ctx: Context, depth: int = 0) -> None:
     for inner in re.findall(r"\$\(([^()]*)\)|`([^`]*)`", command):
         evaluate(inner[0] or inner[1], ctx, depth + 1)
 
-    for raw_argv, _ in segments:
+    prev_op = ""
+    for raw_argv, op in segments:
+        record_assignments(raw_argv, ctx)
         argv = strip_wrappers(raw_argv)
+        piped_in, prev_op = prev_op in ("|", "|&"), op
         if not argv:
             continue
         name = os.path.basename(argv[0])
         check_credentials(argv, ctx)
-        if name in SHELLS and "-c" in argv[1:]:
-            idx = argv.index("-c")
+        inner_cmd = shell_command_string(argv) if name in SHELLS else None
+        if inner_cmd is not None:
+            evaluate(inner_cmd, ctx, depth + 1)
+        elif name in SH_FAMILY and "<<<" in argv:
+            idx = argv.index("<<<")
             if idx + 1 < len(argv):
                 evaluate(argv[idx + 1], ctx, depth + 1)
+        elif name in SH_FAMILY and piped_in and reads_stdin(argv):
+            raise Blocked(f"piping commands into {name} hides them from the guard. Use {name} -c \"...\" instead.")
+        elif name == "eval":
+            evaluate(" ".join(argv[1:]), ctx, depth + 1)
         elif name == "git":
             check_git(argv, ctx)
         elif name == "rm":

@@ -1,0 +1,128 @@
+# Commands the guard must block (exit 2). Test data only: nothing here runs.
+# Entries are separated by a line with "---". Lines starting with "#" are comments.
+# Source: watchtower audit 2026-11-20, probes that passed the old hook.
+gh -R a/b pr merge 5
+---
+gh --repo a/b pr merge 5
+---
+gh --repo=a/b pr merge 5
+---
+gh pr review --approve=true 5
+---
+gh -R a/b pr review 5 --approve
+---
+gh api graphql -f query='mutation{mergePullRequest(input:{pullRequestId:"x"}){clientMutationId}}'
+---
+gh api graphql -f query='mutation { enablePullRequestAutoMerge(input: {pullRequestId: "x"}) { clientMutationId } }'
+---
+gh api graphql -f query='mutation{addPullRequestReview(input:{pullRequestId:"x",event:APPROVE}){clientMutationId}}'
+---
+gh api graphql -f query='mutation{submitPullRequestReview(input:{pullRequestReviewId:"x",event:APPROVE}){clientMutationId}}'
+---
+gh api graphql -f query='mutation{updateRef(input:{refId:"x",oid:"y",force:true}){clientMutationId}}'
+---
+gh api graphql -f query='mutation{mergeBranch(input:{repositoryId:"x",base:"main",head:"ai/1-x"}){clientMutationId}}'
+---
+gh api graphql --input body.json
+---
+gh api graphql -F query=@mutation.graphql
+---
+gh api -X POST repos/a/b/pulls/5/reviews -f event=APPROVE
+---
+gh api repos/a/b/pulls/5/reviews -f event=APPROVE -f body=ok
+---
+gh api -X POST repos/a/b/pulls/5/reviews/9/events -f event=APPROVE
+---
+gh api -X PATCH repos/a/b/git/refs/heads/main -f sha=abc
+---
+gh api -X DELETE repos/a/b/git/refs/heads/development
+---
+gh api -X POST repos/a/b/actions/workflows/deploy.yml/dispatches -f ref=main
+---
+gh workflow run deploy.yml
+---
+gh workflow enable release.yaml
+---
+bash -lc "gh pr merge 5"
+---
+sh -ec "gh pr merge 5"
+---
+bash -o pipefail -c "git push origin main"
+---
+echo "git push origin main" | bash
+---
+printf 'gh pr merge 5\n' | sh
+---
+bash <<END
+git push origin main
+END
+---
+bash <<'END'
+gh pr merge 5
+END
+---
+bash <<< "gh pr merge 5"
+---
+eval git push origin main
+---
+eval "gh pr merge 5"
+---
+B=main; git push origin $B
+---
+B=main && git push origin "$B"
+---
+export B=main; git push origin "${B}"
+---
+git push origin $(echo main)
+---
+git push origin `echo main`
+---
+git push origin "$GUARD_TEST_UNSET_BRANCH"
+---
+sudo -u x git push origin main
+---
+sudo -u root gh pr merge 5
+---
+timeout -s KILL 10 gh pr merge 5
+---
+nice -n 5 gh pr merge 5
+---
+env -u FOO gh pr merge 5
+---
+env -S "gh pr merge 5"
+---
+git push --force-with-lease origin ai/1-x
+---
+git push --force-with-lease=ai/1-x origin ai/1-x
+---
+git push --force-if-includes origin ai/1-x
+
+---
+# Patterns that existed before 2026-11-20 but had no test.
+gh api -X PUT repos/a/b/invitations/1
+---
+gh api -X POST repos/a/b/pages -f source=main
+---
+gh api -X PATCH orgs/acme -f name=x
+---
+gh api -X POST repos/a/b/actions/variables -f name=X -f value=y
+---
+gh api -X PUT repos/a/b/actions/permissions -F enabled=false
+---
+gh repo unarchive a/b
+---
+gh secret delete TOKEN
+---
+gh variable set X --body y
+---
+gh ruleset create
+---
+gh ruleset delete 1
+---
+gh auth refresh -s admin:org
+---
+cat ~/.aws/config
+---
+cat ~/.netrc
+---
+cat ~/.config/gh/hosts.yml

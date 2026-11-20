@@ -96,7 +96,7 @@ stateDiagram-v2
 | Gate | What | Who | Enforced by |
 |---|---|---|---|
 | Gate 1 | Design accepted | Human merges the design PR | Branch protection: PR, approval, CODEOWNERS |
-| Gate 2 | Code accepted | Human approves the code PR | Branch protection: approval, required checks, dismiss stale reviews |
+| Gate 2 | Code accepted | Human approves the code PR | Branch protection: approval, required checks, dismiss stale reviews. Repos with `branch_protection: unavailable`: the guard hook, the `deny` rules, and a human merge (`CLAUDE.md`, compensating rules) |
 | Gate 3 | Production release | Human promotes in Coolify or merges to the protected production branch | Coolify permissions, branch protection on `production` |
 
-Agents never pass a gate. As a second layer, `.claude/hooks/guard_bash.py` blocks merge and approve commands and pushes to `main`, `master`, and `production`.
+Agents never pass a gate. As a second layer, `.claude/hooks/guard_bash.py` blocks merge, approve, workflow-run, and force-push commands, and pushes to the branches in `guard_bash.config.json` -> `protected_branches`. The `deny` rules in `.claude/settings.json` block the GitHub MCP tools that merge, approve, run workflows, or write files directly.

@@ -138,6 +138,9 @@ Scheduled-task runs start in auto mode (Q5). They still stop on `ask` rules. Rep
 - [ ] Copy `permissions.allow` and `permissions.deny` from `.claude/settings.json` into the Claude organization managed settings. Include every `Skill(<name>)` rule.
 - [ ] Add no `ask` rule for commands that scheduled tasks need.
 - [ ] Keep `deny` rules for `gh pr merge`, `gh repo delete`, and force pushes.
+- [ ] Add these MCP `deny` rules **org-wide**. No human or agent should merge or run workflows through Claude: `mcp__github__merge_pull_request`, `mcp__github__enable_pr_auto_merge`, `mcp__github__actions_run_trigger`.
+- [ ] The other MCP denies in `.claude/settings.json` (`pull_request_review_write`, `push_files`, `create_or_update_file`, `delete_file`) stay repo-level. Managed settings apply to every org session, and humans use these tools in interactive work. The pipeline does not use any `mcp__github__*` tool.
+- [ ] After a change to `.claude/hooks/guard_bash.py`, no admin step is needed: the managed hook runs the script from the `claude-cowork` clone, and each run pulls `main` first. Re-copy the `deny` list only when it changes.
 
 ## 6. How sessions use claude-cowork
 

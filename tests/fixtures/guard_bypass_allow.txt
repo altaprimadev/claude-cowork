@@ -1,0 +1,67 @@
+# Commands the pipeline needs. The guard must allow them (exit 0). Test data only.
+# Entries are separated by a line with "---". Lines starting with "#" are comments.
+git push -u origin ai/12-fix-login
+---
+git push -u origin "design/7-purchase"
+---
+git push origin HEAD:ai/12-fix-login
+---
+BRANCH=ai/12-x; git push -u origin "$BRANCH"
+---
+gh pr create --base development --head ai/12-fix --title "[FIX] x" --body-file /tmp/body.md
+---
+gh pr edit 5 --add-label ai:changes-needed --remove-label ai:review-passed
+---
+gh pr review 5 --comment -b "findings"
+---
+gh -R altaprimadev/claude-cowork pr view 5 --json state
+---
+gh --repo altaprimadev/claude-cowork issue edit 5 --add-label ai:triaged
+---
+gh api -X POST repos/altaprimadev/claude-cowork/actions/workflows/project-sync.yml/dispatches -f ref=main
+---
+gh api graphql -f query='query{repository(owner:"a",name:"b"){pullRequest(number:5){reviewDecision}}}'
+---
+gh api graphql -f query='mutation{addComment(input:{subjectId:"x",body:"hi"}){clientMutationId}}'
+---
+gh api repos/a/b/pulls/5/reviews
+---
+gh api -X POST repos/a/b/pulls/5/reviews -f event=COMMENT -f body=x
+---
+gh api -X POST repos/a/b/issues/5/comments -f body=x
+---
+gh api -X POST repos/a/b/git/refs -f ref=refs/heads/ai/1-x -f sha=abc
+---
+gh workflow list
+---
+gh workflow view ci.yml
+---
+bash -c "bun run lint" > /tmp/lint.log 2>&1
+---
+bash -o pipefail -c "bun test | tee /tmp/test.log"
+---
+bash scripts/setup-labels.sh
+---
+cat > /tmp/body.md <<'END'
+Never run git push origin main or gh pr merge.
+END
+---
+python3 - <<'END'
+print("gh pr merge is blocked")
+END
+---
+timeout 600 bun test
+---
+sudo -u postgres psql -c "select 1"
+---
+env -u FOO bun run check
+---
+nice -n 5 bun run build
+---
+eval "$(ssh-agent -s)"
+---
+gh api repos/a/b/git/refs/heads/main
+---
+gh api repos/a/b/branches/main/protection
+---
+cat script.sh | bash scripts/setup-labels.sh
