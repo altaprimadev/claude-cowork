@@ -126,7 +126,7 @@ def test_render_and_exit_code(capsys):
     assert audit.main(["--root", str(ROOT), "--skill", "nosuch"]) == 2
 
 
-FULL_FM = {"name": "inbox", "description": "x", "disable-model-invocation": False, "model": "inherit", "effort": "low"}
+FULL_FM = {"name": "inbox", "description": "x", "when_to_use": "Use when x.", "disable-model-invocation": False, "model": "inherit", "effort": "low"}
 
 
 def fm_messages(fm, name="inbox", **kw):
@@ -139,13 +139,13 @@ def test_frontmatter_complete_is_clean():
 
 def test_frontmatter_required_and_unknown_fields():
     msgs = fm_messages({"name": "inbox", "description": "x", "allowed_tools": "Read"})
-    for key in ("disable-model-invocation", "model", "effort"):
+    for key in ("when_to_use", "disable-model-invocation", "model", "effort"):
         assert any(f"required field {key}" in m for m in msgs)
     assert any("allowed_tools is not allowed" in m for m in msgs)
 
 
 def test_frontmatter_stack_pack_skips_model_and_effort():
-    fm = {"name": "stack-x", "description": "x", "disable-model-invocation": False}
+    fm = {"name": "stack-x", "description": "x", "when_to_use": "Load when x.", "disable-model-invocation": False}
     assert fm_messages(fm, "stack-x") == []
     assert any("overrides" in m for m in fm_messages({**fm, "effort": "high"}, "stack-x"))
 
@@ -171,3 +171,17 @@ def test_frontmatter_preload_and_allowed_tools_path(tmp_path):
     assert any("blocks the preload" in m for m in fm_messages(fm, preloaded={"designer"}))
     tools = {**FULL_FM, "allowed-tools": ["Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/gone.py *)"]}
     assert any("scripts/gone.py" in m for m in fm_messages(tools, skill_dir=tmp_path))
+
+
+def test_trigger_in_description_is_an_error(tmp_path):
+    root = clone(tmp_path)
+    skill = root / ".claude" / "skills" / "inbox" / "SKILL.md"
+    text = skill.read_text()
+    msgs = messages(audit.run(root, skill="inbox"), "skills")
+    assert any("move it to when_to_use" in m for m in msgs)
+    head, _, body = text.partition("\n---\n")
+    head = "\n".join(line for line in head.splitlines() if not line.startswith("description:"))
+    skill.write_text(head + "\ndescription: Show a human what waits on them, with links and age.\n"
+                     "when_to_use: Use when a human asks for their inbox. Never use in scheduled runs.\n---\n" + body)
+    msgs = messages(audit.run(root, skill="inbox"), "skills")
+    assert not any("move it to when_to_use" in m or "names no trigger" in m for m in msgs)

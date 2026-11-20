@@ -11,7 +11,7 @@ metadata:
 
 ## Purpose
 
-Keep the control repo coherent as it grows. CI (`scripts/validate-config.py`) proves the structure parses. Watchtower finds what CI misses: a skill frontmatter field that is missing, unknown, or of the wrong type, a label a skill uses but nobody creates, a "never" rule no hook enforces, a README that lists old skills, two rules that disagree.
+Keep the control repo coherent as it grows. CI (`scripts/validate-config.py`) proves the structure parses. Watchtower finds what CI misses: a skill frontmatter field that is missing, unknown, or of the wrong type, a trigger in `description` instead of `when_to_use`, a label a skill uses but nobody creates, a "never" rule no hook enforces, a README that lists old skills, two rules that disagree.
 
 It works in two layers:
 1. `scripts/audit.py`: deterministic checks. It runs the CI validator, then the drift checks.

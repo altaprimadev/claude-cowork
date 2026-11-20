@@ -10,7 +10,7 @@ Severity:
 
 ## Skills (`.claude/skills/*/SKILL.md`)
 
-1. **Trigger.** The description says what the skill does and when to use it, in the third person. A human's likely phrasing (often Indonesian) triggers it. It does not overlap another skill's trigger.
+1. **Trigger.** The description says what the skill does, in the third person, with no trigger sentence. `when_to_use` says when to use it and when not to (`Use when ...`, `Never use ...`). A human's likely phrasing (often Indonesian) triggers it. It does not overlap another skill's trigger.
 2. **One owner.** The skill does one stage or one human task. It does not repeat a procedure another skill owns. It links instead.
 3. **Procedure.** Numbered steps an agent can follow without guessing. Every command is complete. Every input has a source.
 4. **Stops.** Stop conditions cover the failure paths: missing access, empty input, usage pause, hard limits.
@@ -19,7 +19,7 @@ Severity:
 7. **Progressive disclosure.** Long templates and reference detail live in `references/`. The body stays the procedure.
 8. **Scripts.** Deterministic work (parsing, grouping, formatting) lives in a tested script, not in prose.
 9. **Language.** Concise technical English. The chat reply language matches `CLAUDE.md`.
-10. **Frontmatter values.** The script checks presence and types (required: `name`, `description`, `disable-model-invocation`, `model`, `effort`; stack packs skip `model` and `effort`). Review whether the values fit the skill:
+10. **Frontmatter values.** The script checks presence and types (required: `name`, `description`, `when_to_use`, `disable-model-invocation`, `model`, `effort`; stack packs skip `model` and `effort`). Review whether the values fit the skill:
     - `effort` follows the stage weight in `CLAUDE.md` -> "Usage budget": heavy stages and judgment reviews `high`, light stages `medium`, read-only chat lookups `low`.
     - `model` is `inherit` unless the skill states why it needs another model. A pinned model switches the orchestrator's model for the rest of the turn.
     - `disable-model-invocation: true` fits a human skill with side effects that must not start from casual phrasing. It removes the description from context and blocks agent preload.

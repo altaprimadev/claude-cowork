@@ -6,7 +6,7 @@ checks that a passing CI does not catch:
 
   structure    validate-config.py result (every problem is an error)
   skills       frontmatter fields (required, allowed, types, field dependencies),
-               description length and trigger, body length, standard sections,
+               description without trigger, when_to_use trigger, listing length, body length, standard sections,
                bundled scripts referenced, scripts covered by a test
   rules        labels and policy keys used in rules match their definitions
   hooks        the guard hook blocks every "never" command in CLAUDE.md;
@@ -43,8 +43,8 @@ DESC_WARN = 1024
 DESC_MIN = 80
 BODY_MAX_LINES = 500
 # SKILL.md frontmatter policy. Field reference: https://code.claude.com/docs/en/skills (frontmatter).
-FM_REQUIRED = ("name", "description", "disable-model-invocation", "model", "effort")
-FM_OPTIONAL = ("when_to_use", "argument-hint", "allowed-tools", "disallowed-tools", "context", "agent",
+FM_REQUIRED = ("name", "description", "when_to_use", "disable-model-invocation", "model", "effort")
+FM_OPTIONAL = ("argument-hint", "allowed-tools", "disallowed-tools", "context", "agent",
                "background", "hooks", "paths",
                # Kept from the Claude Code reference: metadata.version, environment needs, menu visibility.
                "metadata", "compatibility", "user-invocable")
@@ -54,6 +54,10 @@ FM_EFFORTS = ("low", "medium", "high", "xhigh", "max")
 FM_MODEL_RE = re.compile(r"^(inherit|default|opusplan|opus|sonnet|haiku|fable|claude-[a-z0-9.-]+)(\[1m\])?$")
 FM_BUILTIN_AGENTS = ("Explore", "Plan", "general-purpose")
 FM_COMPAT_MAX = 500
+# A trigger sentence ("Use when ...", "Load only when ...", "Never use in ...") belongs in when_to_use.
+# description says what the skill does; when_to_use says when to use it and when not to.
+TRIGGER_SENTENCE_RE = re.compile(r"(?:^|[.;:]\s+)((?:Use|Load|Invoke|Never use|Do not use)\b[^.;]*)")
+TRIGGER_WORD_RE = re.compile(r"\b(Use|Load|Invoke|use|load|invoke)\b")
 SKILL_DIR_PATH_RE = re.compile(r"\$\{CLAUDE_SKILL_DIR\}/([\w./-]+\w)")
 WORKFLOW_SECTIONS = ("Purpose", "When to use / not use", "Outputs", "Stop conditions", "Anti-rationalization")
 # Slash commands that are Claude Code commands or HTTP paths, not skills.
@@ -239,9 +243,13 @@ def check_skills(a: Audit, only=None):
         elif listing > DESC_WARN:
             a.add("warn", "skills", rel, f"description + when_to_use has {listing} chars; the listing truncates, keep the main use case first")
         if 0 < len(desc) < DESC_MIN:
-            a.add("warn", "skills", rel, f"description has {len(desc)} chars; too short to trigger reliably")
-        if desc and not re.search(r"\b(Use|Load|Invoke)\b", desc):
-            a.add("warn", "skills", rel, "description says what, not when: add a 'Use when ...' trigger")
+            a.add("warn", "skills", rel, f"description has {len(desc)} chars; too short to say what the skill does")
+        m = TRIGGER_SENTENCE_RE.search(desc)
+        if m:
+            a.add("error", "skills", rel, f"description holds a trigger ('{m.group(1)[:40]}...'); move it to when_to_use")
+        when = " ".join(str(fm.get("when_to_use") or "").split())
+        if when and not TRIGGER_WORD_RE.search(when):
+            a.add("warn", "skills", rel, "when_to_use names no trigger: state 'Use when ...'")
         lines = text.count("\n") + 1
         if lines > BODY_MAX_LINES:
             a.add("warn", "skills", rel, f"{lines} lines; move detail into references/ (limit {BODY_MAX_LINES})")
