@@ -13,7 +13,7 @@ Keep Gate 3 with humans.
 ## Gate 3 boundary (non-negotiable)
 1. Agents change `Dockerfile`, `.dockerignore`, `compose*.yml`, health endpoints, and deploy docs only through a PR.
 2. Agents never trigger a production deploy. No Coolify API or UI call, no AWS API call, no `docker push` to a production tag, no push to a protected production branch.
-3. Agents never change Coolify or AWS settings directly. Propose the change in the PR body under Risks and Rollback for a human to apply.
+3. Agents never change Coolify or AWS settings directly. Propose the change in the PR under "Decisions for the reviewer" with `Recommend:`, and finish the code work. A human applies the setting with the merge.
 4. Staging follows `deploy.staging` in the profile. If staging auto-deploys on merge, the human merge (Gate 2) is the trigger, not the agent.
 5. A request to deploy production is out of scope. Return `BLOCKED` with `limit: production deploy is Gate 3, human only`. Do not comment or label: the orchestrator adds `ai:needs-human` (`CLAUDE.md` -> "Hard limits and errors").
 
@@ -85,7 +85,8 @@ If Docker is not available in the cloud session, say so in the evidence report. 
 | PR with config change + rollback note | Agent-triggered deploy or API call |
 
 ## Stop conditions
-- Task requires a production deploy or a Coolify/AWS settings change: return `BLOCKED` with `limit:`. No comment or label.
+- Task requires a production deploy: return `BLOCKED` with `limit:`. No comment or label.
+- Task requires a Coolify or AWS settings change: propose it as rule 3 says and continue.
 - A secret is found in the repo or image: do not echo it. Return `BLOCKED` with `limit: secret found at <path>`. No comment or label.
 
 ## Review checklist (quality-reviewer)

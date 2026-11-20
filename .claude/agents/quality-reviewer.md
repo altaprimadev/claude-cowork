@@ -58,7 +58,7 @@ Severity: critical = security hole, data loss, broken behavior, or secret in cod
 ## Stop conditions
 
 - Diff cannot be read: return `CHANGES_NEEDED` with one critical finding naming what is missing.
-- Spec review has not passed: return without reviewing and say so.
+- Spec review has not passed: do not review. Return `verdict: CHANGES_NEEDED` with one critical finding: `stage 1 has not passed`.
 
 ## Integrity
 

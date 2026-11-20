@@ -63,7 +63,7 @@ stateDiagram-v2
     PROpen --> Stage1: spec-reviewer
     Stage1 --> ChangesNeeded: fail
     Stage1 --> Stage2: pass
-    Stage2 --> ChangesNeeded: critical finding (ai:changes-needed)
+    Stage2 --> ChangesNeeded: critical, or major marked fix in this PR (ai:changes-needed)
     Stage2 --> ReviewPassed: ai:review-passed
     ChangesNeeded --> InProgress: implementer fixes
     ChangesNeeded --> NeedsHuman: review loop at max_fix_attempts (ai:needs-human)

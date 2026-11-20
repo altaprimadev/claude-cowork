@@ -78,7 +78,7 @@ Gate 3 (production) has no agent and no skill. Only humans promote to production
   - Tasks are issues. Intake and planning create them as `ai:draft`. Only `task-review` turns a draft into `ai:ready`.
   - The GitHub Project board mirrors labels through `.github/workflows/project-sync.yml`. Agents never write to the Project. After a label change, dispatch the sync: `gh api -X POST repos/altaprimadev/claude-cowork/actions/workflows/project-sync.yml/dispatches -f ref=main`. A failed dispatch is not an error; the hourly run catches up.
 - **Respect autonomy.** Effective level = min(`registry/repos.yml` autonomy, target `.agent/profile.yml` autonomy).
-  - `0`: review and comment only. No branches, no code PRs.
+  - `0`: review and comment only. No branches, no code PRs. One exception: in the control repo (`claude-cowork`), `repo-onboarding` opens registry PRs (`ai/registry-*`, `ai/onboarding-*`). A human merges them.
   - `1`: `size:small` work only.
   - `2`: full pipeline.
   - Check branch protection on the default branch: `gh api repos/<owner>/<repo>/branches/<branch>/protection`.

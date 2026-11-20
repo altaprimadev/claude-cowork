@@ -20,6 +20,7 @@
 #              self-hosted = only for private networks or heavy builds
 
 repos:
+  # Control repo. Autonomy 0 still lets repo-onboarding open registry PRs (CLAUDE.md -> "Respect autonomy").
   - name: altaprimadev/claude-cowork
     status: active
     autonomy: 0
