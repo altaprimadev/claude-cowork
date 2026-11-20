@@ -206,6 +206,7 @@ Sources read: superpowers:skills/verification-before-completion/SKILL.md@22f0b46
 | VERIFICATION REPORT text block | ECC `skills/verification-loop/SKILL.md` @3f14a10 | modify | Replaced by PR template sections (Summary, Related issue, RED/GREEN, Verification output, Risks, Rollback) — GitHub is the state. |
 | Target acceptance (staging/prod verification reported separately) | ECC `skills/verification-loop/SKILL.md` @3f14a10 | modify | Agents never deploy to production (Gate 3); staging check out of scope, reported as "not performed". |
 | Continuous mode every 15 min, hook integration | ECC `skills/verification-loop/SKILL.md` @3f14a10 | drop | One-shot cloud sessions; hooks do not load in multi-repo sessions. |
+| "Decisions for the reviewer" section, no hand-offs | owner feedback (2026-11-20), `alta-prima-admin-back-end#44` | write from brief | "A human may add ..." left scoped work to the human. Gate 2 gets a yes or no instead. |
 
 ### review-two-stage
 
@@ -234,6 +235,7 @@ Sources read: superpowers:skills/requesting-code-review/SKILL.md@22f0b46, superp
 | TS checks: any, `!`, `as`, floating promises, async forEach, hook deps | ECC `agents/typescript-reviewer.md` @3f14a10 | take | Applied only when the diff has .ts/.tsx. |
 | Merge-readiness check (CI state) before review | ECC `agents/typescript-reviewer.md` @3f14a10 | modify | `gh pr checks` failures reported as a finding instead of stopping. |
 | Approve / Warning / Block criteria | ECC `agents/code-reviewer.md` @3f14a10 | modify | Any critical or stage 1 failure -> `ai:changes-needed`; else `ai:review-passed`. Never `--approve`. |
+| One fix per finding, no options for the human; repo-required docs are in scope | owner feedback (2026-11-20), `alta-prima-admin-back-end#48` | write from brief | A finding with "accept, or revert" made the human answer a tier 2 point. |
 
 ### daily-report
 
