@@ -38,6 +38,7 @@ Human-invoked skills run only in interactive sessions, never in scheduled tasks,
 - `usage-reminder`: remind the human at every five-hour usage reset with task status or a nudge to write a brief (`start`, `run`, `status`, `stop`).
 - `skills-help`: list every skill with a one-line description, or show one skill in full.
 - `run-pipeline`: start a pipeline run now in the runner session instead of waiting for its schedule (`batch`, `onboarding`), after a usage and runner check.
+The runner session watches open pipeline PRs with the `pr-watch` skill. A human merge runs the batch phases A to C at once (`docs/scheduled-tasks.md`). Never subscribe to PR activity from another session.
 Stack packs are the skills listed in the target repo's `.agent/profile.yml` -> `packs`.
 Gate 3 (production) has no agent and no skill. Only humans promote to production.
 
