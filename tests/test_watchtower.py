@@ -65,6 +65,18 @@ def test_stage_skill_adding_needs_human_is_an_error(tmp_path):
     assert any("adds ai:needs-human" in m for m in messages(audit.run(root, "rules"), "rules"))
 
 
+def test_tag_pinned_action_and_pr_watch_without_finally(tmp_path):
+    root = clone(tmp_path)
+    wf = root / ".github" / "workflows" / "ci.yml"
+    wf.write_text(wf.read_text().replace(
+        "actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0", "actions/checkout@v4"))
+    watch = root / ".claude" / "skills" / "pr-watch" / "SKILL.md"
+    watch.write_text(watch.read_text().replace("Finally", "closing"))
+    msgs = messages(audit.run(root, "workflows"), "workflows")
+    assert any("pin a full commit SHA" in m for m in msgs)
+    assert any("Finally" in m for m in msgs)
+
+
 def test_hook_gap_and_mcp_deny(tmp_path):
     root = clone(tmp_path)
     hook = root / ".claude" / "hooks" / "guard_bash.py"

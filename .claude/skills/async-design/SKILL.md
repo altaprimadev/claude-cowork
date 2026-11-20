@@ -15,11 +15,11 @@ Brainstorming is async here. Nobody answers questions in real time. Every gap be
 Use when:
 - The brief in the control repo has `size:large` and `ai:needs-design`.
 - A human commented on the open design PR (for example, overriding a decision for the reviewer).
-- A human left review comments on the open design PR.
+- A human left review comments on the open design PR. The batch picks this up in `docs/scheduled-tasks.md` B5c. Revise on the same branch, and reply once to each comment you did not act on, with the reason.
 
 Do not use when:
 - Effective autonomy of any affected repo is below 2. Stop and report.
-- The brief is `size:small` or trivial. That goes straight to the implementer.
+- The brief is `size:small` or trivial. Intake drafts one sub-issue for task review instead.
 - The design PR is merged. Planning (`plan-to-issues`) owns the next stage.
 
 ## Inputs

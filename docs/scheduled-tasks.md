@@ -1,6 +1,6 @@
 # Scheduled tasks
 
-Cloud scheduled tasks start every agent session. Create them at claude.ai/code, signed in as the **agent account**.
+Cloud scheduled tasks start every agent session. Target: create them at claude.ai/code, signed in as the **agent account**. Today they run on the human owner's account (see "Current state").
 Each run starts a fresh session in a fresh container. `/loop` is never used: it stops with its container.
 
 ## Current state (2026-11-19)
@@ -15,6 +15,7 @@ Each run starts a fresh session in a fresh container. `/loop` is never used: it 
 - PR watch (added 2026-11-20): the runner session subscribes to every open `ai/*` and `design/*` PR with the `pr-watch` skill, at the start and the end of each run. A human merge wakes the runner, which runs the batch phases A to C at once. The human no longer tells a session that a PR is merged. The daily batch stays as the backup for a missed event.
 - PR watch setup, once per runner session: a human types this in the runner session: `For every GitHub PR event in this session, run the pr-watch skill in mode handle (claude-cowork/.claude/skills/pr-watch/SKILL.md).` The instruction must come from a human, because the session acts on event text only where a human asked for it. Repeat it after the runner session is recreated.
 - Every prompt checks the plan usage budget (`CLAUDE.md` -> "Usage budget") before each delegation. The tasks run on the human owner's account, so they share its plan limit. Added 2026-11-19; copy the updated prompts into each task.
+- Workflow gaps (changed 2026-11-20): B1 finds merged PRs through the issue timeline; B4 requeues stalled `ai:in-progress` work once; B5c revises a design PR after human comments; merge-triggered runs also run the "Finally" steps. Copy the updated `Pipeline: batch` prompt into the task.
 - Agent results (changed 2026-11-20): B6 applies `CLAUDE.md` -> "Hard limits and errors". Copy the updated `Pipeline: batch` prompt into the task.
 - Fix cap and review hand-off (changed 2026-11-20): B5a and phase C name the cap rule in `CLAUDE.md` -> "Stop cleanly", and phase C runs a fix round only when B5 used no heavy item. Copy the updated `Pipeline: batch` prompt into the task.
 - If the runner session is archived or loses a repo, recreate it, have a human attach the push repos in it, and rebind the tasks (`persistent_session_id`).
@@ -23,7 +24,7 @@ Each run starts a fresh session in a fresh container. `/loop` is never used: it 
 
 | Setting | Value |
 |---|---|
-| Account | Agent account (company Claude account; GitHub machine user) |
+| Account | Target: agent account (company Claude account; GitHub machine user). Now: the human owner's account ("Current state") |
 | Main repo | `altaprimadev/claude-cowork` (always first) |
 | Additional repos | The managed repos with `status: active` in `registry/repos.yml`. Update every task when a repo becomes active. |
 | Environment | `hosted` by default. Use the self-hosted environment only for repos marked `environment: self-hosted`. |
@@ -98,15 +99,17 @@ A1. Find open issues in altaprimadev/claude-cowork with label ai:brief and witho
 A2. For each, oldest first, delegate to the intake-triager agent (intake-classify). Post its comment and set its labels exactly as returned. Never start design or implementation in this phase.
 
 Phase B, execution:
-B1. Close merged work. For each open issue labeled ai:in-progress in a managed repo, find PRs whose body says Closes/Fixes/Resolves #<issue> (gh api 'repos/<repo>/pulls?state=closed&per_page=50'). If one is merged, post "PR #<n> merged into <base> by a human (Gate 2). Closing.", remove ai:in-progress, and close the issue with state_reason completed. Closing keywords do not fire for a non-default base branch, so this step does it.
+B1. Close merged work. For each open issue labeled ai:in-progress in a managed repo, find the PRs that reference it in its timeline (gh api --paginate 'repos/<repo>/issues/<n>/timeline' --jq '.[] | select(.event=="cross-referenced") | .source.issue | select(.pull_request) | {number, merged_at: .pull_request.merged_at, base: .repository.full_name}'). This sees every PR, however old. If one in the same repo is merged, post "PR #<n> merged into <base> by a human (Gate 2). Closing.", remove ai:in-progress, and close the issue with state_reason completed. Closing keywords do not fire for a non-default base branch, so this step does it.
 B2. Task review. For each issue labeled ai:draft (at most 5 per run), delegate to the task-reviewer agent (task-review). Apply its verdict as the skill's "Applying the verdict" table says. Task review runs at any autonomy.
 B3. Promote. For each planned issue with no stage label whose "Depends on" items are all closed or merged, promote it to ai:ready (plan-to-issues promote mode). Promotion needs no agent; skip it only when advice is pause.
 B4. Count running work: open issues labeled ai:in-progress across managed repos. Do not exceed max_parallel_sessions overall or max_parallel_tasks_per_repo per repo. An ai:in-progress issue that already has an open agent PR is not running work; leave it to review.
+   Recover stalled work: an ai:in-progress issue with no open PR and no update for more than 24 hours (issue updated_at, and the last commit on its ai/<n>-* branch) is stalled. If it has no <!-- ai:requeue --> comment, post one ("<!-- ai:requeue --> No PR after 24 hours. Back to ai:ready."), remove ai:in-progress, add ai:ready. If it already has one, add ai:blocked instead, remove ai:in-progress, and comment once with the dates. Recovery needs no agent.
 B5. Pick exactly ONE heavy item, in this priority order, and delegate it. Heavy items run only when advice is proceed; otherwise skip B5 and record the skipped line:
    a. An agent PR labeled ai:changes-needed with unresolved findings, fix rounds (last review round - 1) below max_fix_attempts (CLAUDE.md -> "Stop cleanly") -> implementer agent with the review findings.
    b. A merged design PR (head branch design/*) whose design has no sub-issues yet, in a repo with autonomy 2 -> planner agent (plan-to-issues). Then run B2 again for the new drafts.
-   c. An issue labeled ai:ready, not ai:in-progress, all dependencies closed, autonomy allows its size -> set ai:in-progress, remove ai:ready, then implementer agent (tdd, evidence-report, packs from .agent/profile.yml).
-   d. An issue labeled size:large + ai:needs-design, no open design PR, autonomy 2 -> designer agent (async-design).
+   c. An open design PR (head branch design/*) in a repo with autonomy 2 whose newest human review or comment (author is not the agent login from gh api user) is newer than both its last commit and the designer's last comment on it -> designer agent (async-design, revision on the same branch). A human waits at Gate 1.
+   d. An issue labeled ai:ready, not ai:in-progress, all dependencies closed, autonomy allows its size -> set ai:in-progress, remove ai:ready, then implementer agent (tdd, evidence-report, packs from .agent/profile.yml).
+   e. An issue labeled size:large + ai:needs-design, no open design PR, autonomy 2 -> designer agent (async-design).
 B6. Apply each agent's result: comments and labels as returned. NEEDS_HUMAN with escalations: vet it (CLAUDE.md -> "Escalation flow"). BLOCKED: apply CLAUDE.md -> "Hard limits and errors" (limit -> ai:needs-human, error -> ai:blocked, remove ai:in-progress).
 
 Phase C, review:
@@ -139,7 +142,7 @@ Finally:
 A merge-triggered run is not a scheduled task. It is a GitHub event in the runner session, handled by `pr-watch` (mode `handle`).
 
 - It runs only for a merged `ai/*` or `design/*` PR. Other PR events change nothing; the daily batch handles them.
-- It runs the batch phases A to C, never phase D. The usage budget and the one-heavy-item-per-run limit apply as in a scheduled run.
+- It runs the batch steps 0 to 2, phases A to C, and the "Finally" steps 3 to 6, never phase D. The usage budget and the one-heavy-item-per-run limit apply as in a scheduled run.
 - Events queue in the runner session like scheduled runs, so runs never overlap.
 
 ---
