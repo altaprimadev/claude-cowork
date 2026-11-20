@@ -65,3 +65,28 @@ gh api repos/a/b/git/refs/heads/main
 gh api repos/a/b/branches/main/protection
 ---
 cat script.sh | bash scripts/setup-labels.sh
+---
+# Watchtower audit 2026-11-20 (round 2): legitimate forms the stricter guard must keep.
+if [ -f README.md ]; then echo ok; fi
+---
+{ echo a; echo b; } > /tmp/x.txt
+---
+find . -name '*.py' -exec grep -l foo {} +
+---
+gh api graphql -f query='query($n:Int!){viewer{login}}' -F n=1
+---
+gh api -X PUT repos/o/r/contents/docs/x.md -f branch=ai/1-x -f message=m -f content=eA==
+---
+git -c user.name=x -c user.email=x@example.com commit -m m
+---
+cd /tmp && ls
+---
+printenv PATH
+---
+gh auth status
+---
+stdbuf -oL git push origin ai/1-x
+---
+git config user.name x
+---
+gh release list

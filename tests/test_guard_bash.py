@@ -94,6 +94,27 @@ class GuardBashTest(unittest.TestCase):
         finally:
             repo.close()
 
+    def test_cd_into_protected_checkout_then_push_blocked(self):
+        repo = GitRepoFixture("main")
+        try:
+            self.assertBlocked(f"cd {repo.path} && git push")
+            self.assertBlocked(f"cd {repo.path} && git push origin @")
+        finally:
+            repo.close()
+
+    def test_cd_into_credentials_dir_blocked(self):
+        self.assertBlocked("cd ~/.aws && cat credentials")
+
+    def test_config_cannot_unprotect_a_branch(self):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("guard_bash_cfg", HOOK)
+        guard = importlib.util.module_from_spec(spec)
+        sys.modules["guard_bash_cfg"] = guard
+        spec.loader.exec_module(guard)
+        guard.load_config = lambda: {"protected_branches": ["release"]}
+        ctx = guard.build_context({"cwd": str(ROOT)})
+        self.assertTrue({"main", "development", "release"} <= ctx.protected)
+
     def test_bare_push_from_feature_branch_allowed(self):
         repo = GitRepoFixture("feat/x")
         try:

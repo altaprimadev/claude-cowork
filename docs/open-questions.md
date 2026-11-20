@@ -103,6 +103,7 @@ Design impact (safest assumption):
 - If the Skill tool cannot find a skill, the agent reads its `SKILL.md` file directly.
 - The target repo's `.claude/` may load next to ours. Precedence decides conflicts: platform > hook > `claude-cowork/CLAUDE.md`.
 - Pilot check: run one multi-repo session and record which agents, skills, and hooks were active. See `docs/setup.md`, step 8.
+- Residual hook risk (2026-11-20): `guard_bash.py` parses shell words, compound commands (`{ }`, `if`, `while`, `!`), wrappers, `cd`, `find -exec`, variables in command position, git `-c`/`config` push keys, and `gh api` paths. It blocks what it cannot resolve and nesting deeper than its limit. It still cannot see commands that an interpreter or script runs (`python3 -c`, `node -e`, a script file). An edit to `guard_bash.py` in the working copy also changes the guard at once; `guard_bash.config.json` can only add protected branches. For repos with `branch_protection: unavailable`, these paths rest on instructions and the human merge.
 
 Sources:
 - https://code.claude.com/docs/en/cloud-environments
