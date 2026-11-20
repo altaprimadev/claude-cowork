@@ -126,7 +126,7 @@ def test_render_and_exit_code(capsys):
     assert audit.main(["--root", str(ROOT), "--skill", "nosuch"]) == 2
 
 
-FULL_FM = {"name": "inbox", "description": "x", "when_to_use": "Use when x.", "disable-model-invocation": False, "model": "inherit", "effort": "low"}
+FULL_FM = {"name": "inbox", "description": "x", "when_to_use": "Use when x.", "disable-model-invocation": False, "model": "opus", "effort": "low"}
 
 
 def fm_messages(fm, name="inbox", **kw):
@@ -185,3 +185,10 @@ def test_trigger_in_description_is_an_error(tmp_path):
                      "when_to_use: Use when a human asks for their inbox. Never use in scheduled runs.\n---\n" + body)
     msgs = messages(audit.run(root, skill="inbox"), "skills")
     assert not any("move it to when_to_use" in m or "names no trigger" in m for m in msgs)
+
+
+def test_frontmatter_model_inherit_is_an_error():
+    for model in ("inherit", "default"):
+        assert any("not allowed" in m for m in fm_messages({**FULL_FM, "model": model}))
+    for model in ("opus", "sonnet", "haiku", "claude-opus-4-1"):
+        assert fm_messages({**FULL_FM, "model": model}) == []

@@ -21,7 +21,8 @@ Severity:
 9. **Language.** Concise technical English. The chat reply language matches `CLAUDE.md`.
 10. **Frontmatter values.** The script checks presence and types (required: `name`, `description`, `when_to_use`, `disable-model-invocation`, `model`, `effort`; stack packs skip `model` and `effort`). Review whether the values fit the skill:
     - `effort` follows the stage weight in `CLAUDE.md` -> "Usage budget": heavy stages and judgment reviews `high`, light stages `medium`, read-only chat lookups `low`.
-    - `model` is `inherit` unless the skill states why it needs another model. A pinned model switches the orchestrator's model for the rest of the turn.
+    - `model` names the smallest model that does the job. Never `inherit` or `default`. Skills that reason (design, planning, triage, task review, code review, implementation, audits, drafting from a human's intent) use `opus`. Mechanical skills (run a script, format output, list items) may use `sonnet` or `haiku`.
+    - The skill's `model` and `effort` apply to the rest of the invoking turn. A skill the orchestrator invokes inside a pipeline run (for example `usage-status` before each delegation, `review-two-stage`, `pr-watch`) uses `opus` and `high`, or it downgrades the rest of the run.
     - `disable-model-invocation: true` fits a human skill with side effects that must not start from casual phrasing. It removes the description from context and blocks agent preload.
     - A read-only skill names its write tools in `disallowed-tools`. A skill that runs its own script scopes `allowed-tools` with `${CLAUDE_SKILL_DIR}`.
 

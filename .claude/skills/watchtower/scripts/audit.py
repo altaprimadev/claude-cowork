@@ -51,7 +51,8 @@ FM_OPTIONAL = ("argument-hint", "allowed-tools", "disallowed-tools", "context", 
 # Stack packs load inside another skill's turn. A model or effort there would override the caller's.
 FM_PACK_EXEMPT = ("model", "effort")
 FM_EFFORTS = ("low", "medium", "high", "xhigh", "max")
-FM_MODEL_RE = re.compile(r"^(inherit|default|opusplan|opus|sonnet|haiku|fable|claude-[a-z0-9.-]+)(\[1m\])?$")
+# Every skill names the model it needs. inherit and default hide that choice, so they are not allowed.
+FM_MODEL_RE = re.compile(r"^(opus|sonnet|haiku|fable|claude-[a-z0-9.-]+)(\[1m\])?$")
 FM_BUILTIN_AGENTS = ("Explore", "Plan", "general-purpose")
 FM_COMPAT_MAX = 500
 # A trigger sentence ("Use when ...", "Load only when ...", "Never use in ...") belongs in when_to_use.
@@ -158,7 +159,7 @@ def check_frontmatter(fm: dict, name: str, skill_dir: Path | None = None, agents
         if key in fm and not isinstance(fm[key], bool):
             out.append(("error", f"{key} must be true or false, got {fm[key]!r}"))
     if "model" in fm and fm["model"] and not FM_MODEL_RE.match(str(fm["model"])):
-        out.append(("error", f"model {fm['model']!r} is not inherit, an alias, or a claude-* id"))
+        out.append(("error", f"model {fm['model']!r} is not a model alias (opus, sonnet, haiku, fable) or a claude-* id; inherit and default are not allowed"))
     if "effort" in fm and fm["effort"] and fm["effort"] not in FM_EFFORTS:
         out.append(("error", f"effort {fm['effort']!r} is not one of {', '.join(FM_EFFORTS)}"))
     if "context" in fm and fm["context"] != "fork":
