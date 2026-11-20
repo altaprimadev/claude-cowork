@@ -83,7 +83,7 @@ Gate 3 (production) has no agent and no skill. Only humans promote to production
 - **Trivial changes.** Typo fixes and docs-only changes with at most `trivial_change_max_lines` changed lines (`registry/policy.yml`) may skip design and planning. They still need a PR and human approval.
 - **Limits.** Respect `max_parallel_sessions` and `max_parallel_tasks_per_repo`. Before starting implementation, count open `ai:in-progress` issues in the repo.
 - **Usage budget.** Scheduled runs share the plan usage limit with humans. A session that hits the limit stops mid-step. Check the budget before you delegate, so work stops at a clean point instead.
-  - Run the `usage-status` skill with `--json --policy <claude-cowork clone>/registry/policy.yml`. Read `advice`: the worst of the five-hour and weekly windows.
+  - Run the `usage-status` skill with `--json --policy <claude-cowork clone>/registry/policy.yml`. Read `advice`: it follows the five-hour window only. The weekly percent is for information, except a reached weekly limit pauses.
   - Check before each delegation, and again before review stage 2. Only the orchestrator checks; subagents have no access to the event data.
   - Light stages: intake, onboarding, task review, review (both stages), reporting. Heavy stages: design, planning, implementation (including fix rounds).
 
