@@ -44,7 +44,7 @@ stateDiagram-v2
 
     NeedsDesign --> DesignPR: designer opens design PR
     DesignPR --> Planned: GATE 1 - human merges design PR
-    DesignPR --> NeedsDesign: human requests changes
+    DesignPR --> DesignPR: human comments; designer revises (batch B5c)
     Planned --> Draft: planner creates sub-issues (ai:draft)
     Small --> Draft: intake creates one sub-issue (ai:draft)
     Draft --> Draft: task review REVISE, body corrected
@@ -57,6 +57,8 @@ stateDiagram-v2
     Ready --> InProgress: implementer (ai:in-progress)
     InProgress --> PROpen: PR with evidence
     InProgress --> Blocked: implementation loop at max_fix_attempts (ai:blocked)
+    InProgress --> Ready: no PR after 24 hours, first time (batch B4 requeue)
+    InProgress --> Blocked: no PR after 24 hours, second time (ai:blocked)
 
     PROpen --> Stage1: spec-reviewer
     Stage1 --> ChangesNeeded: fail

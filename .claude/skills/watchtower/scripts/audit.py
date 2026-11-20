@@ -290,8 +290,14 @@ def check_workflows(a: Audit, skills: set[str]):
                 uses = str(step.get("uses") or "")
                 if re.search(r"@(main|master|HEAD)$", uses) or (uses and "@" not in uses and not uses.startswith("./")):
                     a.add("warn", "workflows", rel, f"action {uses} is not pinned to a version")
+                elif uses and not uses.startswith("./") and not re.search(r"@[0-9a-f]{40}$", uses):
+                    a.add("warn", "workflows", rel, f"action {uses} is pinned to a tag; pin a full commit SHA")
                 if uses.startswith("actions/checkout") and (step.get("with") or {}).get("persist-credentials") is not False:
                     a.add("info", "workflows", rel, f"job {name}: checkout keeps credentials; set persist-credentials: false")
+    pr_watch = a.read(".claude/skills/pr-watch/SKILL.md")
+    if pr_watch and "Finally" not in pr_watch:
+        a.add("error", "workflows", ".claude/skills/pr-watch/SKILL.md",
+              "handle mode skips the batch \"Finally\" steps (project sync, subscribe again)")
     files = [a.root / "CLAUDE.md", a.root / "README.md"] + sorted((a.root / "docs").glob("*.md"))
     files += sorted((a.root / ".claude").rglob("*.md"))
     for p in files:
