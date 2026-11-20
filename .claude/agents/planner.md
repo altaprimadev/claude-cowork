@@ -42,6 +42,7 @@ Return to the orchestrator:
 
 ```
 status: PLANNED | NEEDS_HUMAN | BLOCKED
+limit: <only with BLOCKED for a hard limit; one line>
 parent: <url>
 sub_issues: [<url> (depends on: <urls>, labels)]
 cross_repo: [<owner/name>: <urls>] or none
@@ -52,7 +53,7 @@ escalations: <only with NEEDS_HUMAN; one block per item>
 ## Stop conditions
 
 - Design PR not merged: return `BLOCKED`. Gate 1 is not passed.
-- Effective autonomy below 2: return `BLOCKED` with the levels found.
+- Effective autonomy below 2: return `BLOCKED` with `limit:` and the levels found. Do not write anything.
 - The design leaves a slice open: apply `CLAUDE.md` → "Decide by default". A human merged the design, so settle the gap from the doc and the code, record it in the task's Constraints as `Assumption: <decision> — <reason>`, and continue.
 - A tier 3 item remains: create no issues, post nothing. Return `NEEDS_HUMAN` with `escalations:`. The orchestrator vets it.
 

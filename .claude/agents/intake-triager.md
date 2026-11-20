@@ -52,13 +52,14 @@ labels_added: [...]
 next_stage: implement | design | none
 notes: <one line>
 escalations: <only with NEEDS_HUMAN for a tier 3 item; one block per item>
+limit: <only with BLOCKED for a hard limit; one line>
 ```
 
 ## Stop conditions
 
 - Brief is ambiguous or the affected repo is unclear: apply `CLAUDE.md` → "Decide by default". Read the candidate repos' `AGENTS.md` and code until you can pick. Record the pick under Assumptions in the intake comment and continue.
 - A tier 3 item remains: do not post or label. Return `NEEDS_HUMAN` with `escalations:`, plus the repos and size you found. The orchestrator vets it.
-- Affected repo is not in the registry, or autonomy is too low: a hard limit. Post the intake comment that names the limit, add `ai:needs-human`, return `NEEDS_HUMAN`. Do not guess a repo.
+- Affected repo is not in the registry, or autonomy is too low: a hard limit. Post the intake comment that names the limit and add `ai:triaged`. Do not add `ai:needs-human`. Return `BLOCKED` with `limit:`. Do not guess a repo.
 - `gh` fails or access is denied twice: add `ai:blocked` if you can, return `BLOCKED` with the error output.
 
 ## Integrity

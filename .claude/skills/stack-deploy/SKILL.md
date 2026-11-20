@@ -13,7 +13,7 @@ Keep Gate 3 with humans.
 2. Agents never trigger a production deploy. No Coolify API or UI call, no AWS API call, no `docker push` to a production tag, no push to a protected production branch.
 3. Agents never change Coolify or AWS settings directly. Propose the change in the PR body under Risks and Rollback for a human to apply.
 4. Staging follows `deploy.staging` in the profile. If staging auto-deploys on merge, the human merge (Gate 2) is the trigger, not the agent.
-5. A request to deploy production is out of scope. Post one comment that Gate 3 is human, add `ai:needs-human`, stop.
+5. A request to deploy production is out of scope. Return `BLOCKED` with `limit: production deploy is Gate 3, human only`. Do not comment or label: the orchestrator adds `ai:needs-human` (`CLAUDE.md` -> "Hard limits and errors").
 
 ## When to use / not use
 - Use: `packs` includes `stack-deploy` and the change touches container, Compose, Coolify-related config, env var docs, health checks, or IAM policy documents in the repo.
@@ -83,8 +83,8 @@ If Docker is not available in the cloud session, say so in the evidence report. 
 | PR with config change + rollback note | Agent-triggered deploy or API call |
 
 ## Stop conditions
-- Task requires a production deploy or a Coolify/AWS settings change: comment, `ai:needs-human`, stop.
-- A secret is found in the repo or image: do not echo it; comment with its location, `ai:needs-human`, stop.
+- Task requires a production deploy or a Coolify/AWS settings change: return `BLOCKED` with `limit:`. No comment or label.
+- A secret is found in the repo or image: do not echo it. Return `BLOCKED` with `limit: secret found at <path>`. No comment or label.
 
 ## Review checklist (quality-reviewer)
 - [ ] critical: secret or credential in repo, image layer, Compose, or PR text; agent-triggered production deploy; wildcard IAM without justification.

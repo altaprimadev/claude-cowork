@@ -40,7 +40,7 @@ Never skip because the change "is too small". Small code breaks too.
 - **Runner.** Always run `commands.test`. Never swap in another runner. You may append a file path filter while iterating (e.g. `bun test src/order.test.ts`). The final GREEN check runs `commands.test` unfiltered.
 - **Test types.** Write only types listed in `test_types`. No E2E unless `e2e` is listed. If a behavior needs an unlisted type, use the closest listed type and record the gap under Risks in the PR.
 - **Coverage.** No global target. If `coverage_target` is a number and `coverage_paths` is non-empty, check line coverage for those paths only (e.g. `bun test --coverage`). Otherwise there is no numeric target. Never add tests just to raise a number.
-- `commands.test` is `""`: stop. Comment that the repo has no test command, add `ai:needs-human`.
+- `commands.test` is `""`: stop. Return `BLOCKED` with `limit: no test command`. Do not comment or label: the orchestrator adds `ai:needs-human` (`CLAUDE.md` -> "Hard limits and errors").
 
 ## Procedure
 
