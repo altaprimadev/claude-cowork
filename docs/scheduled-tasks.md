@@ -123,7 +123,7 @@ C3. For each such PR, oldest first, at most 3 per run:
    a. Delegate stage 1 to the spec-reviewer agent with the inputs review-two-stage step 3 names.
    b. Only if stage 1 passes, re-check the usage budget. On pause, stop this PR without a comment or label. Otherwise delegate stage 2 to the quality-reviewer agent with the inputs review-two-stage step 6 names. It reads the packs from .agent/profile.yml itself.
    c. Post ONE review comment with all findings. Never approve.
-   d. Set ai:changes-needed if stage 1 failed or any finding is critical. Otherwise set ai:review-passed. Then apply review-two-stage step 9.
+   d. Set the label as review-two-stage step 8 says: ai:changes-needed for a stage 1 failure, a critical finding, or a major marked fix in this PR; otherwise ai:review-passed. Then apply review-two-stage step 9.
 
 Phase D, report (Monday to Friday, Asia/Jakarta date, only):
 D1. Delegate to the reporter agent (daily-report) for all repos in registry/repos.yml. Pass it the usage-status JSON from the budget check, or "not available". The report is an issue in altaprimadev/claude-cowork titled "Daily report YYYY-MM-DD" (UTC date) with label ai:report. If today's issue exists, update it.
