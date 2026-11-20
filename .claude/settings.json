@@ -24,6 +24,7 @@
       "Skill(usage-reminder)",
       "Skill(skills-help)",
       "Skill(run-pipeline)",
+      "Skill(pr-watch)",
       "Read",
       "Grep",
       "Glob",

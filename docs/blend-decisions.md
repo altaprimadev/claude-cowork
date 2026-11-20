@@ -672,3 +672,16 @@ The original rule was "Async-first: post ONE comment with every question and its
 | Say it once | `CLAUDE.md`, `task-review` | Repeated questions and assumptions are noise. |
 | Gate 2 majors carry a recommendation | `review-two-stage` | Gate 2 becomes a yes or no. |
 | Escalation marker `<!-- ai:escalation stage=<stage> -->` | `CLAUDE.md`, `answer`, `inbox`, `intake-classify` | Human-facing tools find escalations by marker. |
+
+### pr-watch
+
+Sources read: none.
+
+Utility for the runner session. Original to claude-cowork.
+
+| Atom | Source (repo, path, commit) | Decision | Reason |
+|---|---|---|---|
+| Runner subscribes to every open pipeline PR with subscribe_pr_activity | brief (owner, 2026-11-20) | write from brief | The human merges and the pipeline continues without a "#X is merged" message. Only the runner has the repos. |
+| GitHub event trigger on `pull_request.closed` + merged | docs/open-questions.md Q2 | rejected | Every event starts a new session without the repos, the same failure as fire_trigger. |
+| On a merge, run batch phases A to C | brief / CLAUDE.md | write from brief | The pipeline already decides what follows each merge. No new stage logic. |
+| Ignore non-merge PR events | CLAUDE.md "Usage budget" | write from brief | Fix rounds and reviews stay on the batch priority order and budget. |
