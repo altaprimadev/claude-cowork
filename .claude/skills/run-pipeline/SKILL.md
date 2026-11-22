@@ -8,7 +8,7 @@ effort: low
 argument-hint: "[batch | onboarding] [force]"
 compatibility: Cloud sessions only. Needs the claude-code-remote MCP (list_triggers, get_session, send_message, list_events).
 metadata:
-  version: "2.0.0"
+  version: "2.1.0"
   owner: claude-cowork
 ---
 # Run pipeline
@@ -21,7 +21,7 @@ This skill sends the scheduled task's stored prompt to the runner session once. 
 
 | Argument | Scheduled task | Stages |
 |---|---|---|
-| `batch` (default) | `Pipeline: batch` | Intake, close merged work, task review, promote, one heavy item, review, report (Monday to Friday only) |
+| `batch` (default) | `Pipeline: batch` | Intake, close merged work, task review, promote, heavy items back to back (`max_heavy_items_per_run`), review, report (Monday to Friday only) |
 | `onboarding` | `Pipeline: onboarding scan` | Onboarding of one new repo |
 
 Do not use `fire_trigger`. A manual fire starts a new session without the repos, and the run stops at setup.
