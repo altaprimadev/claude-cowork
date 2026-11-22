@@ -89,7 +89,7 @@ Review runs at any autonomy level; it writes no code. At effective autonomy 0 th
 
 9. **Hand off.** Only for `ai:changes-needed`. Decide in this order:
    - Autonomy 0, or fix rounds (round − 1) at the cap (`CLAUDE.md` -> "Stop cleanly"): add `ai:needs-human`, stop.
-   - A fix round is heavy work. Dispatch the implementer now only when all hold: this run has delegated fewer than `max_heavy_items_per_run` heavy items (`registry/policy.yml`, `docs/scheduled-tasks.md` B5), and a fresh usage check gives `proceed`. Pass the PR URL, the open criticals and the majors marked `fix in this PR`, verbatim, and the fix attempt number (round). The fix counts as one of this run's heavy items. When it pushes, start again at step 1.
+   - A fix round is heavy work. Dispatch the implementer now only when all hold: this run has delegated fewer than `max_heavy_items_per_run` heavy items (`registry/policy.yml`, `docs/scheduled-tasks.md` B5), and a fresh usage check gives `proceed`. Pass the PR URL, the open criticals and the majors marked `fix in this PR`, verbatim, and the fix attempt number (round). The fix counts as one of this run's heavy items. Dispatch it in the foreground and start no other agent until it returns (`docs/scheduled-tasks.md` B5). When it pushes, start again at step 1.
    - Otherwise stop with the label only. The next run picks the PR up in B5a.
 
 Never fix findings yourself. Never drop a finding silently. If you think one is wrong, check it: read the code, or dispatch one read-only `Explore` subagent. Wrong: drop it and list it under "Dropped findings" in the comment with a one-line reason. Right: keep it.
