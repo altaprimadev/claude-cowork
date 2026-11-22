@@ -7,7 +7,7 @@ model: sonnet
 effort: low
 argument-hint: "[owner/repo to limit the list]"
 metadata:
-  version: "1.0.1"
+  version: "1.0.2"
   owner: claude-cowork
 ---
 # Inbox
@@ -80,6 +80,7 @@ Do not use when:
 ## Outputs
 
 - One chat message. No GitHub writes.
+- For each Gate 1 or Gate 2 PR listed, the merge check-in from `CLAUDE.md` (`send_later`, no subscription).
 
 ## Stop conditions
 

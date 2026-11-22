@@ -8,7 +8,7 @@ effort: low
 argument-hint: "[owner/repo to limit the list]"
 compatibility: Cloud sessions. Needs the claude-code-remote MCP (list_triggers, get_session, list_events) and gh.
 metadata:
-  version: "1.0.1"
+  version: "1.0.2"
   owner: claude-cowork
 ---
 # Pipeline status
@@ -53,7 +53,8 @@ Do not use when:
 
 ## Outputs
 
-- One chat reply. No GitHub writes. No change to any scheduled task or session.
+- One chat reply. No GitHub writes. No change to any scheduled task or other session.
+- For each PR under "Nunggu merge dari lu", the merge check-in from `CLAUDE.md` (`send_later`, no subscription).
 
 ## Stop conditions
 
