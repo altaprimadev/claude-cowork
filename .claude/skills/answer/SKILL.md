@@ -7,7 +7,7 @@ model: opus
 effort: medium
 argument-hint: "<#n | owner/repo#n | issue or PR URL>"
 metadata:
-  version: "1.1.0"
+  version: "1.2.0"
   owner: claude-cowork
 ---
 # Answer
@@ -96,12 +96,14 @@ Do not use when:
    Without `gh`, use GitHub MCP `add_issue_comment` and `issue_write` (method `update`, full label list). For a PR, the issue commands also work on the PR number.
    A label that does not exist on the item is skipped, not an error.
 
-9. **Confirm.** Reply with the comment link, the labels now on the item, and when the pipeline picks it up: the next `Pipeline: batch` run (daily, 14:30 WIB), a merge-triggered run (`pr-watch`), or now with `/run-pipeline`.
+9. **Start the pipeline.** Run the `run-pipeline` skill with `batch` in the same turn, so the item resumes now. Its gate stops the send when the runner is busy or usage pauses; then the next hourly batch picks the item up.
+10. **Confirm.** Reply with the comment link, the labels now on the item, and the `run-pipeline` result: run sent, or why it waits for the next hourly batch.
 
 ## Outputs
 
 - One `<!-- human:answer -->` comment on the item.
 - Labels reset per step 6. Or, for a structural blocker, no label change and an explanation.
+- At most one `run-pipeline` send to the runner session after posting.
 
 ## Stop conditions
 
