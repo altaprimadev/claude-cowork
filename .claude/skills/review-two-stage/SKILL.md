@@ -6,7 +6,7 @@ disable-model-invocation: false
 model: opus
 effort: high
 metadata:
-  version: "1.3.0"
+  version: "1.4.0"
   owner: claude-cowork
 ---
 # Review Two-Stage
@@ -89,7 +89,7 @@ Review runs at any autonomy level; it writes no code. At effective autonomy 0 th
 
 9. **Hand off.** Only for `ai:changes-needed`. Decide in this order:
    - Autonomy 0, or fix rounds (round − 1) at the cap (`CLAUDE.md` -> "Stop cleanly"): add `ai:needs-human`, stop.
-   - A fix round is heavy work. Dispatch the implementer now only when all hold: this run has not used its one heavy item (`docs/scheduled-tasks.md` B5), and a fresh usage check gives `proceed`. Pass the PR URL, the open criticals and the majors marked `fix in this PR`, verbatim, and the fix attempt number (round). The fix uses this run's heavy item. When it pushes, start again at step 1.
+   - A fix round is heavy work. Dispatch the implementer now only when all hold: this run has delegated fewer than `max_heavy_items_per_run` heavy items (`registry/policy.yml`, `docs/scheduled-tasks.md` B5), and a fresh usage check gives `proceed`. Pass the PR URL, the open criticals and the majors marked `fix in this PR`, verbatim, and the fix attempt number (round). The fix counts as one of this run's heavy items. Dispatch it in the foreground and start no other agent until it returns (`docs/scheduled-tasks.md` B5). When it pushes, start again at step 1.
    - Otherwise stop with the label only. The next run picks the PR up in B5a.
 
 Never fix findings yourself. Never drop a finding silently. If you think one is wrong, check it: read the code, or dispatch one read-only `Explore` subagent. Wrong: drop it and list it under "Dropped findings" in the comment with a one-line reason. Right: keep it.
@@ -155,6 +155,6 @@ Return in the `quality-reviewer` agent output format, starting with `verdict:`.
 | "This finding is wrong; I'll leave it out." | Check it in the code. Drop it only under "Dropped findings" with the reason. |
 | "Everything looks fine; I'll approve." | Agents never approve. Label `ai:review-passed`; a human approves. |
 | "One more round will converge." | At the cap (`CLAUDE.md` -> "Stop cleanly"), route to `ai:needs-human`. |
-| "The fix is small; I'll dispatch it even though B5 already ran an implementer." | A fix round is heavy. One heavy item per run. Label and stop; B5a takes it next run. |
+| "The fix is small; I'll dispatch it even though the run is at its heavy-item cap." | A fix round is heavy and counts toward `max_heavy_items_per_run`. At the cap, label and stop; B5a takes it next run. |
 
 Adapted from obra/superpowers and affaan-m/ECC (MIT). See docs/blend-decisions.md.

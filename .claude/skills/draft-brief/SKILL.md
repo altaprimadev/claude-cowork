@@ -7,7 +7,7 @@ model: opus
 effort: medium
 argument-hint: "[rough idea, any language]"
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
   owner: claude-cowork
 ---
 # Draft Brief
@@ -122,12 +122,14 @@ Do not use when:
       PY
       ```
 
-7. **Confirm.** Reply with the issue URL. Say that phase A of the next `Pipeline: batch` run (daily, 14:30 WIB) triages it, or a merge-triggered run if one comes first. `/run-pipeline` starts a run now.
+7. **Start the pipeline.** Run the `run-pipeline` skill with `batch` in the same turn, so phase A triages the brief now. Its gate stops the send when the runner is busy or usage pauses; then the next hourly batch triages it.
+8. **Confirm.** Reply with the issue URL and the `run-pipeline` result: run sent, or why it waits for the next hourly batch.
 
 ## Outputs
 
 - One open issue in the control repo: title `[brief] ...`, label `ai:brief`, body in the form format.
 - Or, if no write method works: one prefilled form link.
+- At most one `run-pipeline` send to the runner session after posting.
 
 ## Stop conditions
 

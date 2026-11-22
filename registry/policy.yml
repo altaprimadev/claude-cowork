@@ -26,6 +26,10 @@ usage_budget:
   caution_pct: 70   # at or above: light stages only
   pause_pct: 90     # at or above: no new stage work
 
+# Heavy items (implementation, planning, design, fix round) one batch run may delegate back to back.
+# The run keeps picking while usage advice is proceed and ready work remains, up to this cap (owner, 2026-11-22).
+max_heavy_items_per_run: 5
+
 # Cap for every fix loop. Count >= cap stops the loop. Labels per loop: CLAUDE.md -> "Stop cleanly".
 max_fix_attempts: 3
 

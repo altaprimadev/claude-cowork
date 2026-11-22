@@ -235,6 +235,7 @@ Sources read: superpowers:skills/requesting-code-review/SKILL.md@22f0b46, superp
 | TS checks: any, `!`, `as`, floating promises, async forEach, hook deps | ECC `agents/typescript-reviewer.md` @3f14a10 | take | Applied only when the diff has .ts/.tsx. |
 | Merge-readiness check (CI state) before review | ECC `agents/typescript-reviewer.md` @3f14a10 | modify | `gh pr checks` failures reported as a finding instead of stopping. |
 | Approve / Warning / Block criteria | ECC `agents/code-reviewer.md` @3f14a10 | modify | Any critical or stage 1 failure -> `ai:changes-needed`; else `ai:review-passed`. Never `--approve`. |
+| Fix rounds count toward `max_heavy_items_per_run`, not a single heavy slot per run | owner request (2026-11-22): nothing ready waits for the schedule | write from brief | Ready work runs in the same run while usage allows. |
 | One fix per finding, no options for the human; repo-required docs are in scope | owner feedback (2026-11-20), `alta-prima-admin-back-end#48` | write from brief | A finding with "accept, or revert" made the human answer a tier 2 point. |
 
 ### daily-report

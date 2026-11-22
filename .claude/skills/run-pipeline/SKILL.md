@@ -1,6 +1,6 @@
 ---
 name: run-pipeline
-description: Start a pipeline run now instead of waiting for its daily schedule, by sending the scheduled task's stored prompt to the runner session after a usage and runner check.
+description: Start a pipeline run now instead of waiting for its schedule, by sending the scheduled task's stored prompt to the runner session after a usage and runner check.
 when_to_use: Use when a human in an interactive session asks to run the pipeline now ("jalankan pipeline sekarang", "run batch", "jangan tunggu jadwal"), even if they do not say "run-pipeline". Never use from the pipeline scheduled tasks.
 disable-model-invocation: true
 model: sonnet
@@ -8,20 +8,20 @@ effort: low
 argument-hint: "[batch | onboarding] [force]"
 compatibility: Cloud sessions only. Needs the claude-code-remote MCP (list_triggers, get_session, send_message, list_events).
 metadata:
-  version: "2.0.0"
+  version: "2.2.0"
   owner: claude-cowork
 ---
 # Run pipeline
 
 ## Purpose
 
-The pipeline runs from two scheduled tasks, once a day, in the runner session. Only the runner session has the repos attached. A human sometimes wants a run now, for example right after labeling a brief or merging a PR.
+The pipeline runs from two scheduled tasks in the runner session: the batch hourly, the onboarding scan daily. Only the runner session has the repos attached. A human sometimes wants a run now, for example right after labeling a brief or merging a PR.
 
 This skill sends the scheduled task's stored prompt to the runner session once. It does not change the schedule, the prompt, or any GitHub state.
 
 | Argument | Scheduled task | Stages |
 |---|---|---|
-| `batch` (default) | `Pipeline: batch` | Intake, close merged work, task review, promote, one heavy item, review, report (Monday to Friday only) |
+| `batch` (default) | `Pipeline: batch` | Intake, close merged work, task review, promote, heavy items back to back (`max_heavy_items_per_run`), review, report (Monday to Friday only) |
 | `onboarding` | `Pipeline: onboarding scan` | Onboarding of one new repo |
 
 Do not use `fire_trigger`. A manual fire starts a new session without the repos, and the run stops at setup.
@@ -30,6 +30,7 @@ Do not use `fire_trigger`. A manual fire starts a new session without the repos,
 
 Use when:
 - A human in an interactive session asks to run the pipeline now.
+- `answer` or `draft-brief` just posted, so the item can resume at once.
 
 Do not use when:
 - A pipeline scheduled task runs. `CLAUDE.md` -> "Usage budget" forbids extra runs from the pipeline.
