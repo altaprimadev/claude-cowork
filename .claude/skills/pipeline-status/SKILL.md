@@ -54,7 +54,7 @@ Do not use when:
 ## Outputs
 
 - One chat reply. No GitHub writes. No change to any scheduled task or other session.
-- For each PR under "Nunggu merge dari lu", the merge check-in from `CLAUDE.md` (`send_later`, no subscription).
+- For each PR under "Nunggu merge dari lu", the merge confirmation check-in from `CLAUDE.md` (`send_later`, no subscription, no work started).
 
 ## Stop conditions
 
