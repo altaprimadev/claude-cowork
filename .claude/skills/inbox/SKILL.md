@@ -80,7 +80,7 @@ Do not use when:
 ## Outputs
 
 - One chat message. No GitHub writes.
-- For each Gate 1 or Gate 2 PR listed, the merge confirmation check-in from `CLAUDE.md` (`send_later`, no subscription, no work started).
+- For each Gate 1 or Gate 2 PR listed, merge feedback as `CLAUDE.md` -> "Merge feedback" says (`send_later`, no subscription, no work started).
 
 ## Stop conditions
 
