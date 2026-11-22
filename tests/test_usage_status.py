@@ -42,6 +42,12 @@ def test_uses_the_newest_event_and_its_capture_time():
     assert result["captured_at"] == "2026-11-19T08:01:00Z"
 
 
+def test_a_single_last_event_gives_the_same_result_as_the_full_page():
+    page = events(info(0.27, 0.35), info(0.33, 0.36))
+    last = page["ccr"]["data"][-1]
+    assert build(last, NOW, 70, 90) == build(page, NOW, 70, 90)
+
+
 @pytest.mark.parametrize("five,seven,expected", [
     (0.33, 0.36, "proceed"),
     (0.70, 0.10, "caution"),

@@ -12,7 +12,7 @@ allowed-tools:
   - Bash(python3 *usage_status.py*)
 compatibility: Python 3. Cloud sessions need the claude-code-remote MCP (list_events). Local sessions need status line JSON with a rate_limits field.
 metadata:
-  version: "1.2.1"
+  version: "1.3.0"
   owner: claude-cowork
 ---
 # Usage status
@@ -53,15 +53,16 @@ Every API call in a Claude Code session returns rate-limit info. In a cloud sess
    python3 <skill-dir>/scripts/usage_status.py --session-id
    ```
 
-2. Call `mcp__claude-code-remote__list_events` with that `session_id`, `kinds: ["rate_limit_event"]`, and `limit: 100`.
+2. Call `mcp__claude-code-remote__list_events` with that `session_id`, `kinds: ["rate_limit_event"]`, and `limit: 20`.
    - With no cursor, the call returns the newest events, oldest first. The last event is the current state.
-   - If `data` is empty and `has_more` is true, call again with `before_id` set to `first_id`. Repeat until you find an event or `has_more` is false.
+   - `limit` counts events before the filter, so a page can hold no rate-limit event. If `data` is empty and `has_more` is true, call again with `limit: 100` and `before_id` set to `first_id`. Repeat until you find an event or `has_more` is false.
+   - The orchestrator checks before every delegation. A small page keeps each check cheap in a long session.
 
-3. Pass the full JSON result to the script through a quoted heredoc. The script finds the newest snapshot by itself.
+3. Pass the **last** event of `data`, whole (`created_at` and `rate_limit_event`), to the script through a quoted heredoc. It is the newest snapshot, the one the script would pick from the full result, and `created_at` gives `captured_at`. Copy it exactly; never edit a number.
 
    ```bash
    python3 <skill-dir>/scripts/usage_status.py <<'JSON'
-   <paste the list_events result here>
+   <paste the last event object of data here>
    JSON
    ```
 

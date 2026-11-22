@@ -18,6 +18,7 @@ Humans do four things:
 | `.claude/skills/` | Nine stage skills, six stack skills, two utilities (`usage-status`, `pr-watch`), and eight human-invoked skills: `draft-brief`, `inbox`, `pipeline-status`, `answer`, `usage-reminder`, `skills-help`, `run-pipeline`, `watchtower`. Run `/skills-help` for the list. |
 | `.claude/settings.json` | Guard hook and permissions, including `Skill(<name>)` allow rules |
 | `.claude/hooks/guard_bash.py` | PreToolUse guard that blocks destructive Bash commands |
+| `.claude/hooks/pre_compact.py` | PreCompact hook that sets what a compaction summary keeps |
 | `registry/` | Managed repos (`repos.yml`) and global policy (`policy.yml`) |
 | `templates/` | `AGENTS.md` and `.agent/profile.yml` templates for onboarded repos |
 | `.github/` | Brief form, PR evidence template, CODEOWNERS, CI, and the Project board sync workflow |

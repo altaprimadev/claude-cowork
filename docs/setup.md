@@ -128,6 +128,22 @@ Repo hooks do **not** load in multi-repo hosted sessions (`docs/open-questions.m
   ```
 
   The command finds the `claude-cowork` clone under the session's start directory. If the guard is missing, the command fails. Python reports the error, and the hook does not block (fail-open). Branch protection still holds.
+- [ ] Add the compaction hook in the same `hooks` object. It sets what a compaction summary keeps (`CLAUDE.md` -> "Lean context"), and it never blocks:
+
+  ```json
+  "PreCompact": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "python3 \"$(find \"$CLAUDE_PROJECT_DIR\" -maxdepth 3 -path '*/claude-cowork/.claude/hooks/pre_compact.py' -print -quit)\"",
+          "timeout": 10
+        }
+      ]
+    }
+  ]
+  ```
+- [ ] Optional, in the runner's cloud environment variables: `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=50`. Auto-compaction then starts at half of the window, before old runs crowd the context. It can only lower the threshold. A new session reads it.
 - [ ] Self-hosted runners: add the same block to the host's `~/.claude/settings.json`.
 - [ ] Verify in a pilot session: `git push origin main` must be blocked with a `BLOCKED by .claude/hooks/guard_bash.py` message.
 
