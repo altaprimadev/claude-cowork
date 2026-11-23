@@ -120,7 +120,7 @@ Repo hooks do **not** load in multi-repo hosted sessions (`docs/open-questions.m
           "hooks": [
             {
               "type": "command",
-              "command": "python3 \"$(find \"$CLAUDE_PROJECT_DIR\" -maxdepth 3 -path '*/claude-cowork/.claude/hooks/guard_bash.py' -print -quit)\"",
+              "command": "python3 \"$(find \"$CLAUDE_PROJECT_DIR\" -maxdepth 4 -path '*/claude-cowork/.claude/hooks/guard_bash.py' -print -quit)\"",
               "timeout": 10
             }
           ]
@@ -130,7 +130,7 @@ Repo hooks do **not** load in multi-repo hosted sessions (`docs/open-questions.m
   }
   ```
 
-  The command finds the `claude-cowork` clone under the session's start directory. If the guard is missing, the command fails. Python reports the error, and the hook does not block (fail-open). Branch protection still holds.
+  The command finds the `claude-cowork` clone under the session's start directory. A multi-repo cloud session starts in `/home/user`, so the hook sits at depth 4: `/home/user/claude-cowork/.claude/hooks/guard_bash.py`. Keep `-maxdepth` at 4 or more. If the guard is missing, the command fails. Python reports the error, and the hook does not block (fail-open). Branch protection still holds.
 - [ ] Add the compaction hook in the same `hooks` object. It sets what a compaction summary keeps (`CLAUDE.md` -> "Lean context"), and it never blocks:
 
   ```json
@@ -139,7 +139,7 @@ Repo hooks do **not** load in multi-repo hosted sessions (`docs/open-questions.m
       "hooks": [
         {
           "type": "command",
-          "command": "python3 \"$(find \"$CLAUDE_PROJECT_DIR\" -maxdepth 3 -path '*/claude-cowork/.claude/hooks/pre_compact.py' -print -quit)\"",
+          "command": "python3 \"$(find \"$CLAUDE_PROJECT_DIR\" -maxdepth 4 -path '*/claude-cowork/.claude/hooks/pre_compact.py' -print -quit)\"",
           "timeout": 10
         }
       ]
