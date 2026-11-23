@@ -48,8 +48,9 @@ Do not use to:
    ```bash
    set -o pipefail
    OUT="${TMPDIR:-/tmp}/verify-<issue>"; mkdir -p "$OUT"
-   bash -c "<commands.lint>" > "$OUT/lint.log" 2>&1; echo "exit=$?" >> "$OUT/lint.log"
+   <commands.lint> > "$OUT/lint.log" 2>&1; echo "exit=$?" >> "$OUT/lint.log"
    ```
+   Paste the profile command as is, for example `bun run lint`. Do not wrap it in `bash -c` or `sh -c`: the allow list has no `Bash(bash *)` rule, so a wrapper stops an unattended run at a permission prompt.
    Run all five even if one fails. Later failures matter too. If install fails, the rest are unreliable: record them as `not run: install failed`.
 
 2. **Read the output.** Check the exit code. Count failures and warnings. A warning in test output is a defect to fix, not to hide.
