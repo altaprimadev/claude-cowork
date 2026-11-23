@@ -37,9 +37,14 @@ Do not use when:
 2. **Collect items** with read-only calls. Use `gh` when it is authenticated. Otherwise use the GitHub MCP read tools (`list_issues`, `list_pull_requests`, `issue_read`). Run the repos in parallel when possible.
    ```bash
    R=<owner/repo>
-   gh issue list --repo "$R" --state open --label ai:needs-human --json number,title,url,labels,updatedAt
-   gh issue list --repo "$R" --state open --label ai:blocked     --json number,title,url,labels,updatedAt
-   gh pr list    --repo "$R" --state open --json number,title,url,labels,headRefName,isDraft,updatedAt,reviewDecision
+   # REST only: cloud sessions block GraphQL, so gh issue list and gh pr list fail there.
+   # The issues endpoint returns PRs too, so a labeled PR shows up in the first two calls.
+   gh api "repos/$R/issues?state=open&labels=ai:needs-human&per_page=100" \
+     --jq '.[] | {number, title, url: .html_url, labels: [.labels[].name], updated_at}'
+   gh api "repos/$R/issues?state=open&labels=ai:blocked&per_page=100" \
+     --jq '.[] | {number, title, url: .html_url, labels: [.labels[].name], updated_at}'
+   gh api --paginate "repos/$R/pulls?state=open&per_page=100" \
+     --jq '.[] | {number, title, url: .html_url, labels: [.labels[].name], head: .head.ref, draft, updated_at}'
    ```
    Classify each open item into one group. An item goes into the first group that matches.
 
@@ -72,7 +77,7 @@ Do not use when:
    **Gate 2: approve kode (1)**
    - [web#40 Add reset endpoint](url) · 5 jam · review agent lolos
    ```
-   - Age = now minus `updatedAt`, in hours or days.
+   - Age = now minus `updated_at`, in hours or days.
    - Short refs: `#n` for the control repo, `<repo>#n` for others.
    - Empty groups are omitted. Nothing at all: say the inbox is empty and give the latest `ai:report` issue link if one exists.
    - End with at most one line of suggestion, for example the oldest item to handle first.

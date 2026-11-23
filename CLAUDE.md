@@ -78,6 +78,7 @@ Gate 3 (production) has no agent and no skill. Only humans promote to production
 - **Evidence before claims.** Never write "done", "passes", or "works" without command output that proves it.
 - **One owner per stage.** Use only the skill that owns the stage. Do not mix procedures.
 - **State lives in GitHub.** Every stage change gets a label change and a comment. Humans must see progress without the agent account.
+  - Cloud sessions block GraphQL. Many `gh issue`, `gh pr`, `gh label`, and `gh repo` subcommands use it and fail with 403. Use `gh api` REST paths. A skill snippet with such a subcommand means its REST equivalent in `docs/gh-rest.md`.
   - Tasks are issues. Intake and planning create them as `ai:draft`. Only `task-review` turns a draft into `ai:ready`.
   - Old owner slugs. Issues and markers written before 2026-11-23 name `altaprimadev/<repo>`. Cloud sessions refuse that owner. Read such a slug as `alta-prima-indonesia/<repo>`, except `altaprimadev/apsy-api`, which did not move.
   - The GitHub Project board mirrors labels through `.github/workflows/project-sync.yml`. Agents never write to the Project. After a label change, dispatch the sync: `gh api -X POST repos/alta-prima-indonesia/claude-cowork/actions/workflows/project-sync.yml/dispatches -f ref=main`. A failed dispatch is not an error; the hourly run catches up.
