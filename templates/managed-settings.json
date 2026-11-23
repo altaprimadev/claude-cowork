@@ -65,7 +65,6 @@
       "mcp__claude-code-remote__archive_session",
       "mcp__claude-code-remote__list_repos",
       "mcp__claude-code-remote__send_message",
-      "PushNotification",
       "Bash(docker run *)",
       "Bash(docker inspect *)",
       "Bash(docker compose *)",
