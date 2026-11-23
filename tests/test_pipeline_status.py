@@ -6,7 +6,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / ".claude" / "skills" / "pipeline-status" / "scripts"))
 
-from status import build, classify, render  # noqa: E402
+from status import build, classify, render, runner_state  # noqa: E402
 
 REPO = "alta-prima-indonesia/svc"
 NOW = 1795150000  # 2026-11-20T03:26:40Z
@@ -85,3 +85,11 @@ def test_unplanned_task_without_stage_label_is_not_promoted():
     out = render(build(data([small, planned]), {}, None, None, None, NOW))
     assert "svc#30" in out and "tanpa label stage" in out
     assert "di-promote run berikutnya" in out.split("svc#31", 1)[1].split("\n", 1)[0]
+
+
+def test_runner_state_falls_back_to_session_status():
+    assert runner_state({"id": "s1", "session_status": "SESSION_STATUS_IDLE"})["state"] == "idle"
+    assert runner_state({"id": "s1", "session_status": "SESSION_STATUS_PENDING"})["state"] == "working"
+    assert runner_state({"id": "s1", "session_status": "SESSION_STATUS_OTHER"})["state"] == "unknown"
+    both = {"id": "s1", "status_bucket": "SESSION_STATUS_BUCKET_FAILED", "session_status": "SESSION_STATUS_IDLE"}
+    assert runner_state(both)["state"] == "failed"

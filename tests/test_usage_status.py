@@ -125,3 +125,12 @@ def test_weekly_warning_does_not_pause():
 def test_five_hour_warning_follows_the_percent():
     result = build(info(0.80, 0.10, five_status="allowed_warning"), NOW, 70, 90)
     assert result["advice"] == "caution"
+
+
+def test_empty_input_names_the_list_events_step(capsys, monkeypatch):
+    import io
+    import usage_status
+    monkeypatch.setattr(sys, "argv", ["usage_status.py", "--json"])
+    monkeypatch.setattr(sys, "stdin", io.StringIO(""))
+    assert usage_status.main() == 1
+    assert "list_events" in capsys.readouterr().err
