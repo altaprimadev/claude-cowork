@@ -205,6 +205,28 @@ class GuardBashTest(unittest.TestCase):
             with self.subTest(cmd=cmd):
                 self.assertBlocked(cmd)
 
+    def test_gh_ref_tag_and_repo_creation_blocked(self):
+        for cmd in [
+            "gh api -X POST repos/o/r/git/refs -f ref=refs/tags/v1.0.0 -f sha=abc",
+            "gh api repos/o/r/git/refs -f ref=refs/tags/v1 -f sha=abc",
+            "gh api -X POST repos/o/r/git/refs -f ref=refs/heads/main -f sha=abc",
+            "gh api -X PATCH repos/o/r/git/refs/tags/v1 -f sha=abc",
+            "gh api -X DELETE repos/o/r/git/refs/tags/v1",
+            "gh api -X POST repos/o/r/forks",
+            "gh api -X POST repos/o/template/generate -f name=x",
+            "gh repo create alta-prima-indonesia/x --private",
+            "gh repo fork alta-prima-indonesia/x",
+            "gh api graphql -f query='mutation { createRef(input: {}) { clientMutationId } }'",
+            "gh api graphql -f query='mutation { createRepository(input: {}) { clientMutationId } }'",
+            "gh api graphql -f query='mutation { forkRepository(input: {}) { clientMutationId } }'",
+        ]:
+            with self.subTest(cmd=cmd):
+                self.assertBlocked(cmd)
+
+    def test_gh_feature_branch_ref_allowed(self):
+        self.assertAllowed("gh api -X POST repos/o/r/git/refs -f ref=refs/heads/ai/12-x -f sha=abc")
+        self.assertAllowed("gh api repos/o/r/git/refs/tags")
+
     def test_push_to_integration_branches_blocked(self):
         for cmd in [
             "git push origin development",

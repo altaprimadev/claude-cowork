@@ -25,7 +25,7 @@ Use when:
 
 Do not use when:
 - The PR is a design PR (`design/*` branch). A human reviews it for Gate 1.
-- The PR is an onboarding or registry PR (`ai/onboarding-*`, `ai/registry-*`). It has no issue, and a human reviews it.
+- The PR is an onboarding or registry PR (`ai/onboarding` in the target repo, `ai/onboarding-*` or `ai/registry-*` in claude-cowork). It has no issue, and a human reviews it.
 - The PR is labeled `ai:blocked` or `ai:needs-human`.
 - The PR is merged or closed.
 

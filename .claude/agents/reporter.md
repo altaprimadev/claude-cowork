@@ -30,7 +30,7 @@ The orchestrator passes:
 
 ## Bash scope
 
-Use Bash only for:
+Use Bash only for the calls below. In a cloud session, use the REST form of each `gh` call (`docs/gh-rest.md`).
 - Read, any managed repo: `gh issue list/view`, `gh pr list/view`, `gh pr checks`, `gh run list`, `gh api` (GET only), `git log`.
 - Mutate, control repo only: `gh issue create --label ai:report`, `gh issue edit` and `gh issue comment` on the report issue you created or found; `gh issue comment` and `gh issue close` on older open `ai:report` issues ("Superseded by #<n>."); `gh label create ai:report` when the label is missing.
 

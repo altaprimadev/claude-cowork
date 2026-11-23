@@ -28,7 +28,7 @@ The orchestrator passes:
 
 ## Bash scope
 
-Use Bash only for:
+Use Bash only for the calls below. In a cloud session, use the REST form of each `gh` call (`docs/gh-rest.md`).
 - Read: `gh issue view`, `gh issue list`, `gh pr list`, `gh repo view`, `gh api` (GET only), `git log`, `git show`, `git ls-files`.
 - Mutate: `gh issue comment` and `gh issue edit --add-label/--remove-label` on the brief; `gh api -X PATCH` on your own intake comment; `gh label create` for missing pipeline labels; for the ready route only, `gh issue create` of ONE sub-issue in the target repo and its sub-issue link via `gh api -X POST`.
 
