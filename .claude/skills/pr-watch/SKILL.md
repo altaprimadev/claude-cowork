@@ -31,7 +31,7 @@ Do not use when:
 
 ## Mode `subscribe`
 
-1. List open PRs in `altaprimadev/claude-cowork` and in every repo with `status: active` in `registry/repos.yml`:
+1. List open PRs in `alta-prima-indonesia/claude-cowork` and in every repo with `status: active` in `registry/repos.yml`:
    `gh api 'repos/<repo>/pulls?state=open&per_page=100' --jq '.[] | select(.head.ref | test("^(ai|design)/")) | .number'`
 2. Call `subscribe_pr_activity` for each PR. The call is idempotent, so repeat calls are harmless.
 3. If the result says another Claude session already watches the PR, note it in the run summary. Do not retry.

@@ -21,7 +21,7 @@ body:
     attributes:
       label: Affected repos (optional)
       description: Comma-separated owner/name. Leave empty to let the agent decide from registry/repos.yml.
-      placeholder: altaprimadev/web, altaprimadev/api
+      placeholder: alta-prima-indonesia/web, alta-prima-indonesia/api
     validations:
       required: false
   - type: textarea

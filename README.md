@@ -1,6 +1,6 @@
 # claude-cowork
 
-Control plane for AI-driven development at `altaprimadev`. Agents work around the clock. Humans brief, watch, and approve.
+Control plane for AI-driven development at the `alta-prima-indonesia` GitHub organization. Agents work around the clock. Humans brief, watch, and approve.
 
 Humans do four things:
 

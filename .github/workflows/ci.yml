@@ -1,7 +1,7 @@
 # CI for claude-cowork.
 # Runs the config validator and the guard hook tests on every PR and on main.
 # The job name `validate` is the required status check for branch protection:
-#   scripts/setup-branch-protection.sh altaprimadev/claude-cowork --check validate
+#   scripts/setup-branch-protection.sh alta-prima-indonesia/claude-cowork --check validate
 
 name: CI
 

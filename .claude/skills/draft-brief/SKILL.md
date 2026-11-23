@@ -41,7 +41,7 @@ Do not use when:
    - For each repo the idea may touch, read `AGENTS.md` and grep the code if a clone exists. Learn how the relevant part works today.
    - List open briefs and check for a duplicate:
      ```bash
-     gh issue list --repo altaprimadev/claude-cowork --label ai:brief --state open --json number,title,url
+     gh issue list --repo alta-prima-indonesia/claude-cowork --label ai:brief --state open --json number,title,url
      ```
      If `gh` is not authenticated, use the GitHub MCP `list_issues` tool. If a brief covers the same outcome, show it and ask whether to add a comment there instead.
 
@@ -106,10 +106,10 @@ Do not use when:
    <YYYY-MM-DD | _No response_>
    ```
    Write the body to a temp file, then use the first method that works:
-   1. GitHub MCP `issue_write` (method `create`) on `altaprimadev/claude-cowork` with title, body, and `labels: ["ai:brief"]`.
+   1. GitHub MCP `issue_write` (method `create`) on `alta-prima-indonesia/claude-cowork` with title, body, and `labels: ["ai:brief"]`.
    2. CLI:
       ```bash
-      gh issue create --repo altaprimadev/claude-cowork \
+      gh issue create --repo alta-prima-indonesia/claude-cowork \
         --title "[brief] <outcome>" --label ai:brief --body-file "$BODY_FILE"
       ```
    3. Neither works: build a prefilled form link and give it to the human. The form adds `ai:brief` itself. Priority cannot be prefilled; tell the human to pick it.
@@ -118,7 +118,7 @@ Do not use when:
       import sys, urllib.parse as u
       keys = ["title", "goal", "repos", "acceptance", "constraints", "due"]
       q = {"template": "ai-brief.yml"} | {k: v for k, v in zip(keys, sys.argv[1:]) if v}
-      print("https://github.com/altaprimadev/claude-cowork/issues/new?" + u.urlencode(q))
+      print("https://github.com/alta-prima-indonesia/claude-cowork/issues/new?" + u.urlencode(q))
       PY
       ```
 

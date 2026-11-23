@@ -194,7 +194,7 @@ class GuardBashTest(unittest.TestCase):
             "gh pr merge 12 --squash",
             "gh pr review 12 --approve",
             "gh pr review 12 -a",
-            "gh repo delete altaprimadev/x --yes",
+            "gh repo delete alta-prima-indonesia/x --yes",
             "gh api -X PUT repos/o/r/branches/main/protection --input p.json",
             "gh api --method DELETE repos/o/r/branches/main/protection",
             "gh api repos/o/r/rulesets -f name=x",
@@ -220,7 +220,7 @@ class GuardBashTest(unittest.TestCase):
     def test_gh_admin_actions_blocked(self):
         for cmd in [
             "gh repo edit --visibility public",
-            "gh repo archive altaprimadev/x --yes",
+            "gh repo archive alta-prima-indonesia/x --yes",
             "gh repo rename newname",
             "gh repo deploy-key add key.pub",
             "gh secret set TOKEN --body x",
@@ -248,13 +248,13 @@ class GuardBashTest(unittest.TestCase):
             "gh api repos/o/r/branches/main/protection",
             "gh api repos/o/r/pulls",
             "gh api repos/o/r/pulls/12/merge",
-            "gh api -X POST repos/altaprimadev/claude-cowork/actions/workflows/project-sync.yml/dispatches -f ref=main",
+            "gh api -X POST repos/alta-prima-indonesia/claude-cowork/actions/workflows/project-sync.yml/dispatches -f ref=main",
             "gh api repos/o/r",
             "gh api repos/o/r/collaborators",
             "gh api -X POST repos/o/r/issues/5/comments -f body=ok",
             "gh api -X POST repos/o/r/issues/5/labels -f labels[]=ai:triaged",
-            "gh repo view altaprimadev/claude-cowork",
-            "gh repo list altaprimadev",
+            "gh repo view alta-prima-indonesia/claude-cowork",
+            "gh repo list alta-prima-indonesia",
             "gh secret list",
         ]:
             with self.subTest(cmd=cmd):

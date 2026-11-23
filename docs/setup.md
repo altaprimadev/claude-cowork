@@ -3,29 +3,29 @@
 Do these steps in order. Each step lists who does it.
 The agent never runs the scripts in this repo against GitHub. Humans run them.
 
-## Current state (2026-11-18)
+## Current state (2026-11-23)
 
 | Item | State |
 |---|---|
-| `altaprimadev` account type | **Personal user account**, not an organization. There are no GitHub teams. |
-| GitHub plan | Free. No Pro or Team plan yet. |
-| Branch protection | **Not active.** Private repos on a free personal account cannot use it. |
+| Repo owner | **Organization `alta-prima-indonesia`** since 2026-11-23. The repos moved from the personal account `altaprimadev`. `altaprimadev/apsy-api` (frozen) stays under `altaprimadev`. |
+| GitHub plan | Free. The org Team plan payment is pending. |
+| Branch protection | **Not active.** Private repos on a Free org cannot use it. `gh api repos/<repo>/branches/<branch>/protection` returns 403 "Upgrade to GitHub Pro" for `main` and `development` of `claude-cowork`, `alta-prima-admin-back-end`, and `alta-prima-admin-prisma` (checked 2026-11-23). |
 | CODEOWNERS | `@adhemukhlis` (a human collaborator) |
 | Network access | **Full** (unrestricted) by owner decision. Outbound data is not restricted. |
 | Autonomy cap | Repos with `branch_protection: unavailable` in `registry/repos.yml` may run above 0 under the compensating rules in `CLAUDE.md`. Every other unprotected repo stays at 0. |
-| Agent GitHub identity | **`altaprimadev`, the repo owner (admin).** No separate machine user. Accepted risk: the agent holds admin rights, so the guard hook and `CLAUDE.md` are the only barriers. |
+| Agent GitHub identity | **`altaprimadev`, with admin rights on every `alta-prima-indonesia` repo** (`permissions.admin: true`, checked 2026-11-23). No separate machine user. Accepted risk: the agent holds admin rights, so the guard hook and `CLAUDE.md` are the only barriers. |
 | Agent Claude account | **One shared Claude account** runs both agent sessions and human chat sessions. Its GitHub connection is `altaprimadev`. The human reviewer `adhemukhlis` approves only in GitHub web. |
 | Claude plan | Team Standard now. **Team Premium** (Max-level usage) for the account that runs agents, coming soon. The team stays on a Team plan so managed settings keep the guard hook active in multi-repo sessions. |
 
 Without branch protection, the gates rest on instructions, the guard hook, and a human who merges by hand. That breaks the brief's rule that the platform enforces integrity. The pilot first accepted this gap because every repo ran at autonomy 0. That reason no longer holds: `alta-prima-admin-back-end` and `alta-prima-admin-prisma` now run at autonomy 2 under the compensating rules, with an agent identity that holds admin rights. The account owner must re-confirm this risk or lower autonomy.
 
-When `altaprimadev` gets Pro, or moves to an organization on the Team plan:
+When the `alta-prima-indonesia` org gets the Team plan:
 
 1. Apply branch protection (step 2).
 2. Remove the autonomy cap rows above.
 3. Raise autonomy per repo (step 8).
 
-Moving to an organization is recommended. The registry already lists more than one repo. An organization adds teams, per-repo access for the machine user, and Team-plan protection rules.
+The org adds teams and per-repo access for a machine user. Team-plan protection rules arrive with the paid plan.
 
 ## 1. Agent identity (account owner)
 
@@ -35,34 +35,34 @@ Moving to an organization is recommended. The registry already lists more than o
   - Store its recovery codes in the company vault.
   - Never reuse `altaprimadev` or a person's account.
 - [ ] Turn on 2FA for `altaprimadev` and for every human reviewer.
-- [ ] As `altaprimadev`, invite the machine user as a **collaborator** on each managed repo.
-  - A personal account always grants collaborators write access. An organization can grant less.
+- [ ] As an `alta-prima-indonesia` org owner, give the machine user access to each managed repo.
+  - Grant write access, not admin.
   - Never make the machine user a code owner.
 - [ ] Connect the agent Claude account to GitHub as the machine user. Install the Claude GitHub App on `claude-cowork` and on every managed repo. Event triggers need the app (Q2).
 
 ## 2. GitHub integrity (repo owner, per repo)
 
-Branch protection needs Pro (personal account) or Team (organization) for private repos. Run the protection script as `altaprimadev`: collaborators on a personal account are not admins.
+Branch protection needs the Team plan for private org repos. Run the protection script as an org owner or a repo admin.
 
 - [ ] Set `.github/CODEOWNERS` to human reviewers: GitHub usernames, or `@org/team` after a move to an organization. Invite each reviewer as a collaborator.
 - [ ] Create the labels:
 
   ```bash
-  scripts/setup-labels.sh altaprimadev/claude-cowork altaprimadev/<repo>
+  scripts/setup-labels.sh alta-prima-indonesia/claude-cowork alta-prima-indonesia/<repo>
   ```
 
 - [ ] Set up the GitHub Project board (once, for all repos):
-  1. Signed in as `altaprimadev`, create a Project (Profile → Projects → New project). Note its number from the URL (`/users/altaprimadev/projects/<number>`).
+  1. Signed in as `altaprimadev`, create a Project (Profile → Projects → New project). Note its number from the URL (`/users/altaprimadev/projects/<number>`). Project #2 still lives there after the move; a Project in the `alta-prima-indonesia` org needs a new number and owner in `registry/policy.yml`.
   2. Give the single-select field `Status` these options: `Brief`, `Design`, `Draft`, `Backlog`, `Ready`, `In progress`, `Blocked`, `Ready to merge`, `In review`, `Done`.
-  3. Create a **classic** personal access token as `altaprimadev` (Settings → Developer settings → Personal access tokens → Tokens (classic)). Scopes: `project` and `repo`. Set an expiry. Fine-grained tokens cannot reach Projects owned by a user account. After a move to an organization, switch to a fine-grained token with Projects read/write and Issues read.
+  3. Create a **classic** personal access token as `altaprimadev` (Settings → Developer settings → Personal access tokens → Tokens (classic)). Scopes: `project` and `repo`. Set an expiry. Fine-grained tokens cannot reach Projects owned by a user account. After the Project moves to the org, switch to a fine-grained token with Projects read/write and Issues read.
   4. Save it as the Actions secret `PROJECT_SYNC_TOKEN` in `claude-cowork` (Settings → Secrets and variables → Actions). Agents never see it.
   5. Set `project.number` in `registry/policy.yml` through a PR. `0` keeps the sync off.
   6. Run the workflow once: Actions → Project sync → Run workflow. Check that items appear.
 - [ ] Preview branch protection with a dry run, then apply it:
 
   ```bash
-  scripts/setup-branch-protection.sh altaprimadev/<repo> --check "<ci-check-name>"
-  scripts/setup-branch-protection.sh altaprimadev/<repo> --check "<ci-check-name>" --apply
+  scripts/setup-branch-protection.sh alta-prima-indonesia/<repo> --check "<ci-check-name>"
+  scripts/setup-branch-protection.sh alta-prima-indonesia/<repo> --check "<ci-check-name>" --apply
   ```
 
   This enables:
@@ -161,7 +161,7 @@ Scheduled-task runs start in auto mode (Q5). They still stop on `ask` rules. Rep
 
 ## 6. How sessions use claude-cowork
 
-- Main repo: `altaprimadev/claude-cowork`, always first.
+- Main repo: `alta-prima-indonesia/claude-cowork`, always first.
 - Additional repos: the active managed repos.
 - Every prompt starts with "Read `claude-cowork/CLAUDE.md`". The orchestrator then routes work to the fixed agents in `.claude/agents/`.
 - Agents load skills from `.claude/skills/`. If the Skill tool cannot find a skill, they read the file directly.
@@ -192,7 +192,7 @@ Scheduled-task runs start in auto mode (Q5). They still stop on `ask` rules. Rep
 - [ ] After Pro/Team is active, make the `validate` job a required check:
 
   ```bash
-  scripts/setup-branch-protection.sh altaprimadev/claude-cowork --check validate
+  scripts/setup-branch-protection.sh alta-prima-indonesia/claude-cowork --check validate
   ```
 - [ ] Or apply the ruleset template `templates/rulesets/main-protector.json` (Settings -> Rules -> Rulesets -> Import a ruleset). It blocks deletion and force-push on `main`, requires a PR, and requires the `validate` check from GitHub Actions. It requires 0 approvals: Gate 2 rests on the agent rules and the guard hook. Repository admins can bypass it through a PR.
 

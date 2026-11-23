@@ -14,11 +14,11 @@ gh pr edit 5 --add-label ai:changes-needed --remove-label ai:review-passed
 ---
 gh pr review 5 --comment -b "findings"
 ---
-gh -R altaprimadev/claude-cowork pr view 5 --json state
+gh -R alta-prima-indonesia/claude-cowork pr view 5 --json state
 ---
-gh --repo altaprimadev/claude-cowork issue edit 5 --add-label ai:triaged
+gh --repo alta-prima-indonesia/claude-cowork issue edit 5 --add-label ai:triaged
 ---
-gh api -X POST repos/altaprimadev/claude-cowork/actions/workflows/project-sync.yml/dispatches -f ref=main
+gh api -X POST repos/alta-prima-indonesia/claude-cowork/actions/workflows/project-sync.yml/dispatches -f ref=main
 ---
 gh api graphql -f query='query{repository(owner:"a",name:"b"){pullRequest(number:5){reviewDecision}}}'
 ---

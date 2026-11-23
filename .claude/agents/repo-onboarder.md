@@ -1,6 +1,6 @@
 ---
 name: repo-onboarder
-description: Analyzes a newly detected repo and opens one onboarding PR that adds `.agent/profile.yml` and `AGENTS.md`. Invoke when a repo owned by altaprimadev is missing from `registry/repos.yml` (detected), or when a human asks to refresh a repo's profile.
+description: Analyzes a newly detected repo and opens one onboarding PR that adds `.agent/profile.yml` and `AGENTS.md`. Invoke when a repo owned by the alta-prima-indonesia org is missing from `registry/repos.yml` (detected), or when a human asks to refresh a repo's profile.
 tools: Read, Grep, Glob, Bash, Write, Edit
 skills:
   - repo-onboarding
