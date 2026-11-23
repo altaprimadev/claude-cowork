@@ -105,7 +105,7 @@ Open it from a session: the cloud environment menu in the session's title bar â†
 
 ## 4. Guard hook in managed settings (Claude org admin)
 
-`templates/managed-settings.json` holds the full org managed settings: the allow and deny rules from section 5 and the two hooks below. Paste it as the whole managed settings. When `.claude/settings.json` or a hook changes, update the template in the same PR.
+`templates/managed-settings.json` holds the full org managed settings: the allow and deny rules from section 5 and the two hooks below. Paste it as the whole managed settings. When `.claude/settings.json` or a hook changes, update the template in the same PR. `scripts/validate-config.py` fails when the allow lists differ, when the template denies a rule the repo does not, or when a hook is missing.
 
 Repo hooks do **not** load in multi-repo hosted sessions (`docs/open-questions.md`, Q4). Every agent session is multi-repo, so install the hook at org level as well.
 
