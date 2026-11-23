@@ -156,7 +156,7 @@ Design impact (safest assumption):
 - CODEOWNERS uses usernames (`@adhemukhlis`) instead of teams.
 - The machine user joins each repo as a collaborator. On a personal account, collaborators always get write access.
 - Revisit when the account moves to Pro, or to an organization on the Team plan. See `docs/setup.md`, "Current state".
-- Update (2026-11-23): the repos moved to the organization `alta-prima-indonesia`, still on GitHub Free (Team plan payment pending). Branch protection still returns 403 for private repos, so `branch_protection: unavailable` and the compensating rules stay. The agent still acts as `altaprimadev`, now with admin rights on the org repos.
+- Update (2026-11-23): the repos moved to the organization `alta-prima-indonesia`, still on GitHub Free (Team plan payment pending). Branch protection still returns 403 for private repos, so `branch_protection: unavailable` and the compensating rules stay. The agent still acts as `altaprimadev`, now with admin rights on the org repos instead of repo ownership. The decisions above that call `altaprimadev` "the repo owner" read as "org repo admin" from this date. Whether `altaprimadev` is also an org owner is not verified: cloud sessions block `orgs/*` endpoints.
 
 ## Claude plan and account constraint (2026-11-18)
 
