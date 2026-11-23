@@ -79,6 +79,7 @@ Gate 3 (production) has no agent and no skill. Only humans promote to production
 - **One owner per stage.** Use only the skill that owns the stage. Do not mix procedures.
 - **State lives in GitHub.** Every stage change gets a label change and a comment. Humans must see progress without the agent account.
   - Tasks are issues. Intake and planning create them as `ai:draft`. Only `task-review` turns a draft into `ai:ready`.
+  - Old owner slugs. Issues and markers written before 2026-11-23 name `altaprimadev/<repo>`. Cloud sessions refuse that owner. Read such a slug as `alta-prima-indonesia/<repo>`, except `altaprimadev/apsy-api`, which did not move.
   - The GitHub Project board mirrors labels through `.github/workflows/project-sync.yml`. Agents never write to the Project. After a label change, dispatch the sync: `gh api -X POST repos/alta-prima-indonesia/claude-cowork/actions/workflows/project-sync.yml/dispatches -f ref=main`. A failed dispatch is not an error; the hourly run catches up.
 - **Respect autonomy.** Effective level = min(`registry/repos.yml` autonomy, target `.agent/profile.yml` autonomy).
   - `0`: review and comment only. No branches, no code PRs. One exception: in the control repo (`claude-cowork`), `repo-onboarding` opens registry PRs (`ai/registry-*`, `ai/onboarding-*`). A human merges them.
