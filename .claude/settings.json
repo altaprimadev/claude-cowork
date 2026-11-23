@@ -48,6 +48,7 @@
       "Bash(jq *)",
       "Bash(mkdir *)",
       "Bash(date *)",
+      "Bash(sed *)",
       "Bash(docker build *)",
       "mcp__claude-code-remote__list_triggers",
       "mcp__claude-code-remote__get_trigger",
@@ -61,6 +62,7 @@
       "mcp__claude-code-remote__get_session",
       "mcp__claude-code-remote__list_sessions",
       "mcp__claude-code-remote__list_events",
+      "mcp__claude-code-remote__send_message",
       "mcp__claude-code-remote__create_session",
       "mcp__claude-code-remote__archive_session"
     ],
