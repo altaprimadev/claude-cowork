@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Skill(intake-classify)",
+      "Skill(repo-onboarding)",
+      "Skill(async-design)",
+      "Skill(plan-to-issues)",
+      "Skill(task-review)",
+      "Skill(tdd)",
+      "Skill(evidence-report)",
+      "Skill(review-two-stage)",
+      "Skill(daily-report)",
+      "Skill(draft-brief)",
+      "Skill(inbox)",
+      "Skill(answer)",
+      "Skill(stack-typescript-bun)",
+      "Skill(stack-nextjs-ui)",
+      "Skill(stack-hono-api)",
+      "Skill(stack-prisma-postgres)",
+      "Skill(stack-playwright-e2e)",
+      "Skill(stack-deploy)",
+      "Skill(usage-status)",
+      "Skill(usage-reminder)",
+      "Skill(skills-help)",
+      "Skill(run-pipeline)",
+      "Skill(pr-watch)",
+      "Skill(pipeline-status)",
+      "Skill(watchtower)",
+      "Read",
+      "Grep",
+      "Glob",
+      "Edit",
+      "Write",
+      "Bash(git *)",
+      "Bash(gh *)",
+      "Bash(bun *)",
+      "Bash(bunx *)",
+      "Bash(python3 *)",
+      "Bash(ls *)",
+      "Bash(cat *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(wc *)",
+      "Bash(find *)",
+      "Bash(grep *)",
+      "Bash(rg *)",
+      "Bash(jq *)",
+      "Bash(mkdir *)",
+      "Bash(date *)",
+      "Bash(docker build *)",
+      "mcp__claude-code-remote__list_triggers",
+      "mcp__claude-code-remote__get_trigger",
+      "mcp__claude-code-remote__create_trigger",
+      "mcp__claude-code-remote__update_trigger",
+      "mcp__claude-code-remote__fire_trigger",
+      "mcp__claude-code-remote__delete_trigger",
+      "mcp__claude-code-remote__send_later",
+      "mcp__claude-code-remote__subscribe_pr_activity",
+      "mcp__claude-code-remote__unsubscribe_pr_activity",
+      "mcp__claude-code-remote__get_session",
+      "mcp__claude-code-remote__list_sessions",
+      "mcp__claude-code-remote__list_events",
+      "mcp__claude-code-remote__create_session",
+      "mcp__claude-code-remote__archive_session",
+      "mcp__claude-code-remote__list_repos",
+      "mcp__claude-code-remote__send_message",
+      "Bash(docker run *)",
+      "Bash(docker inspect *)",
+      "Bash(docker compose *)",
+      "Bash(sort *)",
+      "Bash(sed *)",
+      "Bash(echo *)"
+    ],
+    "deny": [
+      "Bash(gh pr merge *)",
+      "Bash(gh -R * pr merge *)",
+      "Bash(gh --repo * pr merge *)",
+      "Bash(gh workflow run *)",
+      "Bash(gh repo delete *)",
+      "Bash(git push --force *)",
+      "Read(**/.env.production)",
+      "Read(**/.env.prod)",
+      "Read(~/.aws/**)",
+      "Read(~/.ssh/**)",
+      "mcp__github__merge_pull_request",
+      "mcp__github__enable_pr_auto_merge",
+      "mcp__github__actions_run_trigger"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$(find \"$CLAUDE_PROJECT_DIR\" -maxdepth 3 -path '*/claude-cowork/.claude/hooks/guard_bash.py' -print -quit)\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$(find \"$CLAUDE_PROJECT_DIR\" -maxdepth 3 -path '*/claude-cowork/.claude/hooks/pre_compact.py' -print -quit)\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

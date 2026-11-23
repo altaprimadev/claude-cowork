@@ -198,6 +198,10 @@ def main(argv=None):
 
     caution, pause = load_thresholds(a.policy)
     raw = open(a.file).read() if a.file else sys.stdin.read()
+    if not raw.strip():
+        print("error: no input. Call list_events with kinds [\"rate_limit_event\"] first, "
+              "then pass the last event on stdin (SKILL.md steps 1-3).", file=sys.stderr)
+        return 1
     try:
         data = json.loads(raw)
     except json.JSONDecodeError as e:

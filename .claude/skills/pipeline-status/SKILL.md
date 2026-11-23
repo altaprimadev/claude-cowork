@@ -40,12 +40,14 @@ Do not use when:
 ## Procedure
 
 1. **Runner and schedule.** Call `list_triggers` with `enabled: true`. Take the `persistent_session_id` of `Pipeline: batch` and call `get_session` with it.
-2. **Usage.** Run `usage-status` with `--json --policy <clone>/registry/policy.yml`. On an error, use `null`.
+2. **Usage.** Follow the `usage-status` skill steps 1 to 3: get the session id, call `mcp__claude-code-remote__list_events` for rate-limit events, and pass the last event to its script with `--json --policy <clone>/registry/policy.yml`. On an error, use `null`.
 3. **Build.** Write one JSON object to a scratch file and pipe it to the script:
    ```bash
    python3 <skill-dir>/scripts/status.py --registry <clone>/registry/repos.yml < <scratch>/status-in.json
    ```
-   Input: `{"triggers": <list_triggers result>, "runner": <get_session JSON or null>, "usage": <usage json or null>}`. For `runner`, pass only the JSON object inside the session record, not the wrapper text around it.
+   Input: `{"triggers": [...], "runner": {...} or null, "usage": <usage json or null>}`. Pass only the fields the script reads, copied exactly; skip trigger prompts:
+   - each trigger: `name`, `enabled`, `next_run_at`, `persistent_session_id`;
+   - `runner` (the object inside the session record): `id`, `title`, `status_bucket`, `session_status`, `updated_at`, and `task_summary` when present.
    The script reads open issues and PRs with `gh api` in the control repo and every `active` registry repo.
 4. **Reply** with the script output as is, outside a code block. With a repo argument, drop the lines of other repos. Add at most two lines:
    - Items wait on the human: point to `/inbox` or `/answer`.

@@ -37,6 +37,11 @@ BUCKETS = {
     "SESSION_STATUS_BUCKET_COMPLETED": "idle",
     "SESSION_STATUS_BUCKET_FAILED": "failed",
 }
+# Fallback when the input has no status_bucket. Only values seen in get_session results.
+SESSION_STATUS = {
+    "SESSION_STATUS_IDLE": "idle",
+    "SESSION_STATUS_PENDING": "working",
+}
 
 
 # ---------- input helpers ----------
@@ -79,7 +84,8 @@ def runner_state(runner: dict | None) -> dict:
     if not isinstance(runner, dict) or not runner.get("id"):
         return {"state": "unknown"}
     meta = runner.get("external_metadata") or {}
-    return {"state": BUCKETS.get(runner.get("status_bucket", ""), "unknown"),
+    state = BUCKETS.get(runner.get("status_bucket", "")) or SESSION_STATUS.get(runner.get("session_status", ""), "unknown")
+    return {"state": state,
             "id": runner["id"], "title": runner.get("title", ""),
             "task": runner.get("task_summary") or meta.get("task_summary") or "",
             "updated_at": runner.get("updated_at", "")}
