@@ -87,6 +87,8 @@ GH_ADMIN_SUBCOMMANDS = {
     ("repo", "unarchive"),
     ("repo", "rename"),
     ("repo", "deploy-key"),
+    ("repo", "create"),
+    ("repo", "fork"),
     ("secret", "set"),
     ("secret", "delete"),
     ("variable", "set"),
@@ -114,8 +116,9 @@ GH_GLOBAL_VALUE_FLAGS = {"-R", "--repo", "--hostname"}
 
 # GraphQL mutations that merge, approve, or move refs. Matched only inside a `mutation`.
 GRAPHQL_BLOCKED_MUTATIONS = re.compile(
-    r"\b(mergePullRequest|enablePullRequestAutoMerge|mergeBranch|updateRefs?|deleteRef|"
-    r"updateBranchProtectionRule|deleteBranchProtectionRule)\b"
+    r"\b(mergePullRequest|enablePullRequestAutoMerge|mergeBranch|createRef|updateRefs?|deleteRef|"
+    r"updateBranchProtectionRule|deleteBranchProtectionRule|"
+    r"createRepository|forkRepository|cloneTemplateRepository)\b"
 )
 GRAPHQL_REVIEW_MUTATIONS = re.compile(r"\b(addPullRequestReview|submitPullRequestReview)\b")
 
@@ -542,7 +545,8 @@ def check_gh_graphql(rest: list[str]) -> None:
         if not re.search(r"\bmutation\b", value):
             continue
         if m := GRAPHQL_BLOCKED_MUTATIONS.search(value):
-            raise Blocked(f"GraphQL mutation {m.group(1)} merges or moves refs. Humans merge (Gate 2).")
+            raise Blocked(f"GraphQL mutation {m.group(1)} merges, creates or moves refs, or creates a repository. "
+                          "Humans merge (Gate 2), tag, and create repositories. Use git push for a feature branch.")
         if GRAPHQL_REVIEW_MUTATIONS.search(value) and any(
                 re.search(r"\bAPPROVE\b", f) for f in gh_api_fields(rest)):
             raise Blocked("GraphQL review with event APPROVE is not allowed. Agents never approve.")
@@ -607,6 +611,19 @@ def check_gh(argv: list[str], ctx: Context) -> None:
             re.fullmatch(r"event=APPROVE", f) for f in gh_api_fields(rest)
         ):
             raise Blocked("gh api review with event=APPROVE is not allowed. Agents never approve.")
+        if re.search(r"/git/refs/tags(/|$)", path):
+            raise Blocked(f"gh api {method} {path} changes a tag. Release tags are human-only (Gate 3).")
+        if re.search(r"/git/refs$", path):
+            for f in gh_api_fields(rest):
+                ref = f.split("=", 1)[1] if f.startswith("ref=") else None
+                if ref is None:
+                    continue
+                if ref.startswith("refs/tags/"):
+                    raise Blocked(f"gh api {method} {path} creates tag '{ref}'. Release tags are human-only (Gate 3).")
+                if ref.removeprefix("refs/heads/") in ctx.protected:
+                    raise Blocked(f"gh api {method} {path} creates protected branch ref '{ref}'.")
+        if re.search(r"/forks$", path) or re.search(r"^/?repos/[^/]+/[^/]+/generate$", path):
+            raise Blocked(f"gh api {method} {path} creates a repository. Humans create repositories.")
         m = re.search(r"/git/refs/heads/(.+)$", path)
         if m and m.group(1) in ctx.protected:
             raise Blocked(f"gh api {method} on protected branch ref '{m.group(1)}' is not allowed.")

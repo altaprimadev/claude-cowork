@@ -95,7 +95,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$(find \"$CLAUDE_PROJECT_DIR\" -maxdepth 3 -path '*/claude-cowork/.claude/hooks/guard_bash.py' -print -quit)\"",
+            "command": "python3 \"$(find \"$CLAUDE_PROJECT_DIR\" -maxdepth 4 -path '*/claude-cowork/.claude/hooks/guard_bash.py' -print -quit)\"",
             "timeout": 10
           }
         ]
@@ -106,7 +106,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$(find \"$CLAUDE_PROJECT_DIR\" -maxdepth 3 -path '*/claude-cowork/.claude/hooks/pre_compact.py' -print -quit)\"",
+            "command": "python3 \"$(find \"$CLAUDE_PROJECT_DIR\" -maxdepth 4 -path '*/claude-cowork/.claude/hooks/pre_compact.py' -print -quit)\"",
             "timeout": 10
           }
         ]

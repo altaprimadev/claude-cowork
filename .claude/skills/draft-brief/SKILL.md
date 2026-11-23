@@ -41,7 +41,8 @@ Do not use when:
    - For each repo the idea may touch, read `AGENTS.md` and grep the code if a clone exists. Learn how the relevant part works today.
    - List open briefs and check for a duplicate:
      ```bash
-     gh issue list --repo alta-prima-indonesia/claude-cowork --label ai:brief --state open --json number,title,url
+     gh api "repos/alta-prima-indonesia/claude-cowork/issues?labels=ai:brief&state=open&per_page=100" \
+       --jq '.[] | {number, title, url: .html_url}'
      ```
      If `gh` is not authenticated, use the GitHub MCP `list_issues` tool. If a brief covers the same outcome, show it and ask whether to add a comment there instead.
 
@@ -122,7 +123,7 @@ Do not use when:
       PY
       ```
 
-7. **Start the pipeline.** Run the `run-pipeline` skill with `batch` in the same turn, so phase A triages the brief now. Its gate stops the send when the runner is busy or usage pauses; then the next hourly batch triages it.
+7. **Start the pipeline.** Run the `run-pipeline` procedure with `batch` in the same turn, so phase A triages the brief now. Its frontmatter sets `disable-model-invocation: true`, so the Skill tool refuses it: read `.claude/skills/run-pipeline/SKILL.md` and follow it. Its gate stops the send when the runner is busy or usage pauses; then the next hourly batch triages it.
 8. **Confirm.** Reply with the issue URL and the `run-pipeline` result: run sent, or why it waits for the next hourly batch.
 
 ## Outputs

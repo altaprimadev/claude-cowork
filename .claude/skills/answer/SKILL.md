@@ -96,7 +96,7 @@ Do not use when:
    Without `gh`, use GitHub MCP `add_issue_comment` and `issue_write` (method `update`, full label list). For a PR, the issue commands also work on the PR number.
    A label that does not exist on the item is skipped, not an error.
 
-9. **Start the pipeline.** Run the `run-pipeline` skill with `batch` in the same turn, so the item resumes now. Its gate stops the send when the runner is busy or usage pauses; then the next hourly batch picks the item up.
+9. **Start the pipeline.** Run the `run-pipeline` procedure with `batch` in the same turn, so the item resumes now. Its frontmatter sets `disable-model-invocation: true`, so the Skill tool refuses it: read `.claude/skills/run-pipeline/SKILL.md` and follow it. Its gate stops the send when the runner is busy or usage pauses; then the next hourly batch picks the item up.
 10. **Confirm.** Reply with the comment link, the labels now on the item, and the `run-pipeline` result: run sent, or why it waits for the next hourly batch.
 
 ## Outputs

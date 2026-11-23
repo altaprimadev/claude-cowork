@@ -16,6 +16,8 @@ Checks:
   8. Every SKILL.md and agent file ends with an attribution line:
      "Adapted from <source> (MIT)..." or "Original to claude-cowork. ...".
   9. No obvious secrets are committed.
+ 10. templates/managed-settings.json has the same allow rules as .claude/settings.json,
+     a deny list that .claude/settings.json contains, and both hook scripts.
 
 Usage: python3 scripts/validate-config.py [repo_root]
 Exit 0 when all checks pass, 1 otherwise.
@@ -172,6 +174,31 @@ def check_skills(settings: dict) -> set[str]:
     return skills
 
 
+def check_managed_template(settings: dict) -> None:
+    path = ROOT / "templates" / "managed-settings.json"
+    where = "templates/managed-settings.json"
+    if not path.exists():
+        err(f"{where}: missing")
+        return
+    try:
+        tpl = json.loads(path.read_text())
+    except json.JSONDecodeError:
+        return  # check_parse_all reports it
+    perms, tperms = settings.get("permissions") or {}, tpl.get("permissions") or {}
+    repo_allow, tpl_allow = set(perms.get("allow") or []), set(tperms.get("allow") or [])
+    for rule in sorted(repo_allow - tpl_allow):
+        err(f"{where}: allow lacks {rule} (in .claude/settings.json)")
+    for rule in sorted(tpl_allow - repo_allow):
+        err(f".claude/settings.json: allow lacks {rule} (in {where})")
+    # The template holds the org-wide denies only; repo-only denies may stay out of it.
+    for rule in sorted(set(tperms.get("deny") or []) - set(perms.get("deny") or [])):
+        err(f".claude/settings.json: deny lacks {rule} (in {where})")
+    hooks = json.dumps(tpl.get("hooks") or {})
+    for script in ("guard_bash.py", "pre_compact.py"):
+        if f"claude-cowork/.claude/hooks/{script}" not in hooks:
+            err(f"{where}: no hook runs .claude/hooks/{script}")
+
+
 def referenced_skill_names(text: str, skills: set[str]) -> set[str]:
     """Backticked names that look like skills of this repo."""
     names = set()
@@ -315,6 +342,7 @@ def main() -> int:
     settings = load_settings()
     check_hooks(settings)
     skills = check_skills(settings)
+    check_managed_template(settings)
     agents = check_agents(skills)
     check_claude_md(skills, agents)
     check_registry(skills)

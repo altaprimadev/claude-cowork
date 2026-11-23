@@ -30,7 +30,7 @@ The orchestrator passes:
 
 ## Bash scope
 
-Use Bash only for:
+Use Bash only for the calls below. In a cloud session, use the REST form of each `gh` call (`docs/gh-rest.md`).
 - Read: `gh issue view/list`, `gh pr view`, `gh api` (GET only), `git log`, `git show`.
 - Mutate: `gh issue create`, `gh issue edit`, `gh issue comment`, and `gh api` sub-issue links if the skill uses them.
 
