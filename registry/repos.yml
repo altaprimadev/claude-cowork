@@ -21,20 +21,20 @@
 
 repos:
   # Control repo. Autonomy 0 still lets repo-onboarding open registry PRs (CLAUDE.md -> "Respect autonomy").
-  - name: altaprimadev/claude-cowork
+  - name: alta-prima-indonesia/claude-cowork
     status: active
     autonomy: 0
     environment: hosted
 
   # Admin API. Onboarded via altaprimadev/alta-prima-admin-back-end#37
-  - name: altaprimadev/alta-prima-admin-back-end
+  - name: alta-prima-indonesia/alta-prima-admin-back-end
     status: active
     autonomy: 2
     environment: hosted
     branch_protection: unavailable
 
   # Prisma schema for the admin API. Onboarded via altaprimadev/alta-prima-admin-prisma#24
-  - name: altaprimadev/alta-prima-admin-prisma
+  - name: alta-prima-indonesia/alta-prima-admin-prisma
     status: active
     autonomy: 2
     environment: hosted
@@ -47,7 +47,7 @@ repos:
     environment: hosted
 
   # Legacy data export (CSV, SQL). Read-only source for the apsy-api port.
-  - name: altaprimadev/alta-prima-admin-data
+  - name: alta-prima-indonesia/alta-prima-admin-data
     status: frozen
     autonomy: 0
     environment: hosted

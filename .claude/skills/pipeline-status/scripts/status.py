@@ -24,7 +24,7 @@ import sys
 import time
 from pathlib import Path
 
-CONTROL_REPO = "altaprimadev/claude-cowork"
+CONTROL_REPO = "alta-prima-indonesia/claude-cowork"
 PIPELINE_TASKS = ("Pipeline: batch", "Pipeline: onboarding scan")
 WIB = 7 * 3600
 STALE_SECONDS = 24 * 3600

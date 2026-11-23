@@ -34,10 +34,11 @@ max_heavy_items_per_run: 5
 max_fix_attempts: 3
 
 # Repo that hosts daily report issues and briefs.
-control_repo: altaprimadev/claude-cowork
+control_repo: alta-prima-indonesia/claude-cowork
 
 # GitHub Project board. .github/workflows/project-sync.yml mirrors pipeline
-# owner: a GitHub user or organization login (altaprimadev is a user account).
+# owner: a GitHub user or organization login. Project #2 still lives under the user
+# account altaprimadev; keep it until a Project exists in the alta-prima-indonesia org.
 # labels into it. Agents never write to the Project. number 0 disables the sync.
 # The Status field must have one option per value in scripts/project_sync.py STATUS_ORDER.
 project:

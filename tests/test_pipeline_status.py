@@ -8,7 +8,7 @@ sys.path.insert(0, str(ROOT / ".claude" / "skills" / "pipeline-status" / "script
 
 from status import build, classify, render  # noqa: E402
 
-REPO = "altaprimadev/svc"
+REPO = "alta-prima-indonesia/svc"
 NOW = 1795150000  # 2026-11-20T03:26:40Z
 
 
@@ -50,9 +50,9 @@ def test_stale_in_progress_without_pr():
 
 
 def test_planned_task_lists_open_dependencies_only():
-    body = "<!-- ai:plan parent=a/b#1 task=2 -->\nParent: a/b#1\nDepends on: altaprimadev/svc#20, #21"
+    body = "<!-- ai:plan parent=a/b#1 task=2 -->\nParent: a/b#1\nDepends on: alta-prima-indonesia/svc#20, #21"
     g = classify(data([issue(22, body=body), issue(20, ["ai:in-progress"])]), NOW)
-    assert g["waiting_deps"][0]["deps"] == ["altaprimadev/svc#20"]
+    assert g["waiting_deps"][0]["deps"] == ["alta-prima-indonesia/svc#20"]
 
 
 def test_next_heavy_respects_usage_and_busy_repos():
@@ -80,7 +80,7 @@ def test_render_shows_runner_schedule_and_usage():
 
 
 def test_unplanned_task_without_stage_label_is_not_promoted():
-    small = issue(30, body="Parent: altaprimadev/claude-cowork#5\nTrivial: no")
+    small = issue(30, body="Parent: alta-prima-indonesia/claude-cowork#5\nTrivial: no")
     planned = issue(31, body="<!-- ai:plan parent=a/b#1 task=1 -->\nParent: a/b#1\nDepends on: none")
     out = render(build(data([small, planned]), {}, None, None, None, NOW))
     assert "svc#30" in out and "tanpa label stage" in out

@@ -31,7 +31,7 @@ def test_triaged_brief_routed_to_tasks_is_in_progress():
 
 
 def test_draft_task():
-    assert status_for(issue("size:small", "ai:draft", body="Parent: altaprimadev/claude-cowork#3")) == "Draft"
+    assert status_for(issue("size:small", "ai:draft", body="Parent: alta-prima-indonesia/claude-cowork#3")) == "Draft"
 
 
 def test_needs_human_label_wins_over_other_labels():
@@ -39,7 +39,7 @@ def test_needs_human_label_wins_over_other_labels():
 
 
 def test_reviewed_task_without_stage_label_is_backlog():
-    body = "<!-- ai:plan parent=altaprimadev/claude-cowork#3 task=2 -->\nParent: altaprimadev/claude-cowork#3"
+    body = "<!-- ai:plan parent=alta-prima-indonesia/claude-cowork#3 task=2 -->\nParent: alta-prima-indonesia/claude-cowork#3"
     assert status_for(issue("size:large", body=body)) == "Backlog"
 
 
