@@ -193,6 +193,7 @@ Scheduled-task runs start in auto mode (Q5). They still stop on `ask` rules. Rep
   ```bash
   scripts/setup-branch-protection.sh altaprimadev/claude-cowork --check validate
   ```
+- [ ] Or apply the ruleset template `templates/rulesets/main-protector.json` (Settings -> Rules -> Rulesets -> Import a ruleset). It blocks deletion and force-push on `main`, requires a PR, and requires the `validate` check from GitHub Actions. It requires 0 approvals: Gate 2 rests on the agent rules and the guard hook. Repository admins can bypass it through a PR.
 
 ## 10. Usage tracking per task (operator)
 
