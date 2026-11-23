@@ -76,6 +76,7 @@ Branch protection needs Pro (personal account) or Team (organization) for privat
   - no deletion.
 - [ ] Protect `production` the same way when a repo uses a production branch.
 - [ ] For `claude-cowork` itself, use the check from this repo's CI (step 9).
+- [ ] Or import the ruleset templates in `templates/rulesets/` per target repo (Settings -> Rules -> Rulesets -> Import a ruleset): `development-protector.json` and `staging-protector.json`. They block deletion and force-push and require a PR, with 0 approvals. They require no status check, because the CI job name differs per repo. Add a `required_status_checks` rule with the repo's job name (`integration_id: 15368`). Use Merge, not Squash, on promotion PRs (`development` -> `staging` -> `main`).
 
 ## 3. Cloud environment (account owner, claude.ai/code)
 
