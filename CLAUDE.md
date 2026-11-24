@@ -38,8 +38,9 @@ Human-invoked skills run only in interactive sessions, never in scheduled tasks,
 - `answer`: answer an `ai:needs-human` or `ai:blocked` item; post on `post now`.
 - `usage-reminder`: remind the human at every five-hour usage reset with task status or a nudge to write a brief (`start`, `run`, `status`, `stop`).
 - `skills-help`: list every skill with a one-line description, or show one skill in full.
-- `watchtower`: audit and review this repo's skills, agents, workflows, rules, and hooks for drift and contradictions; suggest improvements. Read-only.
+- `watchtower`: review this repo's skills, agents, workflows, rules, and hooks as an outside party, for mistakes, drift, and contradictions; suggest improvements. Read-only.
 - `run-pipeline`: start a pipeline run now in the runner session instead of waiting for its schedule (`batch`, `onboarding`), after a usage and runner check.
+- `workflow-setup`: audit the live setup against the internal rules (pass, fail, or error, no advice), show the manual guide for steps no AI can do, and run a wizard that does the rest (`status`, `guide`, `wizard`).
 The runner session watches open pipeline PRs with the `pr-watch` skill. A human merge runs the batch phases A to C at once (`docs/scheduled-tasks.md`). Only the runner subscribes to `ai/*` and `design/*` PRs.
 An interactive session subscribes to every PR it opens itself (`subscribe_pr_activity`). On a merge, it tells the human in chat and names any follow-up step a human must do, such as installing a changed hook in the managed settings. The batch run syncs changed scheduled-task prompts itself. It never pushes more to a merged PR.
 **Merge feedback.** Any session that gives the human a link to a PR to merge confirms the merge in chat after the human merges: one line with the PR, the base branch, and the merge time. Feedback is not execution. The work after a merge stays with the session that owns the PR: the runner (`pr-watch`) for `ai/*` and `design/*` PRs, the opening session for its own PRs.

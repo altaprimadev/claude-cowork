@@ -15,7 +15,7 @@ Humans do four things:
 |---|---|
 | `CLAUDE.md` | Orchestrator rules and the stage → agent → skill map. Loads in every session. |
 | `.claude/agents/` | Nine fixed agents, one per pipeline role |
-| `.claude/skills/` | Nine stage skills, six stack skills, two utilities (`usage-status`, `pr-watch`), and eight human-invoked skills: `draft-brief`, `inbox`, `pipeline-status`, `answer`, `usage-reminder`, `skills-help`, `run-pipeline`, `watchtower`. Run `/skills-help` for the list. |
+| `.claude/skills/` | Nine stage skills, six stack skills, two utilities (`usage-status`, `pr-watch`), and nine human-invoked skills: `draft-brief`, `inbox`, `pipeline-status`, `answer`, `usage-reminder`, `skills-help`, `run-pipeline`, `watchtower`, `workflow-setup`. Run `/skills-help` for the list. |
 | `.claude/settings.json` | Guard hook and permissions, including `Skill(<name>)` allow rules |
 | `.claude/hooks/guard_bash.py` | PreToolUse guard that blocks destructive Bash commands |
 | `.claude/hooks/pre_compact.py` | PreCompact hook that sets what a compaction summary keeps |

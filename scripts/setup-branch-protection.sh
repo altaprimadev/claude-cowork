@@ -11,7 +11,8 @@
 # Enables: required PR, >= N approvals (default 1), dismiss stale reviews,
 # code owner reviews, required status checks (strict), enforce for admins,
 # no force pushes, no deletions.
-# Needs: gh CLI, authenticated as a HUMAN repo admin. The agent never runs it.
+# Needs: gh CLI as a repo admin. A human runs it, or the workflow-setup
+# wizard runs it on a human request. Scheduled runs never run it.
 # Idempotent: PUT replaces the protection with the same settings each run.
 
 set -euo pipefail
@@ -22,7 +23,7 @@ APPROVALS=1
 APPLY=0
 CHECKS=()
 
-usage() { sed -n '2,16p' "$0" >&2; exit 1; }
+usage() { sed -n '2,17p' "$0" >&2; exit 1; }
 
 while [[ $# -gt 0 ]]; do
   case "$1" in

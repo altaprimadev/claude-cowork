@@ -8,7 +8,7 @@ effort: high
 argument-hint: "[all|structure|skills|agents|rules|hooks|workflows|consistency|<skill name>]"
 compatibility: Needs python3 with PyYAML and a claude-cowork clone.
 metadata:
-  version: "1.3.0"
+  version: "1.4.0"
   owner: claude-cowork
 ---
 # Watchtower
@@ -23,6 +23,8 @@ It works in two layers:
 
 Scope is this repo only. Target repos have their own `AGENTS.md` and review flow.
 
+Watchtower reviews like an outside party. It treats the repo's rules, skills, and docs as the object under review, finds mistakes and contradictions in them, and outputs suggestions. The `workflow-setup` audit is the opposite: an internal check of the live setup against those rules, as pass, fail, or error, with no advice. Watchtower does not check live setup state, and `workflow-setup` does not suggest.
+
 ## When to use / not use
 
 Use when:
@@ -31,6 +33,7 @@ Use when:
 
 Do not use when:
 - The human asks about the state of pipeline items. Use `pipeline-status` or `inbox`.
+- The human asks whether the setup is in place (labels, runner, scheduled tasks, settings). Use `workflow-setup` (`status`).
 - The human wants a code review of a target repo PR. That is `review-two-stage`.
 - A scheduled task runs.
 

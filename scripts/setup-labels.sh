@@ -3,8 +3,9 @@
 # Idempotent: `gh label create --force` updates existing labels.
 #
 # Usage: scripts/setup-labels.sh owner/repo [owner/repo ...]
-# Needs: gh CLI, authenticated as a HUMAN with admin or maintain rights.
-# The agent never runs this script.
+# Needs: gh CLI with admin or maintain rights. A human runs it, or the
+# workflow-setup wizard does the same through REST on a human request.
+# Scheduled runs never run it.
 
 set -euo pipefail
 
