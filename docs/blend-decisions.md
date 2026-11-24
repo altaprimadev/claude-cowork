@@ -335,6 +335,7 @@ Human-invoked. Original to claude-cowork. Turns the setup docs into a manual gui
 | Manual guide holds only steps no AI can do: payment, identity, browser consent, no API, human origin | brief (owner, 2026-11-24) | write from brief | The owner wants the human list to be real limits, not permission rules. |
 | A rule-only block stays in the wizard | brief (owner, 2026-11-24) | write from brief | The owner accepts the risk. Gate merges stay human by `CLAUDE.md`. |
 | Wizard runs the setup scripts and REST calls on a human request | `docs/setup.md` "Humans run them" | modify | Replaces the old rule for interactive sessions. Scheduled runs still never run them. |
+| Audit reports pass, fail (state wrong), or error (check could not run), with a reason and no advice | owner review (2026-11-24) | write from brief | Removes the overlap with `watchtower`: watchtower reviews the rules from outside and suggests; this audit checks the live setup against them and judges only. |
 | Mechanical checks in a tested script (`setup_audit.py`), judgment in the skill | `skills-help`, `pipeline-status` pattern | take | The wizard re-runs the audit after each step, so a step is reported done only on evidence. |
 | One `jalan` confirmation for the whole plan | `CLAUDE.md` "Interactive sessions too" | take | One ask before outward steps; a new action outside the plan asks again. |
 | Rebind a task with delete then create | `update_trigger` has no `persistent_session_id` | write from brief | The only way to move a task to a new runner. The plan names the lost run history. |

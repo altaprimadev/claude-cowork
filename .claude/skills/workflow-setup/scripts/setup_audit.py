@@ -12,8 +12,10 @@ stdin:
    "runner_guard": "active" | "inactive" | null}
 
 Each step has an owner: `human` (an action no AI session can do) or `ai`
-(the wizard does it). Status: done, todo, blocked (waits on another step),
-or unknown (nothing can prove it; the human confirms).
+(the wizard does it). Result: pass, fail (the state is wrong; reason), or
+error (the check could not run; reason). The audit judges only against the
+rules and docs of claude-cowork. It gives no advice: suggestions belong to
+watchtower.
 
 Usage:
   python3 setup_audit.py --root <claude-cowork clone> [--json] < input.json
@@ -36,7 +38,7 @@ TASKS = {
                         "cron": re.compile(r"^\d{1,2} \* \* \* \*$")},
 }
 ENV_NAME = "altaprima-default"
-ICON = {"done": "✅", "todo": "⏳", "blocked": "⛔", "unknown": "❓"}
+ICON = {"pass": "✅", "fail": "❌", "error": "⚠️"}
 LABEL_LINE = re.compile(r'^\s*"([^"|]+)\|([0-9a-fA-F]{6})\|([^"]*)"\s*$')
 FENCE = re.compile(r"```text\n(.*?)\n```", re.DOTALL)
 HTTP_CODE = re.compile(r"\(HTTP (\d{3})\)")
@@ -106,8 +108,9 @@ def unwrap(obj):
 
 # ---------- steps ----------
 
-def step(sid, owner, title, status, detail="", fix=""):
-    return {"id": sid, "owner": owner, "title": title, "status": status, "detail": detail, "fix": fix}
+def step(sid, owner, title, status, reason=""):
+    """One audit result: pass, fail (state is wrong), or error (check could not run)."""
+    return {"id": sid, "owner": owner, "title": title, "status": status, "reason": reason}
 
 
 def check_labels(repos, specs, get):
@@ -123,12 +126,11 @@ def check_labels(repos, specs, get):
         if lack:
             missing[r] = lack
     if unread:
-        return step("A2", "ai", "Label pipeline", "unknown", "nggak kebaca: " + ", ".join(unread),
-                    "pasang repo ke sesi (add_repo), lalu cek lagi")
+        return step("A2", "ai", "Label pipeline", "error", "nggak kebaca: " + ", ".join(unread))
     if missing:
         detail = "; ".join(f"{r}: {len(v)} kurang" for r, v in missing.items())
-        return step("A2", "ai", "Label pipeline", "todo", detail, "buat label lewat REST (wizard W2)")
-    return step("A2", "ai", "Label pipeline", "done", f"{len(want)} label di {len(repos)} repo")
+        return step("A2", "ai", "Label pipeline", "fail", detail)
+    return step("A2", "ai", "Label pipeline", "pass", f"{len(want)} label di {len(repos)} repo")
 
 
 def check_codeowners(repos, get):
@@ -140,11 +142,10 @@ def check_codeowners(repos, get):
         elif code != 200:
             unread.append(f"{r} (HTTP {code})")
     if unread:
-        return step("A3", "ai", "CODEOWNERS", "unknown", "nggak kebaca: " + ", ".join(unread))
+        return step("A3", "ai", "CODEOWNERS", "error", "nggak kebaca: " + ", ".join(unread))
     if lack:
-        return step("A3", "ai", "CODEOWNERS", "todo", "belum ada di " + ", ".join(lack),
-                    "PR CODEOWNERS dengan reviewer manusia (wizard W3)")
-    return step("A3", "ai", "CODEOWNERS", "done", f"ada di {len(repos)} repo")
+        return step("A3", "ai", "CODEOWNERS", "fail", "belum ada di " + ", ".join(lack))
+    return step("A3", "ai", "CODEOWNERS", "pass", f"ada di {len(repos)} repo")
 
 
 def check_protection(entries, get):
@@ -169,25 +170,23 @@ def check_protection(entries, get):
         else:
             unread.append(f"{r} (HTTP {code})")
     if plan_blocked:
-        h1 = step("H1", "human", "Paket GitHub Team untuk org", "todo",
-                  "proteksi branch ditolak paket Free: " + ", ".join(plan_blocked),
-                  "upgrade paket org di GitHub Billing")
+        h1 = step("H1", "human", "Paket GitHub Team untuk org", "fail",
+                  "proteksi branch ditolak paket Free: " + ", ".join(plan_blocked))
     elif unread and not (ok or none):
-        h1 = step("H1", "human", "Paket GitHub Team untuk org", "unknown", "nggak kebaca")
+        h1 = step("H1", "human", "Paket GitHub Team untuk org", "error", "nggak kebaca")
     else:
-        h1 = step("H1", "human", "Paket GitHub Team untuk org", "done", "proteksi branch tersedia")
+        h1 = step("H1", "human", "Paket GitHub Team untuk org", "pass", "proteksi branch tersedia")
     if unread:
-        a4 = step("A4", "ai", "Proteksi branch / ruleset", "unknown", "nggak kebaca: " + ", ".join(unread))
+        a4 = step("A4", "ai", "Proteksi branch / ruleset", "error", "nggak kebaca: " + ", ".join(unread))
     elif none:
-        a4 = step("A4", "ai", "Proteksi branch / ruleset", "todo", "belum diproteksi: " + ", ".join(none),
-                  "dry-run lalu apply (wizard W4)")
+        a4 = step("A4", "ai", "Proteksi branch / ruleset", "fail", "belum diproteksi: " + ", ".join(none))
     elif plan_blocked:
         detail = "nunggu H1"
         if compensated:
             detail += "; aturan kompensasi aktif di " + ", ".join(compensated)
-        a4 = step("A4", "ai", "Proteksi branch / ruleset", "blocked", detail)
+        a4 = step("A4", "ai", "Proteksi branch / ruleset", "fail", detail)
     else:
-        a4 = step("A4", "ai", "Proteksi branch / ruleset", "done", f"{len(ok)} repo terproteksi")
+        a4 = step("A4", "ai", "Proteksi branch / ruleset", "pass", f"{len(ok)} repo terproteksi")
     return h1, a4
 
 
@@ -202,65 +201,59 @@ def latest_run(get, workflow: str, branch: str = "main"):
 def check_ci(get):
     code, run = latest_run(get, "ci.yml")
     if code == 404:
-        return step("A5", "ai", "CI validate di claude-cowork", "todo", "workflow ci.yml nggak ada")
+        return step("A5", "ai", "CI validate di claude-cowork", "fail", "workflow ci.yml nggak ada")
     if code != 200:
-        return step("A5", "ai", "CI validate di claude-cowork", "unknown", f"HTTP {code}")
+        return step("A5", "ai", "CI validate di claude-cowork", "error", f"HTTP {code}")
     if not run:
-        return step("A5", "ai", "CI validate di claude-cowork", "todo", "belum pernah jalan di main")
+        return step("A5", "ai", "CI validate di claude-cowork", "fail", "belum pernah jalan di main")
     concl = run.get("conclusion") or run.get("status")
-    status = "done" if concl == "success" else "todo"
-    return step("A5", "ai", "CI validate di claude-cowork", status, f"run terakhir di main: {concl}",
-                "" if status == "done" else "baca log run terakhir dan perbaiki lewat PR")
+    status = "pass" if concl == "success" else "fail"
+    return step("A5", "ai", "CI validate di claude-cowork", status, f"run terakhir di main: {concl}")
 
 
 def check_project(policy, get):
     """Returns (board step H5, token step H6, sync step A6)."""
     number = ((policy.get("project") or {}).get("number")) or 0
-    h5 = step("H5", "human", "GitHub Project board", "done" if number else "todo",
-              f"project.number = {number}",
-              "" if number else "buat Project + field Status di GitHub web")
+    h5 = step("H5", "human", "GitHub Project board", "pass" if number else "fail",
+              f"project.number = {number}")
     run_code, run = latest_run(get, "project-sync.yml")
     synced = run_code == 200 and bool(number) and (run or {}).get("conclusion") == "success"
     code, _ = get(f"repos/{CONTROL_REPO}/actions/secrets/PROJECT_SYNC_TOKEN")
     if code == 200:
-        h6 = step("H6", "human", "Token PROJECT_SYNC_TOKEN", "done", "secret ada")
+        h6 = step("H6", "human", "Token PROJECT_SYNC_TOKEN", "pass", "secret ada")
     elif code == 404:
-        h6 = step("H6", "human", "Token PROJECT_SYNC_TOKEN", "todo", "secret belum ada",
-                  "buat token classic di GitHub web, simpan sebagai Actions secret")
+        h6 = step("H6", "human", "Token PROJECT_SYNC_TOKEN", "fail", "secret belum ada")
     elif synced:
-        h6 = step("H6", "human", "Token PROJECT_SYNC_TOKEN", "done", "terbukti dari run project-sync yang sukses")
+        h6 = step("H6", "human", "Token PROJECT_SYNC_TOKEN", "pass", "terbukti dari run project-sync yang sukses")
     else:
-        h6 = step("H6", "human", "Token PROJECT_SYNC_TOKEN", "unknown", f"secret nggak kebaca (HTTP {code})")
-    if not number or h6["status"] == "todo":
-        return h5, h6, step("A6", "ai", "Project sync jalan", "blocked", "nunggu H5/H6")
+        h6 = step("H6", "human", "Token PROJECT_SYNC_TOKEN", "error", f"secret nggak kebaca (HTTP {code})")
+    if not number or h6["status"] == "fail":
+        return h5, h6, step("A6", "ai", "Project sync jalan", "fail", "nunggu H5/H6")
     if run_code != 200:
-        return h5, h6, step("A6", "ai", "Project sync jalan", "unknown", f"HTTP {run_code}")
+        return h5, h6, step("A6", "ai", "Project sync jalan", "error", f"HTTP {run_code}")
     concl = (run or {}).get("conclusion") or (run or {}).get("status") or "belum pernah jalan"
-    status = "done" if concl == "success" else "todo"
-    return h5, h6, step("A6", "ai", "Project sync jalan", status, f"run terakhir: {concl}",
-                        "" if status == "done" else "dispatch project-sync, cek hasilnya (wizard W6)")
+    status = "pass" if concl == "success" else "fail"
+    return h5, h6, step("A6", "ai", "Project sync jalan", status, f"run terakhir: {concl}")
 
 
 def check_env(environments):
     if environments is None:
-        return step("H7", "human", "Cloud environment", "unknown", "list_environments nggak dikirim")
+        return step("H7", "human", "Cloud environment", "error", "list_environments nggak dikirim")
     names = [e.get("name") for e in environments if isinstance(e, dict)]
     if ENV_NAME in names:
-        return step("H7", "human", "Cloud environment", "unknown",
-                    f"{ENV_NAME} ada; network, setup script, dan env var cuma bisa dicek di UI",
-                    "cocokkan dengan panduan H7")
-    return step("H7", "human", "Cloud environment", "todo", f"{ENV_NAME} belum ada",
-                "buat environment di claude.ai/code")
+        return step("H7", "human", "Cloud environment", "error",
+                    f"{ENV_NAME} ada; network, setup script, dan env var cuma bisa dicek di UI")
+    return step("H7", "human", "Cloud environment", "fail", f"{ENV_NAME} belum ada")
 
 
 def check_managed(runner_guard):
     if runner_guard == "active":
-        return step("H8", "human", "Managed settings org (hook + permission)", "done",
+        return step("H8", "human", "Managed settings org (hook + permission)", "pass",
                     "runner melapor guard: active")
     if runner_guard == "inactive":
-        return step("H8", "human", "Managed settings org (hook + permission)", "todo",
-                    "runner melapor guard: inactive", "tempel templates/managed-settings.json di admin console")
-    return step("H8", "human", "Managed settings org (hook + permission)", "unknown",
+        return step("H8", "human", "Managed settings org (hook + permission)", "fail",
+                    "runner melapor guard: inactive")
+    return step("H8", "human", "Managed settings org (hook + permission)", "error",
                 "belum ada laporan guard dari runner")
 
 
@@ -274,24 +267,22 @@ def check_runner(runner, active, frozen):
     """Returns (runner step A7, attach step H9)."""
     r = unwrap(runner)
     if not r:
-        return (step("A7", "ai", "Sesi runner", "todo", "belum ada runner yang terikat ke task",
-                     "buat sesi runner (wizard W7)"),
-                step("H9", "human", "Pasang repo push + baris pr-watch di runner", "blocked", "nunggu A7"))
+        return (step("A7", "ai", "Sesi runner", "fail", "belum ada runner yang terikat ke task"),
+                step("H9", "human", "Pasang repo push + baris pr-watch di runner", "fail", "nunggu A7"))
     status = r.get("session_status") or ""
     if "ARCHIVED" in status:
-        return (step("A7", "ai", "Sesi runner", "todo", "runner diarsipkan", "buat runner baru (wizard W7)"),
-                step("H9", "human", "Pasang repo push + baris pr-watch di runner", "blocked", "nunggu A7"))
-    a7 = step("A7", "ai", "Sesi runner", "done", f"{r.get('id')} ({status.replace('SESSION_STATUS_', '').lower()})")
+        return (step("A7", "ai", "Sesi runner", "fail", "runner diarsipkan"),
+                step("H9", "human", "Pasang repo push + baris pr-watch di runner", "fail", "nunggu A7"))
+    a7 = step("A7", "ai", "Sesi runner", "pass", f"{r.get('id')} ({status.replace('SESSION_STATUS_', '').lower()})")
     sources = {repo_of(s.get("git_repository", {}).get("url", ""))
                for s in (r.get("session_context") or {}).get("sources") or []}
     lack = [x for x in active + frozen if x not in sources]
     if lack:
-        h9 = step("H9", "human", "Pasang repo push + baris pr-watch di runner", "todo",
-                  "repo belum terpasang: " + ", ".join(lack), "ketik teks dari wizard di sesi runner")
+        h9 = step("H9", "human", "Pasang repo push + baris pr-watch di runner", "fail",
+                  "repo belum terpasang: " + ", ".join(lack))
     else:
-        h9 = step("H9", "human", "Pasang repo push + baris pr-watch di runner", "unknown",
-                  "semua repo terpasang; baris pr-watch nggak bisa dicek dari luar",
-                  "pastikan baris pr-watch sudah diketik sekali di runner ini")
+        h9 = step("H9", "human", "Pasang repo push + baris pr-watch di runner", "error",
+                  "semua repo terpasang; baris pr-watch nggak bisa dicek dari luar")
     return a7, h9
 
 
@@ -313,39 +304,36 @@ def check_tasks(triggers, prompts, rid):
         if name in prompts and stored != prompts[name]:
             problems.append(f"{name}: prompt beda dari docs")
     if problems:
-        return step("A8", "ai", "Scheduled task pipeline", "todo", "; ".join(problems),
-                    "buat, sinkronkan, atau ikat ulang task (wizard W8)")
-    return step("A8", "ai", "Scheduled task pipeline", "done", "2 task aktif, prompt sama dengan docs")
+        return step("A8", "ai", "Scheduled task pipeline", "fail", "; ".join(problems))
+    return step("A8", "ai", "Scheduled task pipeline", "pass", "2 task aktif, prompt sama dengan docs")
 
 
 def check_registry(org_repos, entries):
     if org_repos is None:
-        return step("A9", "ai", "Registry vs repo org", "unknown", "list_repos nggak dikirim")
+        return step("A9", "ai", "Registry vs repo org", "error", "list_repos nggak dikirim")
     known = {e["name"] for e in entries}
     detected = sorted(r for r in org_repos if r.startswith(ORG + "/") and r not in known)
     if detected:
-        return step("A9", "ai", "Registry vs repo org", "todo", "belum di registry: " + ", ".join(detected),
-                    "jalankan /run-pipeline onboarding")
-    return step("A9", "ai", "Registry vs repo org", "done", "semua repo org ada di registry")
+        return step("A9", "ai", "Registry vs repo org", "fail", "belum di registry: " + ", ".join(detected))
+    return step("A9", "ai", "Registry vs repo org", "pass", "semua repo org ada di registry")
 
 
 def check_settings_sync(root: Path, run=subprocess.run):
     out = run([sys.executable, str(root / "scripts" / "validate-config.py"), str(root)],
               capture_output=True, text=True, timeout=120)
     if out.returncode == 0:
-        return step("A1", "ai", "Config repo valid (settings = template)", "done", "validate-config OK")
+        return step("A1", "ai", "Config repo valid (settings = template)", "pass", "validate-config OK")
     last = [x.strip() for x in ((out.stdout or "") + (out.stderr or "")).splitlines() if x.strip()]
-    return step("A1", "ai", "Config repo valid (settings = template)", "todo",
-                last[-1] if last else "validate-config gagal", "perbaiki lewat PR")
+    return step("A1", "ai", "Config repo valid (settings = template)", "fail",
+                last[-1] if last else "validate-config gagal")
 
 
 def check_github_login(get):
     code, body = get("user")
     if code == 200 and isinstance(body, dict):
         login = body.get("login", "?")
-        return step("H4", "human", "GitHub tersambung + Claude GitHub App", "done", f"gh login: {login}")
-    return step("H4", "human", "GitHub tersambung + Claude GitHub App", "todo", f"gh api user: HTTP {code}",
-                "sambungkan GitHub di claude.ai dan pasang Claude GitHub App")
+        return step("H4", "human", "GitHub tersambung + Claude GitHub App", "pass", f"gh login: {login}")
+    return step("H4", "human", "GitHub tersambung + Claude GitHub App", "fail", f"gh api user: HTTP {code}")
 
 
 def build(data: dict, root: Path, get=gh, run=subprocess.run) -> dict:
@@ -364,10 +352,10 @@ def build(data: dict, root: Path, get=gh, run=subprocess.run) -> dict:
     a7, h9 = check_runner(data.get("runner"), active, frozen)
     steps = [
         h1,
-        step("H2", "human", "Paket dan akun Claude untuk agen", "unknown",
-             "pembayaran dan seat nggak bisa dicek dari sesi", "konfirmasi di claude.ai Settings"),
-        step("H3", "human", "Akun GitHub machine user + 2FA", "unknown",
-             "pembuatan akun dan 2FA nggak bisa dicek dari sesi", "konfirmasi manual"),
+        step("H2", "human", "Paket dan akun Claude untuk agen", "error",
+             "pembayaran dan seat nggak bisa dicek dari sesi"),
+        step("H3", "human", "Akun GitHub machine user + 2FA", "error",
+             "pembuatan akun dan 2FA nggak bisa dicek dari sesi"),
         check_github_login(get),
         h5, h6,
         check_env(data.get("environments")),
@@ -393,16 +381,16 @@ def render(result: dict) -> str:
     for owner, title in (("human", "Langkah manusia"), ("ai", "Langkah AI (wizard)")):
         lines.append(f"**{title}**")
         lines.append("")
-        lines.append("| ID | Langkah | Status | Detail | Berikutnya |")
-        lines.append("|---|---|---|---|---|")
+        lines.append("| ID | Langkah | Hasil | Alasan |")
+        lines.append("|---|---|---|---|")
         for s in result["steps"]:
             if s["owner"] != owner:
                 continue
-            lines.append(f"| {s['id']} | {s['title']} | {ICON[s['status']]} {s['status']} "
-                         f"| {s['detail'] or '-'} | {s['fix'] or '-'} |")
+            reason = "-" if s["status"] == "pass" else (s["reason"] or "-")
+            lines.append(f"| {s['id']} | {s['title']} | {ICON[s['status']]} {s['status']} | {reason} |")
         lines.append("")
     c = result["counts"]
-    lines.append("Ringkasan: " + ", ".join(f"{k} {c[k]}" for k in ("done", "todo", "blocked", "unknown") if k in c))
+    lines.append("Ringkasan: " + ", ".join(f"{k} {c[k]}" for k in ("pass", "fail", "error") if k in c))
     return "\n".join(lines)
 
 
