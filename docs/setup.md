@@ -1,7 +1,7 @@
 # Setup: from zero to pilot
 
 Do these steps in order. Each step lists who does it.
-The agent never runs the scripts in this repo against GitHub. Humans run them.
+Run `/workflow-setup` in an interactive session first. Its wizard does every step an AI session can do, including the scripts in this repo, and its guide lists the rest. Scheduled runs never run these scripts.
 
 ## Current state (2026-11-23)
 

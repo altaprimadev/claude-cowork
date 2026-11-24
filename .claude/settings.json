@@ -27,6 +27,7 @@
       "Skill(pr-watch)",
       "Skill(pipeline-status)",
       "Skill(watchtower)",
+      "Skill(workflow-setup)",
       "Read",
       "Grep",
       "Glob",

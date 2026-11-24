@@ -324,6 +324,22 @@ Human-invoked. Sends a scheduled task's stored prompt to the runner session; no 
 | Stop when the runner session is working | brief | write from brief | Two runs on the same queue can pick the same item. |
 | Gate on usage advice; batch at caution needs `force` | CLAUDE.md "Usage budget" | write from brief | Same light/heavy split as the pipeline. The batch prompt does not check the budget yet. |
 
+### workflow-setup
+
+Sources read: `docs/setup.md`, `docs/scheduled-tasks.md`, `scripts/setup-labels.sh`, `scripts/setup-branch-protection.sh`.
+
+Human-invoked. Original to claude-cowork. Turns the setup docs into a manual guide and a wizard.
+
+| Atom | Source (repo, path, commit) | Decision | Reason |
+|---|---|---|---|
+| Manual guide holds only steps no AI can do: payment, identity, browser consent, no API, human origin | brief (owner, 2026-11-24) | write from brief | The owner wants the human list to be real limits, not permission rules. |
+| A rule-only block stays in the wizard | brief (owner, 2026-11-24) | write from brief | The owner accepts the risk. Gate merges stay human by `CLAUDE.md`. |
+| Wizard runs the setup scripts and REST calls on a human request | `docs/setup.md` "Humans run them" | modify | Replaces the old rule for interactive sessions. Scheduled runs still never run them. |
+| Mechanical checks in a tested script (`setup_audit.py`), judgment in the skill | `skills-help`, `pipeline-status` pattern | take | The wizard re-runs the audit after each step, so a step is reported done only on evidence. |
+| One `jalan` confirmation for the whole plan | `CLAUDE.md` "Interactive sessions too" | take | One ask before outward steps; a new action outside the plan asks again. |
+| Rebind a task with delete then create | `update_trigger` has no `persistent_session_id` | write from brief | The only way to move a task to a new runner. The plan names the lost run history. |
+| Push repos and the pr-watch line typed by the human in the runner | `docs/scheduled-tasks.md` "Current state" | take | The platform accepts both only from a person in that session. |
+
 ### skills-help
 
 Sources read: none.
